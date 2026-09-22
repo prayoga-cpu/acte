@@ -9,6 +9,11 @@ import { MeService } from "./me.service.js";
 export class MeController {
   constructor(@Inject(MeService) private readonly meService: MeService) {}
 
+  @Get("profile")
+  profile(@CurrentFirm() ctx: FirmContext) {
+    return this.meService.profile(ctx);
+  }
+
   @Get("summary")
   summary(@CurrentFirm() ctx: FirmContext) {
     return this.meService.summary(ctx);

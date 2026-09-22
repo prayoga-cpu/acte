@@ -5,6 +5,7 @@ REST, JSON, versioned under `/v1`. Every request and response body is a schema i
 | Method | Path | Purpose | Stage |
 |---|---|---|---|
 | POST | /v1/auth/* | better-auth routes | 1 |
+| GET | /v1/me/profile | Current member (header, profile menu, Profile view) | 1 |
 | GET | /v1/me/summary | Home KPIs | 1 |
 | GET | /v1/me/week | Weekly billed minutes | 1 |
 | GET | /v1/tasks?date= | Journal | 1 |
@@ -20,6 +21,7 @@ REST, JSON, versioned under `/v1`. Every request and response body is a schema i
 | POST | /v1/devices/:id/sync · DELETE /v1/devices/:id | Force sync, unlink | 4 |
 | GET | /v1/notifications · POST /v1/notifications/:id/read | Alerts | 2 |
 | GET | /v1/exports/validated.csv | CSV export | 2 |
+| GET/POST | /v1/billing/invoices | List drafts, generate one from validated time (Billing view) | 2 — not in the original contract; added to match PRODUCT_SPEC.md's "generate invoice draft" and the `client_invoice` table already in DATA_MODEL.md |
 | GET | /v1/firm/members · PATCH /v1/firm/members/:id | Admin team | 2 |
 | POST | /v1/firm/members/:id/remind · /suspend · /reactivate | Admin actions | 2 |
 | POST/DELETE | /v1/firm/invitations | Invite, cancel, resend | 2 |

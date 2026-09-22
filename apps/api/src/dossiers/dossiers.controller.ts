@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Patch, Post, UseGuards, UsePipes } from "@nestjs/common";
+import { Body, Controller, Get, Inject, Param, Patch, Post, UseGuards } from "@nestjs/common";
 import { CreateDossierBody, UpdateDossierBody } from "@acte/contracts";
 import type { z } from "zod";
 import { CurrentFirm } from "../auth/current-firm.decorator.js";
@@ -18,14 +18,16 @@ export class DossiersController {
   }
 
   @Post()
-  @UsePipes(new ZodValidationPipe(CreateDossierBody))
-  create(@CurrentFirm() ctx: FirmContext, @Body() body: z.infer<typeof CreateDossierBody>) {
+  create(@CurrentFirm() ctx: FirmContext, @Body(new ZodValidationPipe(CreateDossierBody)) body: z.infer<typeof CreateDossierBody>) {
     return this.dossiersService.create(ctx, body);
   }
 
   @Patch(":id")
-  @UsePipes(new ZodValidationPipe(UpdateDossierBody))
-  update(@CurrentFirm() ctx: FirmContext, @Param("id") id: string, @Body() body: z.infer<typeof UpdateDossierBody>) {
+  update(
+    @CurrentFirm() ctx: FirmContext,
+    @Param("id") id: string,
+    @Body(new ZodValidationPipe(UpdateDossierBody)) body: z.infer<typeof UpdateDossierBody>,
+  ) {
     return this.dossiersService.update(ctx, id, body);
   }
 }

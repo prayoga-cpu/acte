@@ -128,6 +128,7 @@ async function main() {
         status: "validated",
         validatedAt: endedAt,
       });
+      await dossierRepo.touchActivity(ctx, dossier.id, endedAt);
     }
   }
 
@@ -148,6 +149,8 @@ async function main() {
       status: "validated",
       validatedAt: new Date(startedAt.getTime() + 190 * 60_000),
     });
+    const delcourtId = dossierIdByKey.get("Delcourt");
+    if (delcourtId) await dossierRepo.touchActivity(ctx, delcourtId, new Date(startedAt.getTime() + 190 * 60_000));
   }
 
   // Today's Journal — the six INITIAL_TASKS, pending, exactly as in the prototype.
@@ -168,6 +171,8 @@ async function main() {
         confidence: t.conf,
         status: "pending",
       });
+      const dossierId = dossierIdByKey.get(t.dossier);
+      if (dossierId) await dossierRepo.touchActivity(ctx, dossierId, endedAt);
     }
   }
 

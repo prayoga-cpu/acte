@@ -1,7 +1,7 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { idColumn, timestamps } from "./columns";
-import { deviceOsEnum, deviceStatusEnum } from "./enums";
-import { members } from "./member";
+import { idColumn, timestamps } from "./columns.js";
+import { deviceOsEnum, deviceStatusEnum } from "./enums.js";
+import { members } from "./member.js";
 
 /**
  * Companion devices. Stage 2 only reads this list for Cloud & Sync; force

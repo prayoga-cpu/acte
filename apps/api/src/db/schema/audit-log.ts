@@ -1,7 +1,7 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { idColumn } from "./columns";
-import { firms } from "./firm";
-import { members } from "./member";
+import { idColumn } from "./columns.js";
+import { firms } from "./firm.js";
+import { members } from "./member.js";
 
 /** Append-only. Written on validate, reassign, dossier create/edit/archive, admin actions. */
 export const auditLogs = pgTable("audit_log", {

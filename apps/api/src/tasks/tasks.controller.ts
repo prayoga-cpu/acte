@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Patch, Post, Query, UseGuards, UsePipes } from "@nestjs/common";
+import { Body, Controller, Get, Inject, Param, Patch, Post, Query, UseGuards } from "@nestjs/common";
 import { CreateManualTaskBody, ReassignTaskBody } from "@acte/contracts";
 import type { z } from "zod";
 import { CurrentFirm } from "../auth/current-firm.decorator.js";
@@ -18,17 +18,15 @@ export class TasksController {
   }
 
   @Post()
-  @UsePipes(new ZodValidationPipe(CreateManualTaskBody))
-  create(@CurrentFirm() ctx: FirmContext, @Body() body: z.infer<typeof CreateManualTaskBody>) {
+  create(@CurrentFirm() ctx: FirmContext, @Body(new ZodValidationPipe(CreateManualTaskBody)) body: z.infer<typeof CreateManualTaskBody>) {
     return this.tasksService.createManual(ctx, body);
   }
 
   @Patch(":id")
-  @UsePipes(new ZodValidationPipe(ReassignTaskBody))
   reassign(
     @CurrentFirm() ctx: FirmContext,
     @Param("id") id: string,
-    @Body() body: z.infer<typeof ReassignTaskBody>,
+    @Body(new ZodValidationPipe(ReassignTaskBody)) body: z.infer<typeof ReassignTaskBody>,
   ) {
     return this.tasksService.reassign(ctx, id, body);
   }

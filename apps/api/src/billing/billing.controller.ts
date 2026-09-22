@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Post, UseGuards, UsePipes } from "@nestjs/common";
+import { Body, Controller, Get, Inject, Post, UseGuards } from "@nestjs/common";
 import { GenerateInvoiceBody } from "@acte/contracts";
 import type { z } from "zod";
 import { CurrentFirm } from "../auth/current-firm.decorator.js";
@@ -18,8 +18,7 @@ export class BillingController {
   }
 
   @Post("invoices")
-  @UsePipes(new ZodValidationPipe(GenerateInvoiceBody))
-  generate(@CurrentFirm() ctx: FirmContext, @Body() body: z.infer<typeof GenerateInvoiceBody>) {
+  generate(@CurrentFirm() ctx: FirmContext, @Body(new ZodValidationPipe(GenerateInvoiceBody)) body: z.infer<typeof GenerateInvoiceBody>) {
     return this.billing.generateDraft(ctx, body.dossierId);
   }
 }

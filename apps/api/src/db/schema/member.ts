@@ -1,7 +1,7 @@
 import { boolean, integer, pgTable, text, uuid } from "drizzle-orm/pg-core";
-import { idColumn, timestamps } from "./columns";
-import { memberRoleEnum, memberStatusEnum } from "./enums";
-import { firms } from "./firm";
+import { idColumn, timestamps } from "./columns.js";
+import { memberRoleEnum, memberStatusEnum } from "./enums.js";
+import { firms } from "./firm.js";
 
 export const members = pgTable("member", {
   id: idColumn(),

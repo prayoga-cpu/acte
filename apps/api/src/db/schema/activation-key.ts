@@ -1,6 +1,6 @@
 import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { idColumn } from "./columns";
-import { members } from "./member";
+import { idColumn } from "./columns.js";
+import { members } from "./member.js";
 
 /** The plain key is shown once at creation; only its hash is stored. */
 export const activationKeys = pgTable("activation_key", {

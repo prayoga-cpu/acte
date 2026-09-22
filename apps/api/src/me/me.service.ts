@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import type { HomeSummary, StatsSummary, WeekSummary } from "@acte/contracts";
+import type { HomeSummary, Member, StatsSummary, WeekSummary } from "@acte/contracts";
 import { MembersRepository } from "../data-access/members.repository.js";
 import { TasksRepository } from "../data-access/tasks.repository.js";
 import type { FirmContext } from "../data-access/firm-context.js";
@@ -21,6 +21,23 @@ export class MeService {
     @Inject(TasksRepository) private readonly tasks: TasksRepository,
     @Inject(MembersRepository) private readonly members: MembersRepository,
   ) {}
+
+  async profile(ctx: FirmContext): Promise<Member> {
+    const member = await this.members.findById(ctx.firmId, ctx.memberId);
+    if (!member) throw new NotFoundException();
+    return {
+      id: member.id,
+      firmId: member.firmId,
+      email: member.email,
+      displayName: member.displayName,
+      initials: member.initials,
+      role: member.role,
+      isPartner: member.isPartner,
+      isAdmin: member.isAdmin,
+      hourlyRateCents: member.hourlyRateCents,
+      status: member.status,
+    };
+  }
 
   async summary(ctx: FirmContext): Promise<HomeSummary> {
     const member = await this.members.findById(ctx.firmId, ctx.memberId);

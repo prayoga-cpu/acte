@@ -4,7 +4,12 @@ dist/
 coverage/
 .turbo/
 *.log
+*.tsbuildinfo
 .DS_Store
+
+# Playwright artifacts
+playwright-report/
+test-results/
 
 # secrets
 .env

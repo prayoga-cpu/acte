@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Dossier } from "./entities";
 import { TaskSource } from "./enums";
 
 const id = z.string().uuid();
@@ -20,6 +21,17 @@ export const CreateDossierBody = z.object({
 }).strict();
 
 export const GenerateInvoiceBody = z.object({ dossierId: z.string().uuid() }).strict();
+
+/**
+ * Dossier + its computed usage (docs/02-architecture/DATA_MODEL.md
+ * "Computed, not stored"). Firm-wide, not member-scoped — a dossier-level
+ * total is an aggregate, not another member's task detail.
+ */
+export const DossierUsage = Dossier.extend({
+  usedMinutes: z.number().int(),
+  pendingMinutes: z.number().int(),
+});
+export type DossierUsage = z.infer<typeof DossierUsage>;
 
 export const UpdateDossierBody = z.object({
   budgetMinutes: z.number().int().positive().nullable().optional(),

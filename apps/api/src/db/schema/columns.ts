@@ -1,5 +1,5 @@
 import { customType, timestamp, uuid } from "drizzle-orm/pg-core";
-import { uuidv7 } from "../../lib/uuid";
+import { uuidv7 } from "../../lib/uuid.js";
 
 /** Postgres `bytea`, used only for `firm.data_key_wrapped` (see field-encryption.ts). */
 export const bytea = customType<{ data: Buffer }>({

@@ -58,4 +58,15 @@ Format: ID · title · status · owner · date · context · options · decision
 **Owner:** Yann · **Blocks:** any demo to a real firm
 **Context:** Prototype lines ~1763 and ~2144 state ISO 27001 "en préparation" and annual audits.
 **Recommendation:** render behind `COMPLIANCE_CLAIMS_ENABLED`, default false, until a certification process has actually started.
-**Decision:** —
+**Decision:** — still OPEN (Yann has not decided). The recommended flag mechanism itself is implemented and verified default-off in the Cloud & Sync view (the only place the claim appears so far — Admin console isn't built yet, D-004); that's a stage 1 code task, not a resolution of this decision.
+
+## D-009 · `apps/api` runtime is tsx everywhere, not a compiled artifact — DECIDED
+**Date:** 2026-09-22 · **Owner:** Darwin
+**Decision:** `pnpm --filter @acte/api start` runs `node --import tsx src/main.ts`, the same way `dev` does (minus `--watch`). There is no `node dist/main.js` production path.
+**Why:** `packages/contracts` ships TypeScript source with extensionless internal imports (works under tsx, vitest, and Next's webpack via `moduleResolution: "Bundler"`). Plain Node's ESM loader needs explicit `.js` extensions and doesn't reliably fall back to sibling `.ts` files across the experimental type-stripping and non-type-stripping code paths — chasing that compatibility (tried: adding `.js` extensions everywhere) broke the web app's webpack build instead. tsx sidesteps the whole class of problem by using bundler-style resolution consistently in every environment.
+**Consequence:** Before a real Scaleway deployment, revisit this — either accept tsx in production (used in production by real projects; images just need Node not just static JS) or invest in bundling `apps/api` with esbuild/tsup so `packages/contracts` gets inlined and Node's strict resolution stops mattering. `tsc -p tsconfig.build.json` (`pnpm build`) is kept as a type-check-shaped CI sanity step even though its `dist/` output isn't used to run anything.
+
+## D-010 · Billing invoice-draft endpoint added ahead of API_CONTRACT.md — DECIDED
+**Date:** 2026-09-22 · **Owner:** Darwin
+**Decision:** Added `GET/POST /v1/billing/invoices` (list drafts, generate one from a dossier's validated minutes) even though the original `API_CONTRACT.md` never listed a billing route. Now reconciled in that file.
+**Why:** `PRODUCT_SPEC.md`'s Billing view explicitly requires "generate invoice draft", and `DATA_MODEL.md` already specifies the `client_invoice` table — the contract table was a starter-pack gap, not a deliberate exclusion. Distinct from the stage 6 Stripe *subscription* billing, which stays untouched.

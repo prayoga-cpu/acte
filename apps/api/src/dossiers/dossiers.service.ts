@@ -1,19 +1,27 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import type { CreateDossierBody, UpdateDossierBody } from "@acte/contracts";
+import type { CreateDossierBody, DossierUsage, UpdateDossierBody } from "@acte/contracts";
 import type { z } from "zod";
 import { AuditLogRepository } from "../data-access/audit-log.repository.js";
 import { DossiersRepository } from "../data-access/dossiers.repository.js";
+import { TasksRepository } from "../data-access/tasks.repository.js";
 import type { FirmContext } from "../data-access/firm-context.js";
 
 @Injectable()
 export class DossiersService {
   constructor(
     @Inject(DossiersRepository) private readonly dossiers: DossiersRepository,
+    @Inject(TasksRepository) private readonly tasks: TasksRepository,
     @Inject(AuditLogRepository) private readonly auditLog: AuditLogRepository,
   ) {}
 
-  list(ctx: FirmContext) {
-    return this.dossiers.list(ctx);
+  async list(ctx: FirmContext): Promise<DossierUsage[]> {
+    const [dossierList, usage] = await Promise.all([this.dossiers.list(ctx), this.tasks.minutesByDossier(ctx.firmId)]);
+    const usageByDossier = new Map(usage.map((u) => [u.dossierId, u]));
+    return dossierList.map((d) => ({
+      ...d,
+      usedMinutes: usageByDossier.get(d.id)?.validatedMin ?? 0,
+      pendingMinutes: usageByDossier.get(d.id)?.pendingMin ?? 0,
+    }));
   }
 
   async create(ctx: FirmContext, body: z.infer<typeof CreateDossierBody>) {

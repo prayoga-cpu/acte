@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, isNotNull } from "drizzle-orm";
 import type { TaskSource, TaskStatus } from "@acte/contracts";
 import { DB } from "../db/db.module.js";
 import type { Database } from "../db/client.js";
@@ -178,6 +178,24 @@ export class TasksRepository {
       }),
       { minutes: 0, amountCents: 0 },
     );
+  }
+
+  /** Firm-wide validated/pending minute totals per dossier, for the Dossiers view. */
+  async minutesByDossier(firmId: string): Promise<{ dossierId: string; validatedMin: number; pendingMin: number }[]> {
+    const rows = await this.db
+      .select({ dossierId: tasks.dossierId, status: tasks.status, durationMin: tasks.durationMin })
+      .from(tasks)
+      .where(and(eq(tasks.firmId, firmId), isNotNull(tasks.dossierId)));
+
+    const byDossier = new Map<string, { validatedMin: number; pendingMin: number }>();
+    for (const row of rows) {
+      const key = row.dossierId as string;
+      const entry = byDossier.get(key) ?? { validatedMin: 0, pendingMin: 0 };
+      if (row.status === "validated") entry.validatedMin += row.durationMin;
+      if (row.status === "pending") entry.pendingMin += row.durationMin;
+      byDossier.set(key, entry);
+    }
+    return [...byDossier.entries()].map(([dossierId, v]) => ({ dossierId, ...v }));
   }
 
   /** All validated tasks for the firm, decrypted, for CSV export. Firm-wide by design (export is an admin/lawyer action on their own validated time). */

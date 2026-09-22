@@ -1,9 +1,9 @@
 import { integer, pgTable, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
-import { idColumn, timestamps } from "./columns";
-import { taskSourceEnum, taskStatusEnum } from "./enums";
-import { dossiers } from "./dossier";
-import { firms } from "./firm";
-import { members } from "./member";
+import { idColumn, timestamps } from "./columns.js";
+import { taskSourceEnum, taskStatusEnum } from "./enums.js";
+import { dossiers } from "./dossier.js";
+import { firms } from "./firm.js";
+import { members } from "./member.js";
 
 export const tasks = pgTable("task", {
   id: idColumn(),

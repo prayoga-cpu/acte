@@ -1,8 +1,8 @@
 import { pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
-import { idColumn } from "./columns";
-import { dossiers } from "./dossier";
-import { members } from "./member";
-import { tasks } from "./task";
+import { idColumn } from "./columns.js";
+import { dossiers } from "./dossier.js";
+import { members } from "./member.js";
+import { tasks } from "./task.js";
 
 /** Reassignment log. Feeds the matcher in stage 5 (docs/02-architecture/AI_MATCHING.md). */
 export const corrections = pgTable("correction", {
