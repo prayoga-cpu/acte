@@ -1,0 +1,21 @@
+node_modules/
+.next/
+dist/
+coverage/
+.turbo/
+*.log
+.DS_Store
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# commercial documents stay local, never pushed
+docs/05-commercial/*.pdf
+
+# claude code local overrides
+.claude/settings.local.json
+
+# tracker build output
+apps/tracker/src-tauri/target/

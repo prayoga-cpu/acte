@@ -1,0 +1,2826 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ACTE — Journal du temps · 8 juillet 2026 · proto v16</title>
+
+<!-- Typographies charte ACTE. : Montserrat (display, letterforms du logo) · Inter (UI) · Spline Sans Mono (données) -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Inter:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          // Charte ACTE. (logo) : monochrome noir/blanc piloté par variables CSS.
+          // Les anciens jetons « gold » sont re-mappés sur l'accent de la charte :
+          // tout le HTML (statique et généré en JS) suit sans aucune retouche.
+          white:  'rgb(var(--c-white) / <alpha-value>)',
+          black:  'rgb(var(--c-black) / <alpha-value>)',
+          noir:   'rgb(var(--c-noir) / <alpha-value>)',
+          carbon: 'rgb(var(--c-carbon) / <alpha-value>)',
+          ivory:  'rgb(var(--c-ivory) / <alpha-value>)',
+          ash:    'rgb(var(--c-ash) / <alpha-value>)',
+          gold:   { DEFAULT: 'rgb(var(--c-accent) / <alpha-value>)', deep: 'rgb(var(--c-accent2) / <alpha-value>)', pale: 'rgb(var(--c-accent) / <alpha-value>)' },
+        },
+        fontFamily: {
+          display: ['"Montserrat"', 'system-ui', 'sans-serif'],
+          body:    ['"Inter"', 'system-ui', 'sans-serif'],
+          mono:    ['"Spline Sans Mono"', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  /* ============ Variables de thème (Dark par défaut) ============ */
+  :root {
+    /* Charte ACTE. — mode sombre : noir profond, texte blanc, accent = blanc */
+    --c-white:    255 255 255;
+    --c-black:    0 0 0;
+    --c-carbon:   17 17 19;
+    --c-ivory:    250 250 250;
+    --c-ash:      161 161 170;
+    --c-accent:   250 250 250; /* accent de marque : blanc en sombre */
+    --c-accent2:  200 200 206; /* second ton de l'accent (dégradés) */
+    --c-noir:     10 10 11;    /* texte posé SUR l'accent (boutons pleins) */
+    --c-bg:       10 10 10;
+  }
+  html.light {
+    /* Charte ACTE. — mode clair : blanc pur, texte noir, accent = noir */
+    --c-white:    24 24 27;
+    --c-black:    255 255 255;
+    --c-carbon:   255 255 255;
+    --c-ivory:    15 15 17;
+    --c-ash:      82 82 91;
+    --c-accent:   15 15 17;    /* boutons et accents noirs sur fond clair */
+    --c-accent2:  63 63 70;
+    --c-noir:     255 255 255; /* texte blanc sur les boutons noirs */
+    --c-bg:       250 250 250;
+  }
+
+  /* ============ Fond & atmosphère ============ */
+  body { background: rgb(var(--c-bg)); position: relative; }
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(900px 500px at 12% -10%, rgba(255,255,255,0.045), transparent 60%),
+      radial-gradient(700px 500px at 105% 110%, rgba(255,255,255,0.03), transparent 60%);
+  }
+
+  /* ============ Glassmorphism ============ */
+  .glass {
+    background: linear-gradient(160deg, rgba(255,255,255,0.045), rgba(255,255,255,0.015));
+    border: 1px solid rgba(255,255,255,0.07);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-radius: 18px;
+  }
+  .glass-soft {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  .text-gold-grad {
+    background: linear-gradient(120deg, rgb(var(--c-accent)), rgb(var(--c-accent)) 55%, rgb(var(--c-accent2)));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+
+  .eyebrow {
+    font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: #8b8b95; font-weight: 600;
+  }
+
+  /* ============ Navigation (rail + onglets) ============ */
+  .rail-btn.is-active { color: rgb(var(--c-accent)); background: rgb(var(--c-accent) / 0.12); }
+  .tab.is-active { color: rgb(var(--c-accent)); background: rgb(var(--c-accent) / 0.12); }
+
+  /* ============ Menu Profil (dropdown) ============ */
+  #profile-menu {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    pointer-events: none;
+    transform-origin: top right;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  #profile-menu.open { opacity: 1; transform: none; pointer-events: auto; }
+  #profile-btn .caret { transition: transform 0.2s ease; }
+  #profile-btn[aria-expanded="true"] .caret { transform: rotate(180deg); }
+  #profile-btn.is-active { border-color: rgb(var(--c-accent) / 0.45); }
+  #profile-menu .pm-item { cursor: pointer; }
+  #profile-menu .pm-item:hover { background: rgb(var(--c-accent) / 0.1); }
+  #profile-menu .pm-item:active { background: rgb(var(--c-accent) / 0.16); }
+
+  /* ============ Vues (routeur JS) ============ */
+  .view-anim { animation: fadeUp 0.3s ease both; }
+
+  /* ============ Lignes du journal ============ */
+  .task-row { transition: background 0.2s ease; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .task-row:hover { background: rgba(255,255,255,0.025); }
+  .task-row.leaving {
+    transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0; transform: translateX(28px);
+    max-height: 0 !important; overflow: hidden;
+    border-bottom-color: transparent;
+  }
+  .task-row.flash { animation: flashGold 1.4s ease; }
+  @keyframes flashGold {
+    0%, 100% { box-shadow: inset 0 0 0 1px transparent; background: transparent; }
+    20% { box-shadow: inset 0 0 0 1px rgb(var(--c-accent) / 0.5); background: rgb(var(--c-accent) / 0.06); }
+    70% { box-shadow: inset 0 0 0 1px rgb(var(--c-accent) / 0.5); background: rgb(var(--c-accent) / 0.06); }
+  }
+
+  .row-detail { max-height: 0; overflow: hidden; transition: max-height 0.35s ease; }
+
+  .chevron { transition: transform 0.25s ease; }
+  .task-row.open .chevron { transform: rotate(180deg); }
+
+  /* ============ Micro-animations ============ */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .fade-up { animation: fadeUp 0.4s ease both; }
+
+  @keyframes floatGain {
+    0%   { opacity: 0; transform: translateY(6px) scale(0.9); }
+    20%  { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-26px) scale(1); }
+  }
+  .float-gain { animation: floatGain 1.3s ease forwards; }
+
+  @keyframes kpiGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(var(--c-accent) / 0); }
+    35% { box-shadow: 0 0 32px -4px rgb(var(--c-accent) / 0.35), inset 0 0 0 1px rgb(var(--c-accent) / 0.4); }
+  }
+  .kpi-glow { animation: kpiGlow 1.1s ease; }
+
+  @keyframes pulseDot {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(52,211,153,0.5); }
+    60% { box-shadow: 0 0 0 6px rgba(52,211,153,0); }
+  }
+  .pulse-dot { animation: pulseDot 2.2s ease infinite; }
+  .pulse-gold { animation: pulseGold 2.4s ease infinite; }
+  @keyframes pulseGold {
+    0%, 100% { box-shadow: 0 0 0 0 rgb(var(--c-accent) / 0.55); }
+    60% { box-shadow: 0 0 0 7px rgb(var(--c-accent) / 0); }
+  }
+
+  @keyframes typing { 0%, 60%, 100% { opacity: 0.25; } 30% { opacity: 1; } }
+  .typing-dot { animation: typing 1.1s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: 0.18s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.36s; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 0.8s linear infinite; }
+
+  /* Barres des graphiques */
+  .bar { transition: height 0.7s cubic-bezier(0.34, 1.3, 0.64, 1); }
+  .hbar { transition: width 0.7s cubic-bezier(0.34, 1.3, 0.64, 1); }
+
+  /* ============ Interrupteurs (Paramètres) ============ */
+  .switch { position: relative; display: inline-block; width: 36px; height: 20px; flex-shrink: 0; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider { position: absolute; inset: 0; border-radius: 99px; background: rgba(255,255,255,0.12); transition: 0.25s; cursor: pointer; }
+  .switch .slider::before { content: ''; position: absolute; height: 14px; width: 14px; left: 3px; top: 3px; border-radius: 50%; background: #f2efe6; transition: 0.25s; }
+  .switch input:checked + .slider { background: linear-gradient(120deg, rgb(var(--c-accent)), rgb(var(--c-accent2))); }
+  .switch input:checked + .slider::before { transform: translateX(16px); background: rgb(var(--c-noir)); }
+  .switch input:focus-visible + .slider { outline: 2px solid rgb(var(--c-accent) / 0.7); outline-offset: 2px; }
+
+  /* ============ Micro (dictée vocale simulée) ============ */
+  #mic-btn.listening {
+    color: rgb(var(--c-accent));
+    border-color: rgb(var(--c-accent) / 0.55);
+    background: rgb(var(--c-accent) / 0.1);
+    animation: pulseGold 1.2s ease infinite;
+  }
+
+  /* ============ Panneau IA rétractable (< 1280px) ============ */
+  #brain-panel { transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1); }
+  #brain-panel.panel-open { transform: translateX(0) !important; }
+  #brain-backdrop { transition: opacity 0.3s ease; }
+  #brain-backdrop.show { opacity: 1; pointer-events: auto; }
+
+  /* ============ Scrollbars ============ */
+  .scroll-thin::-webkit-scrollbar { width: 6px; }
+  .scroll-thin::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 99px; }
+  .scroll-thin::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-accent) / 0.35); }
+  .scroll-thin::-webkit-scrollbar-track { background: transparent; }
+
+  /* ============ Ajustements Light Mode ============ */
+  html.light body::before {
+    background:
+      radial-gradient(900px 500px at 12% -10%, rgba(10,10,11,0.035), transparent 60%),
+      radial-gradient(700px 500px at 105% 110%, rgba(10,10,11,0.025), transparent 60%);
+  }
+  html.light .glass {
+    background: #ffffff;
+    border: 1px solid #e4e4e7;
+    box-shadow: 0 1px 2px rgba(9,9,11,0.04), 0 10px 30px -18px rgba(9,9,11,0.1);
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
+  html.light .glass-soft {
+    background: #fafafa;
+    border: 1px solid #e7e7ea;
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
+  html.light .eyebrow { color: #71717a; }
+  html.light .text-gold-grad { background: linear-gradient(120deg, rgb(var(--c-accent2)), rgb(var(--c-accent2))); -webkit-background-clip: text; background-clip: text; }
+  html.light .task-row { border-bottom-color: rgba(9,9,11,0.07); }
+  html.light .task-row:hover { background: rgba(9,9,11,0.03); }
+  html.light .rail-btn.is-active { color: rgb(var(--c-accent2)); background: rgb(var(--c-accent2) / 0.12); }
+  html.light .tab.is-active { color: rgb(var(--c-accent2)); background: rgb(var(--c-accent2) / 0.12); }
+  html.light .text-gold { color: rgb(var(--c-accent2)); }
+  html.light .text-emerald-300 { color: #059669; }
+  html.light .text-amber-300 { color: rgb(var(--c-accent2)); }
+  html.light .text-amber-400 { color: rgb(var(--c-accent2)); }
+  html.light .text-red-400 { color: #dc2626; }
+  html.light #brain-panel { background: rgba(255,255,255,0.95); }
+  html.light .scroll-thin::-webkit-scrollbar-thumb { background: rgba(9,9,11,0.15); }
+  html.light .scroll-thin::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-accent2) / 0.4); }
+  html.light .switch .slider { background: rgba(9,9,11,0.15); }
+  html.light #profile-menu, html.light .dossier-menu { box-shadow: 0 16px 44px -14px rgba(9,9,11,0.2); }
+  html.light #toast { box-shadow: 0 10px 30px -12px rgba(9,9,11,0.25); }
+  html.light #modal-root > .fade-up { box-shadow: 0 24px 70px -24px rgba(9,9,11,0.3); }
+
+  /* ============ Rail : ascenseur invisible (sécurité petits écrans) ============ */
+  .rail { scrollbar-width: none; }
+  .rail::-webkit-scrollbar { display: none; }
+
+  /* ============ Responsive — petits écrans & tactile ============ */
+  @media (max-width: 680px) {
+    .row-main { flex-wrap: wrap; row-gap: 8px; }
+    .row-main > div.min-w-0.flex-1 { flex: 1 1 calc(100% - 46px); }
+    .dossier-chip { max-width: 150px; }
+  }
+  @media (hover: none) {
+    .validate-btn { opacity: 1 !important; }
+  }
+
+  /* ============ Accessibilité ============ */
+  :focus-visible { outline: 2px solid rgb(var(--c-accent) / 0.7); outline-offset: 2px; border-radius: 8px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+
+<body class="text-ivory font-body antialiased h-[100dvh] overflow-hidden">
+
+<div class="relative z-10 grid h-[100dvh] max-h-[100dvh] grid-cols-[56px_minmax(0,1fr)] sm:grid-cols-[60px_minmax(0,1fr)] xl:grid-cols-[60px_minmax(0,1fr)_350px]">
+
+  <!-- ══════════════════════ SIDEBAR GAUCHE (rail d'icônes — navigation réelle) ══════════════════════ -->
+  <aside class="rail flex min-h-0 shrink-0 flex-col items-center gap-2 overflow-y-auto border-r border-white/[0.06] bg-black/40 py-5">
+    <!-- Sceau ACTE -->
+    <div class="mb-6 flex h-9 w-9 items-center justify-center rounded-[10px] border border-gold/40 bg-gradient-to-br from-gold-pale/20 to-gold-deep/20" title="ACTE">
+      <span class="font-display text-lg font-semibold text-gold-pale">A</span>
+    </div>
+
+    <nav class="flex flex-col gap-1.5" aria-label="Navigation principale">
+      <button class="rail-btn flex h-10 w-10 items-center justify-center rounded-xl text-ash transition hover:bg-white/[0.05] hover:text-ivory"
+              data-view="journal" title="Journal" aria-label="Journal">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </button>
+      <button class="rail-btn flex h-10 w-10 items-center justify-center rounded-xl text-ash transition hover:bg-white/[0.05] hover:text-ivory"
+              data-view="dossiers" title="Dossiers" aria-label="Dossiers">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+      </button>
+      <button class="rail-btn flex h-10 w-10 items-center justify-center rounded-xl text-ash transition hover:bg-white/[0.05] hover:text-ivory"
+              data-view="stats" title="Statistiques" aria-label="Statistiques">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="20" y2="10"/><line x1="18" x2="18" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="16"/></svg>
+      </button>
+      <button class="rail-btn flex h-10 w-10 items-center justify-center rounded-xl text-ash transition hover:bg-white/[0.05] hover:text-ivory"
+              data-view="cloud" title="Cloud &amp; Synchronisation" aria-label="Cloud et synchronisation">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+      </button>
+    </nav>
+
+    <div class="mt-auto flex flex-col items-center gap-1.5">
+      <!-- Compagnon de capture PC/Mac (simulation de téléchargement) -->
+      <button type="button" id="dl-companion" title="Télécharger ACTE — Compagnon PC/Mac" aria-label="Télécharger le Compagnon ACTE"
+              class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-ash transition hover:bg-white/[0.05] hover:text-gold-pale">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+      </button>
+      <button class="rail-btn flex h-10 w-10 items-center justify-center rounded-xl text-ash transition hover:bg-white/[0.05] hover:text-ivory"
+              data-view="settings" title="Paramètres" aria-label="Paramètres">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ══════════════════════ COLONNE CENTRALE ══════════════════════ -->
+  <div class="flex min-h-0 min-w-0 flex-col">
+
+    <!-- ───────── Header ───────── -->
+    <header class="flex items-center justify-between gap-2 border-b border-white/[0.06] bg-black/30 px-3 py-3 sm:px-7 sm:py-3.5">
+      <div class="flex items-center gap-3">
+        <h1 class="flex items-baseline font-display text-[17px] font-extrabold sm:text-[21px] uppercase leading-none tracking-[0.01em] text-ivory" aria-label="ACTE — Time Tracking">
+          ACT<span class="relative pr-1.5">E<svg class="absolute -right-1 -top-2 h-[13px] w-[13px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="square"><path d="M4 13l5 5L20 6"/></svg></span><span class="-ml-1">.</span>
+        </h1>
+        <span class="hidden text-[9px] font-medium uppercase tracking-[0.32em] text-ash sm:block">Time&nbsp;Tracking</span>
+      </div>
+
+      <nav class="flex items-center gap-1 rounded-full border border-white/[0.07] bg-white/[0.03] p-1" aria-label="Onglets">
+        <button class="tab rounded-full px-2.5 py-1.5 text-[12px] sm:px-4 sm:text-[13px] font-medium text-ash transition hover:text-ivory" data-view="home">Accueil</button>
+        <button class="tab rounded-full px-2.5 py-1.5 text-[12px] sm:px-4 sm:text-[13px] font-medium text-ash transition hover:text-ivory" data-view="journal">Journal</button>
+        <button class="tab rounded-full px-2.5 py-1.5 text-[12px] sm:px-4 sm:text-[13px] font-medium text-ash transition hover:text-ivory" data-view="billing">Facturation</button>
+      </nav>
+
+      <div class="flex items-center gap-2.5">
+        <!-- Bascule Light / Dark -->
+        <button type="button" id="theme-btn" aria-label="Passer en mode clair" title="Basculer le thème"
+                class="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] text-ash transition hover:border-gold/30 hover:text-gold-pale">
+          <svg id="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+          <svg id="icon-moon" class="hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        </button>
+
+        <!-- Bloc Profil + menu déroulant -->
+        <div class="relative">
+        <button id="profile-btn" aria-haspopup="menu" aria-expanded="false"
+                class="flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.03] py-1 pl-1 pr-3 transition hover:border-gold/30">
+          <span class="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-gold-pale to-gold-deep font-display text-[13px] font-semibold text-noir">VC</span>
+          <span class="hidden text-[13px] text-ivory/90 md:block">Me Charpentier</span>
+          <svg class="caret text-ash" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+
+        <div id="profile-menu" role="menu" aria-label="Menu profil"
+             class="absolute right-0 top-[calc(100%+8px)] z-[70] w-[256px] overflow-hidden rounded-2xl border border-white/[0.1] bg-carbon/95 shadow-[0_18px_50px_-12px_rgba(0,0,0,0.85)] backdrop-blur-xl">
+          <div class="border-b border-white/[0.06] px-4 py-3">
+            <p class="text-[13px] font-medium text-ivory">Me Valentine Charpentier</p>
+            <p class="mt-0.5 text-[11px] text-ash">Associée · vc@charpentier-associes.fr</p>
+          </div>
+          <button type="button" onclick="acteGoView('profile', event)" class="pm-item flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-left transition hover:bg-gold/10 active:bg-gold/[0.16]" data-view="profile" role="menuitem">
+            <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gold/25 bg-gold/[0.08] text-gold-pale">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            <span>
+              <span class="block text-[13px] font-medium text-ivory/95">Mon Profil &amp; Impact</span>
+              <span class="mt-0.5 block text-[11px] text-ash">Votre bilan personnel IA</span>
+            </span>
+          </button>
+          <button type="button" onclick="acteGoView('admin', event)" class="pm-item flex w-full cursor-pointer items-start gap-3 border-t border-white/[0.05] px-4 py-3 text-left transition hover:bg-gold/10 active:bg-gold/[0.16]" data-view="admin" role="menuitem">
+            <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gold/25 bg-gold/[0.08] text-gold-pale">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+            </span>
+            <span>
+              <span class="block text-[13px] font-medium text-ivory/95">Console Admin (Cabinet)</span>
+              <span class="mt-0.5 block text-[11px] text-ash">Équipe &amp; sécurité du cabinet</span>
+            </span>
+          </button>
+        </div>
+      </div>
+      </div>
+    </header>
+
+    <!-- ───────── Zone centrale : routeur de vues ───────── -->
+    <main id="main-scroll" class="scroll-thin flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6">
+
+      <!-- ══ VUE ACCUEIL (Bento Grid) ══ -->
+      <div class="view" data-view="home">
+        <div class="mx-auto grid max-w-[1080px] grid-cols-1 gap-4 md:grid-cols-3">
+
+          <section id="kpi-time" class="glass fade-up p-5">
+            <p class="eyebrow">Temps capturé aujourd'hui</p>
+            <p class="mt-2 font-display text-[25px] font-bold leading-none tracking-tight text-ivory">6 h 20</p>
+            <div class="mt-3.5 h-1 overflow-hidden rounded-full bg-white/[0.07]">
+              <div id="kpi-progress" class="h-full rounded-full bg-gradient-to-r from-gold-pale to-gold-deep transition-all duration-700" style="width:50%"></div>
+            </div>
+            <p class="mt-2 text-[12px] text-ash">
+              <span id="kpi-validated" class="font-mono text-gold-pale" data-val="190">3 h 10</span> validées ·
+              <span id="kpi-pending" class="font-mono">3 h 10</span> en attente
+            </p>
+          </section>
+
+          <section id="kpi-ca" class="glass fade-up relative p-5" style="animation-delay:0.06s">
+            <p class="eyebrow">CA sécurisé ce mois-ci</p>
+            <p id="kpi-ca-value" class="mt-2 font-display text-[25px] font-bold leading-none tracking-tight text-gold-grad" data-val="12480">12 480 €</p>
+            <p class="mt-[26px] text-[12px] text-ash">Juillet 2026 · taux horaire moyen <span class="font-mono" id="rate-label">280 €</span></p>
+          </section>
+
+          <section id="kpi-roi" class="glass fade-up p-5" style="animation-delay:0.12s">
+            <p class="eyebrow">ROI ACTE · aujourd'hui</p>
+            <p class="mt-2 font-display text-[25px] font-bold leading-none tracking-tight text-ivory">
+              <span id="kpi-roi-value" data-val="38">38</span><span class="text-[20px] text-ash"> min</span>
+            </p>
+            <p class="mt-[26px] text-[12px] text-ash">récupérées vs saisie manuelle</p>
+          </section>
+
+          <!-- Emplacement du Journal (la carte est déplacée entre Accueil et Journal sans perdre son état) -->
+          <div id="journal-slot-home" class="flex md:col-span-2 md:row-span-2">
+
+            <section id="journal-card" class="glass fade-up flex w-full flex-col" style="animation-delay:0.18s">
+              <div class="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
+                <div>
+                  <p class="eyebrow">Journal du temps</p>
+                  <h2 class="mt-1 font-display text-[15px] font-extrabold uppercase tracking-[0.05em] text-ivory">Mercredi 8 juillet 2026</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span id="pending-pill" class="rounded-full border border-gold/25 bg-gold/10 px-2.5 py-1 font-mono text-[11px] text-gold-pale">6 en attente</span>
+                  <button id="reset-btn" class="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] text-ash transition hover:border-gold/30 hover:text-gold-pale"
+                          title="Réinitialiser la démo" aria-label="Réinitialiser la démo">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div id="journal-body" class="scroll-thin relative flex-1 overflow-y-auto" style="max-height: clamp(280px, 44vh, 560px); min-height: 240px;">
+                <div id="task-list"></div>
+
+                <div id="empty-state" class="hidden flex-col items-center justify-center gap-3 px-6 py-16 text-center">
+                  <div class="flex h-14 w-14 items-center justify-center rounded-full border border-gold/35 bg-gold/10">
+                    <svg class="text-gold-pale" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  </div>
+                  <p class="font-display text-[16px] font-extrabold uppercase tracking-[0.04em] text-ivory">Journée bouclée.</p>
+                  <p class="max-w-[300px] text-[13px] text-ash">Chaque minute capturée a été actée. Votre journal est à jour, sans avoir touché un chronomètre.</p>
+                  <button id="empty-reset" class="mt-2 rounded-full border border-gold/30 px-4 py-1.5 text-[12.5px] text-gold-pale transition hover:bg-gold/10">Réinitialiser la démo</button>
+                </div>
+
+                <div id="batch-bar" class="glass-soft sticky bottom-3 mx-3 mt-2 mb-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl sm:mx-4 border border-gold/25 px-4 py-2.5 shadow-[0_8px_30px_-8px_rgba(0,0,0,0.6)]">
+                  <div class="flex items-center gap-2.5">
+                    <span class="h-2 w-2 rounded-full bg-gold pulse-gold"></span>
+                    <span id="batch-label" class="text-[13px] text-ivory/90">6 tâches en attente · <span class="font-mono text-gold-pale">3 h 10</span></span>
+                  </div>
+                  <button id="batch-btn" class="rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-1.5 text-[13px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">
+                    Tout intégrer
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <section class="glass fade-up p-5" style="animation-delay:0.24s">
+            <div class="flex items-baseline justify-between">
+              <p class="eyebrow">Temps facturé · semaine du 6 juillet</p>
+              <p id="week-total" class="font-mono text-[12px] text-gold-pale">15 h 15</p>
+            </div>
+            <div class="mt-4 flex h-[110px] items-end justify-between gap-2 px-1" id="chart" aria-label="Graphique du temps facturé par jour"></div>
+          </section>
+
+          <section class="glass fade-up p-5" style="animation-delay:0.3s">
+            <p class="eyebrow">Capture passive</p>
+            <ul class="mt-3.5 space-y-2.5 text-[13px]" id="sources-list"></ul>
+          </section>
+
+        </div>
+      </div>
+
+      <!-- ══ VUE JOURNAL (focus plein écran) ══ -->
+      <div class="view hidden" data-view="journal">
+        <div class="mx-auto max-w-[1080px]">
+          <div id="journal-slot-focus" class="flex"></div>
+        </div>
+      </div>
+
+      <!-- ══ VUE DOSSIERS ══ -->
+      <div class="view hidden" data-view="dossiers">
+        <div class="mx-auto max-w-[1080px]" id="dossiers-root"></div>
+      </div>
+
+      <!-- ══ VUE STATISTIQUES ══ -->
+      <div class="view hidden" data-view="stats">
+        <div class="mx-auto max-w-[1080px]" id="stats-root"></div>
+      </div>
+
+      <!-- ══ VUE FACTURATION ══ -->
+      <div class="view hidden" data-view="billing">
+        <div class="mx-auto max-w-[920px]" id="billing-root"></div>
+      </div>
+
+      <!-- ══ VUE PARAMÈTRES ══ -->
+      <div class="view hidden" data-view="settings">
+        <div class="mx-auto max-w-[920px]" id="settings-root"></div>
+      </div>
+
+      <!-- ══ VUE MON PROFIL & IMPACT ══ -->
+      <div class="view hidden" data-view="profile">
+        <div class="mx-auto max-w-[1080px]" id="profile-root"></div>
+      </div>
+
+      <!-- ══ VUE CONSOLE ADMIN (CABINET) ══ -->
+      <div class="view hidden" data-view="admin">
+        <div class="mx-auto max-w-[1080px]" id="admin-root"></div>
+      </div>
+
+      <!-- ══ VUE CLOUD & SYNCHRONISATION ══ -->
+      <div class="view hidden" data-view="cloud">
+        <div class="mx-auto max-w-[1080px]" id="cloud-root"></div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ══════════════════════ SIDEBAR DROITE · LE CERVEAU D'ACTE ══════════════════════ -->
+  <aside id="brain-panel"
+         class="fixed inset-y-0 right-0 z-40 flex min-h-0 w-[340px] max-w-[92vw] translate-x-full flex-col border-l border-white/[0.06] bg-[#0b0b0e]/95 backdrop-blur-xl
+                xl:static xl:z-auto xl:w-auto xl:max-w-none xl:translate-x-0 xl:bg-black/40 xl:backdrop-blur-md">
+    <div class="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
+      <div>
+        <p class="font-display text-[13px] font-extrabold uppercase tracking-[0.06em] text-ivory">Le Cerveau d'ACTE <span class="ml-1 align-top font-body text-[9px] uppercase tracking-widest text-gold">β</span></p>
+        <p class="mt-0.5 flex items-center gap-1.5 text-[11px] text-ash">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot"></span> En veille active depuis 08 h 47
+        </p>
+      </div>
+      <button id="brain-close" class="flex h-8 w-8 items-center justify-center rounded-lg border border-white/[0.08] text-ash transition hover:border-gold/30 hover:text-gold-pale xl:hidden"
+              aria-label="Fermer le panneau IA">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+      </button>
+    </div>
+
+    <div id="brain-feed" class="scroll-thin flex-1 space-y-3 overflow-y-auto px-4 py-4"></div>
+
+    <div class="border-t border-white/[0.06] p-3.5">
+      <div class="mb-2.5 flex flex-wrap gap-1.5">
+        <button class="chip rounded-full border border-white/[0.09] bg-white/[0.03] px-3 py-1 text-[11.5px] text-ash transition hover:border-gold/30 hover:text-gold-pale" data-msg="Résumé de ma journée">Résumé de ma journée</button>
+        <button class="chip rounded-full border border-white/[0.09] bg-white/[0.03] px-3 py-1 text-[11.5px] text-ash transition hover:border-gold/30 hover:text-gold-pale" data-msg="Temps passé sur Bône ce mois">Temps sur Bône ce mois</button>
+      </div>
+      <form id="chat-form" class="flex items-center gap-2">
+        <input id="chat-input" type="text" placeholder="Interrogez votre journal…" autocomplete="off"
+               class="min-w-0 flex-1 rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5 text-[13px] text-ivory placeholder-ash/70 outline-none transition focus:border-gold/40" />
+        <button type="button" id="mic-btn" aria-label="Dictée vocale (simulation)" title="Dictée vocale (simulation)"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/[0.09] bg-white/[0.04] text-ash transition hover:border-gold/35 hover:text-gold-pale active:scale-95">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+        </button>
+        <button type="submit" aria-label="Envoyer"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gold to-gold-deep text-noir transition hover:brightness-110 active:scale-95">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 14-7-7 14-2-5-5-2z"/></svg>
+        </button>
+      </form>
+    </div>
+  </aside>
+</div>
+
+<!-- Voile de fond du panneau IA (mode rétractable uniquement) -->
+<div id="brain-backdrop" class="pointer-events-none fixed inset-0 z-30 bg-black/60 opacity-0 xl:hidden"></div>
+
+<!-- Bouton flottant "IA" (visible < 1280px) -->
+<button id="brain-fab"
+        class="fixed bottom-5 right-5 z-30 flex items-center gap-2 rounded-full border border-gold/40 bg-gradient-to-br from-gold to-gold-deep px-4 py-3 font-semibold text-noir shadow-[0_10px_35px_-10px_rgba(0,0,0,0.55)] transition hover:brightness-110 active:scale-95 xl:hidden"
+        aria-label="Ouvrir le Cerveau d'ACTE">
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+  <span class="text-[13px]">IA</span>
+  <span class="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border border-noir bg-gold-pale pulse-gold"></span>
+</button>
+
+<!-- Toast -->
+<div id="toast" class="pointer-events-none fixed bottom-7 left-1/2 z-[60] -translate-x-1/2 translate-y-3 rounded-full border border-gold/30 bg-carbon/95 px-5 py-2.5 text-[13px] text-ivory opacity-0 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.8)] backdrop-blur transition-all duration-300"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   ACTE — Prototype front-end v14 · Simulation 100 % locale (mock data)
+   v14 : alignement sur la charte du logo ACTE. — palette monochrome
+   noir/blanc (accent inversant selon le thème via --c-accent), wordmark
+   reproduit avec la coche intégrée au E, Montserrat ExtraBold pour le
+   display et Inter pour l'UI. Les couleurs restent réservées aux états
+   (vert = validé, ambre = attention, rouge = destructif).
+   v13 : pop-up de confirmation avant le téléchargement du Compagnon,
+   avec choix de la plateforme (Windows/macOS pré-détectée).
+   v12 : vue Dossiers interactive — bouton « + Nouveau Dossier » (modale
+   nom/client/budget, le dossier créé rejoint aussitôt les menus du
+   Journal), menu ••• sur chaque carte (ajuster le budget d'heures,
+   changer le statut En cours / Prêt à facturer / Archivé, archiver en
+   rouge avec restauration possible). Thèmes Light/Dark pris en charge.
+   Routeur de vues JS : Accueil, Journal, Dossiers, Statistiques,
+   Facturation, Paramètres + Mon Profil & Impact + Console Admin.
+   Menu profil déroulant dans le header (ouverture/fermeture fluide).
+   Date de référence unique du prototype : mercredi 8 juillet 2026.
+   ═══════════════════════════════════════════════════════════════════ */
+
+let RATE = 280; // € / heure — modifiable dans Paramètres
+const API_KEY = 'ACTE-VC-7F42-K9D1-3MB8-QX5E'; // clé de liaison du Compagnon (fictive)
+let adminTab = 'team'; // onglet actif de la Console Admin : 'team' | 'sub'
+let CLOUD; // état de la vue Cloud & Synchronisation — réinitialisé avec la démo
+let INTEGRATIONS; // connecteurs logiciels de gestion (Secib, Kleos, Jarvis) — simulés
+
+const INITIAL_DOSSIERS = [
+  'Bône c/ SCI Alma',
+  'Delcourt c/ Mutuelle Azur',
+  'Vasseur — Cautionnement',
+  'Succession Marest',
+  'SARL Toison d\u2019Or — Bail',
+  'Non facturable',
+];
+let DOSSIERS; // liste proposée dans le Journal — enrichie à la création de dossiers
+
+/* ---------- Données fictives : les tâches capturées par l'IA ---------- */
+const INITIAL_TASKS = [
+  {
+    id: 't1', source: 'word',
+    title: 'Rédaction de conclusions — Delcourt c/ Mutuelle Azur',
+    range: '09h15 – 10h32', min: 77, conf: 97,
+    dossier: 'Delcourt c/ Mutuelle Azur',
+    why: 'Document « Conclusions_Delcourt_v3.docx » actif pendant 1 h 17. Le fichier est rattaché au dossier Delcourt dans votre arborescence cabinet.',
+  },
+  {
+    id: 't2', source: 'web',
+    title: 'Recherche jurisprudence — cautionnement disproportionné',
+    range: '11h05 – 11h28', min: 23, conf: 84,
+    dossier: 'Vasseur — Cautionnement',
+    why: 'Sessions Légifrance et Dalloz sur le cautionnement disproportionné (Cass. com.). Thème identique aux conclusions Vasseur ouvertes hier.',
+  },
+  {
+    id: 't3', source: 'word',
+    title: 'Projet de protocole transactionnel — Bône c/ SCI Alma',
+    range: '11h42 – 12h12', min: 30, conf: 95,
+    dossier: 'Bône c/ SCI Alma',
+    why: 'Nouveau document créé depuis votre modèle « Protocole ». Les parties citées correspondent au dossier Bône c/ SCI Alma.',
+  },
+  {
+    id: 't4', source: 'outlook',
+    title: 'Courriel de règlement amiable — Me Bône',
+    range: '14h02 – 14h17', min: 15, conf: 92,
+    dossier: 'Bône c/ SCI Alma',
+    why: 'Courriel adressé à contact@sci-alma.fr, correspondant identifié dans le dossier Bône c/ SCI Alma.',
+  },
+  {
+    id: 't5', source: 'outlook',
+    title: 'Échanges confrère (Me Rivoal) — Succession Marest',
+    range: '15h40 – 15h58', min: 18, conf: 89,
+    dossier: 'Succession Marest',
+    why: 'Fil de discussion avec Me Rivoal, avocat de la partie adverse dans la succession Marest.',
+  },
+  {
+    id: 't6', source: 'word',
+    title: 'Relecture bail commercial — SARL Toison d\u2019Or',
+    range: '16h20 – 16h47', min: 27, conf: 76,
+    dossier: 'SARL Toison d\u2019Or — Bail',
+    why: 'Le bail mentionne la SARL Toison d\u2019Or, mais aucun dossier actif ne correspond exactement. Une confirmation est recommandée.',
+  },
+];
+
+/* ---------- Dossiers (vue Dossiers) & Factures (vue Facturation) ---------- */
+const BASE_PREFIX = { Bone: 'Bône', Delcourt: 'Delcourt', Toison: 'SARL', Marest: 'Succession' };
+let PREFIX; // enrichi dynamiquement à la création de dossiers
+
+const INITIAL_DOSSIER_CARDS = [
+  { key: 'Bone',     name: 'Bône c/ SCI Alma',          client: 'Me P. Bône',          baseMin: 360,  budget: 600,  status: 'ready',    last: 'Aujourd\u2019hui · 14 h 17' },
+  { key: 'Delcourt', name: 'Delcourt c/ Mutuelle Azur', client: 'M. J. Delcourt',      baseMin: 1233, budget: 2100, status: 'progress', last: 'Aujourd\u2019hui · 10 h 32' },
+  { key: 'Toison',   name: 'SARL Toison d\u2019Or — Bail', client: 'SARL Toison d\u2019Or', baseMin: 438,  budget: 600,  status: 'progress', last: 'Aujourd\u2019hui · 16 h 47' },
+  { key: 'Marest',   name: 'Succession Marest',          client: 'Consorts Marest',     baseMin: 322,  budget: 900,  status: 'progress', last: 'Aujourd\u2019hui · 15 h 58' },
+];
+let DOSSIER_CARDS; // copie de travail — gérée depuis la vue Dossiers, réinitialisée avec la démo
+
+const INVOICES = [
+  { id: 'FA-2026-041', key: 'Bone',     name: 'Bône c/ SCI Alma',          period: 'Provision · juillet 2026',        baseMin: 360 },
+  { id: 'FA-2026-042', key: 'Delcourt', name: 'Delcourt c/ Mutuelle Azur', period: 'Diligences · juin–juillet 2026',  baseMin: 1233 },
+  { id: 'FA-2026-043', key: 'Toison',   name: 'SARL Toison d\u2019Or — Bail', period: 'Bail commercial · juillet 2026', baseMin: 438 },
+  { id: 'FA-2026-044', key: 'Marest',   name: 'Succession Marest',          period: 'Succession · juillet 2026',       baseMin: 322 },
+];
+const generatedSet = new Set();
+
+/* ---------- Équipe du cabinet (Console Admin) — total : 142 h 00 ---------- */
+const INITIAL_TEAM = [
+  { ini: 'VC', name: 'Me V. Charpentier', role: 'Associée',          min: 1455, val: 96, status: 'Active',      partner: true,  rate: 280 },
+  { ini: 'PB', name: 'Me P. Bône',        role: 'Associé',           min: 1900, val: 92, status: 'En audience', partner: true,  rate: 300 },
+  { ini: 'SO', name: 'Me S. Okafor',      role: 'Collaboratrice',    min: 1685, val: 89, status: 'Active',      partner: false, rate: 200 },
+  { ini: 'HD', name: 'Me H. Djebbari',    role: 'Collaborateur',     min: 1590, val: 94, status: 'Actif',       partner: false, rate: 210 },
+  { ini: 'CL', name: 'C. Lemoine',        role: 'Juriste stagiaire', min: 1890, val: 91, status: 'Actif',       partner: false, rate: 120 },
+];
+let TEAM; // copie de travail — modifiable par la Console Admin, réinitialisée avec la démo
+
+/* ---------- État ---------- */
+const BASE = { validated: 190, ca: 12480, roi: 38 }; // 3 h 10 déjà validées ce matin
+const CAPTURED_TOTAL = BASE.validated + INITIAL_TASKS.reduce((s, t) => s + t.min, 0); // 380 min
+const WEEK_BASE = [340, 385]; // Lundi 6 & mardi 7 juillet (minutes facturées)
+const CA_MONTHS = [ { l: 'Fév', v: 8120 }, { l: 'Mar', v: 9340 }, { l: 'Avr', v: 10150 }, { l: 'Mai', v: 11020 }, { l: 'Juin', v: 11960 } ];
+
+let tasks, kpi;
+let currentView = 'home';
+const sourcesOn = { word: true, outlook: true, web: true };
+
+/* ---------- Raccourcis DOM ---------- */
+const $ = (s) => document.querySelector(s);
+const listEl = () => $('#task-list');
+const feedEl = $('#brain-feed');
+
+/* ---------- Formatage & helpers ---------- */
+const fmtMin = (m) => {
+  const h = Math.floor(m / 60), mm = Math.round(m % 60);
+  return h > 0 ? `${h} h ${String(mm).padStart(2, '0')}` : `${mm} min`;
+};
+const fmtEur = (v) => Math.round(v).toLocaleString('fr-FR') + ' €';
+const eurOf = (min) => Math.round((min / 60) * RATE);
+const pending = () => tasks.filter((t) => !t.validated);
+const validatedMinOf = (key) => tasks.filter((t) => t.validated && t.dossier.startsWith(PREFIX[key])).reduce((s, t) => s + t.min, 0);
+const pendingMinOf = (key) => tasks.filter((t) => !t.validated && t.dossier.startsWith(PREFIX[key])).reduce((s, t) => s + t.min, 0);
+const pendingTasksOf = (key) => pending().filter((t) => t.dossier.startsWith(PREFIX[key]));
+
+/* ---------- Badges de source explicites (Outlook / Word / Navigateur) ---------- */
+const GLOBE_SVG = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>';
+
+const SRC = {
+  outlook: {
+    label: 'Capturé via Outlook',
+    style: 'background:rgba(56,132,222,0.12);border:1px solid rgba(92,164,240,0.38);color:#5ca4f0',
+    html:  '<span class="font-body text-[13px] font-semibold leading-none">O</span>',
+  },
+  word: {
+    label: 'Capturé via Word',
+    style: 'background:rgba(43,87,154,0.16);border:1px solid rgba(110,146,220,0.38);color:#8aa8ea',
+    html:  '<span class="font-body text-[13px] font-semibold leading-none">W</span>',
+  },
+  web: {
+    label: 'Capturé via le navigateur',
+    style: 'background:rgba(148,190,210,0.08);border:1px solid rgba(148,190,210,0.3);color:#9fc2d4',
+    html:  GLOBE_SVG,
+  },
+};
+
+function srcBadge(source, size = 8) {
+  const s = SRC[source];
+  return `<span class="flex h-${size} w-${size} shrink-0 items-center justify-center rounded-lg" style="${s.style}" title="${s.label}" aria-label="${s.label}">${s.html}</span>`;
+}
+
+/* ═══════════════ ROUTEUR DE VUES ═══════════════ */
+
+const journalCard = () => $('#journal-card');
+
+function switchView(v) {
+  currentView = v;
+  closeMenus();
+  document.querySelectorAll('.view').forEach((el) => {
+    const active = el.dataset.view === v;
+    el.classList.toggle('hidden', !active);
+    if (active) { el.classList.remove('view-anim'); void el.offsetWidth; el.classList.add('view-anim'); }
+  });
+
+  // La carte Journal voyage entre Accueil et Journal (même nœud DOM → état et animations préservés)
+  if (v === 'home') $('#journal-slot-home').appendChild(journalCard());
+  if (v === 'journal') $('#journal-slot-focus').appendChild(journalCard());
+  $('#journal-body').style.maxHeight = v === 'journal' ? '64vh' : 'clamp(280px, 44vh, 560px)';
+
+  if (v === 'dossiers') renderDossiers();
+  if (v === 'stats') renderStats();
+  if (v === 'billing') renderBilling();
+  if (v === 'profile') renderProfile();
+  if (v === 'admin') renderAdmin();
+  if (v === 'cloud') renderCloud();
+
+  updateNav();
+  updateInsight();
+  updateFeedMode();
+  $('#main-scroll').scrollTop = 0;
+}
+
+function updateNav() {
+  document.querySelectorAll('.rail-btn').forEach((b) => {
+    const on = b.dataset.view === currentView || (b.dataset.view === 'journal' && currentView === 'home');
+    b.classList.toggle('is-active', on);
+  });
+  document.querySelectorAll('.tab').forEach((b) => b.classList.toggle('is-active', b.dataset.view === currentView));
+  $('#profile-btn').classList.toggle('is-active', currentView === 'profile' || currentView === 'admin');
+}
+
+function ensureJournalVisible() {
+  if (currentView !== 'home' && currentView !== 'journal') switchView('journal');
+}
+
+function refreshActiveView() {
+  if (currentView === 'dossiers') renderDossiers();
+  if (currentView === 'stats') renderStats();
+  if (currentView === 'billing') renderBilling();
+  if (currentView === 'profile') renderProfile();
+  if (currentView === 'admin') renderAdmin();
+  if (currentView === 'cloud') renderCloud();
+}
+
+/* ═══════════════ Rendu du Journal ═══════════════ */
+
+function confBadge(t) {
+  if (t.corrected)
+    return `<span class="shrink-0 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-0.5 font-mono text-[10.5px] text-emerald-300">Corrigé ✓</span>`;
+  if (t.conf >= 90)
+    return `<span class="shrink-0 rounded-full border border-gold/30 bg-gold/10 px-2 py-0.5 font-mono text-[10.5px] text-gold-pale">${t.conf} %</span>`;
+  if (t.conf >= 80)
+    return `<span class="shrink-0 rounded-full border border-white/[0.1] bg-white/[0.04] px-2 py-0.5 font-mono text-[10.5px] text-ash">${t.conf} %</span>`;
+  return `<span class="shrink-0 rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 font-mono text-[10.5px] text-amber-400">${t.conf} % · à vérifier</span>`;
+}
+
+function makeRow(t) {
+  const row = document.createElement('article');
+  row.className = 'task-row group';
+  row.dataset.id = t.id;
+  row.innerHTML = `
+    <div class="row-main flex cursor-pointer items-center gap-3 px-5 py-3.5" role="button" tabindex="0" aria-expanded="false">
+      ${srcBadge(t.source)}
+      <div class="min-w-0 flex-1">
+        <p class="truncate text-[13.5px] font-medium text-ivory/95">${t.title}</p>
+        <p class="mt-0.5 font-mono text-[11px] text-ash">${t.range} · <span class="text-ivory/70">${fmtMin(t.min)}</span></p>
+      </div>
+      <div class="relative shrink-0">
+        <button class="dossier-chip flex max-w-[180px] items-center gap-1.5 rounded-full border border-white/[0.09] bg-white/[0.03] px-2.5 py-1 text-[11.5px] text-ivory/85 transition hover:border-gold/35 hover:text-gold-pale"
+                title="Modifier le dossier">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-60"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+          <span class="truncate">${t.dossier}</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" class="shrink-0 opacity-60"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </div>
+      ${confBadge(t)}
+      <button class="validate-btn flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/25 px-3 py-1.5 text-[12px] font-semibold text-emerald-300 opacity-60 transition hover:bg-emerald-400/15 group-hover:opacity-100"
+              aria-label="Valider ${t.title}">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+        Valider
+      </button>
+      <svg class="chevron shrink-0 text-ash/70" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+    <div class="row-detail px-5">
+      <div class="mb-3.5 ml-11 rounded-xl border border-gold/[0.15] bg-gold/[0.04] px-4 py-3">
+        <p class="eyebrow !text-gold-pale/80 !tracking-[0.14em]">Raisonnement de l'IA</p>
+        <p class="mt-1 text-[12.5px] leading-relaxed text-ivory/80">${t.why}</p>
+      </div>
+    </div>`;
+
+  const main = row.querySelector('.row-main');
+  const detail = row.querySelector('.row-detail');
+
+  const toggle = () => {
+    const open = row.classList.toggle('open');
+    detail.style.maxHeight = open ? detail.scrollHeight + 'px' : '0px';
+    main.setAttribute('aria-expanded', open);
+  };
+  main.addEventListener('click', (e) => {
+    if (e.target.closest('.validate-btn, .dossier-chip')) return;
+    toggle();
+  });
+  main.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && !e.target.closest('button')) { e.preventDefault(); toggle(); }
+  });
+
+  row.querySelector('.validate-btn').addEventListener('click', () => validateTask(t.id));
+  row.querySelector('.dossier-chip').addEventListener('click', (e) => {
+    e.stopPropagation();
+    openDossierMenu(e.currentTarget, t);
+  });
+
+  return row;
+}
+
+function renderJournal() {
+  listEl().innerHTML = '';
+  pending().forEach((t) => listEl().appendChild(makeRow(t)));
+}
+
+/* ---------- Carte "Capture passive" ---------- */
+function renderSources() {
+  const rows = [
+    { src: 'word',    name: 'Word',       detail: 'Conclusions_Delcourt_v3' },
+    { src: 'outlook', name: 'Outlook',    detail: 'Boîte active' },
+    { src: 'web',     name: 'Navigateur', detail: 'Légifrance' },
+  ];
+  $('#sources-list').innerHTML = rows.map((r) => {
+    const on = sourcesOn[r.src];
+    return `
+      <li class="flex items-center gap-2.5 ${on ? '' : 'opacity-40'}">
+        ${srcBadge(r.src, 6)}
+        <span class="text-ivory/90">${r.name}</span>
+        <span class="ml-auto flex items-center gap-1.5 truncate font-mono text-[11px] text-ash">
+          <span class="h-1.5 w-1.5 shrink-0 rounded-full ${on ? 'bg-emerald-400 pulse-dot' : 'bg-white/25'}"></span>${on ? r.detail : 'En pause'}
+        </span>
+      </li>`;
+  }).join('');
+}
+
+/* ---------- Menu déroulant des dossiers ---------- */
+function closeMenus() { document.querySelectorAll('.dossier-menu').forEach((m) => m.remove()); }
+
+function openDossierMenu(anchor, task) {
+  closeMenus();
+  const menu = document.createElement('div');
+  menu.className = 'dossier-menu fade-up absolute right-0 top-[calc(100%+6px)] z-30 w-[230px] overflow-hidden rounded-xl border border-white/[0.1] bg-carbon/95 shadow-[0_14px_40px_-8px_rgba(0,0,0,0.8)] backdrop-blur-xl';
+  menu.innerHTML =
+    `<p class="border-b border-white/[0.06] px-3.5 py-2 text-[10px] uppercase tracking-[0.16em] text-ash">Associer à un dossier</p>` +
+    DOSSIERS.map((d) => `
+      <button class="flex w-full items-center justify-between px-3.5 py-2 text-left text-[12.5px] transition hover:bg-gold/10 ${d === task.dossier ? 'text-gold-pale' : 'text-ivory/85'}" data-d="${d}">
+        <span class="truncate">${d}</span>
+        ${d === task.dossier ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>' : ''}
+      </button>`).join('');
+  anchor.parentElement.appendChild(menu);
+
+  menu.querySelectorAll('button[data-d]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const chosen = b.dataset.d;
+      if (chosen !== task.dossier) {
+        task.dossier = chosen;
+        task.corrected = true;
+        addFeedLog(`Dossier corrigé — « ${task.title.slice(0, 34)}… » → <b class="text-gold-pale">${chosen}</b>. J'en tiendrai compte.`, 'edit');
+        toast(`Dossier mis à jour · ${chosen}`);
+        const oldRow = listEl().querySelector(`[data-id="${task.id}"]`);
+        if (oldRow) oldRow.replaceWith(makeRow(task));
+        updateInsight();
+      }
+      closeMenus();
+    })
+  );
+  setTimeout(() => document.addEventListener('click', function h(e) {
+    if (!menu.contains(e.target)) { closeMenus(); document.removeEventListener('click', h); }
+  }), 0);
+}
+
+/* ═══════════════ Compteurs & animations ═══════════════ */
+
+function animateNumber(el, to, fmt, dur = 650) {
+  const from = parseFloat(el.dataset.val || 0);
+  el.dataset.val = to;
+  const t0 = performance.now();
+  const step = (now) => {
+    const p = Math.min((now - t0) / dur, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(from + (to - from) * eased);
+    if (p < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function floatGain(targetCard, text) {
+  const s = document.createElement('span');
+  s.className = 'float-gain pointer-events-none absolute right-4 top-3 font-mono text-[13px] font-semibold text-gold-pale';
+  s.textContent = text;
+  targetCard.appendChild(s);
+  targetCard.classList.remove('kpi-glow'); void targetCard.offsetWidth; targetCard.classList.add('kpi-glow');
+  setTimeout(() => s.remove(), 1300);
+}
+
+function updateKpis() {
+  animateNumber($('#kpi-validated'), kpi.validated, (v) => fmtMin(Math.round(v)));
+  animateNumber($('#kpi-ca-value'), kpi.ca, (v) => fmtEur(v));
+  animateNumber($('#kpi-roi-value'), kpi.roi, (v) => Math.round(v));
+  const pendingMin = pending().reduce((s, t) => s + t.min, 0);
+  $('#kpi-pending').textContent = fmtMin(pendingMin);
+  $('#kpi-progress').style.width = Math.round((kpi.validated / CAPTURED_TOTAL) * 100) + '%';
+}
+
+function updateBatchBar() {
+  const p = pending();
+  const bar = $('#batch-bar');
+  $('#pending-pill').textContent = `${p.length} en attente`;
+  if (p.length >= 2) {
+    bar.classList.remove('hidden');
+    $('#batch-label').innerHTML = `${p.length} tâches en attente · <span class="font-mono text-gold-pale">${fmtMin(p.reduce((s, t) => s + t.min, 0))}</span>`;
+  } else {
+    bar.classList.add('hidden');
+  }
+  if (p.length === 0) {
+    $('#empty-state').classList.remove('hidden');
+    $('#empty-state').classList.add('flex');
+    $('#pending-pill').textContent = 'À jour ✓';
+  } else {
+    $('#empty-state').classList.add('hidden');
+    $('#empty-state').classList.remove('flex');
+  }
+}
+
+/* ---------- Graphique hebdo (Accueil) ---------- */
+const DAY_LABELS = ['Lun 6', 'Mar 7', 'Mer 8', 'Jeu 9', 'Ven 10', 'Sam 11', 'Dim 12'];
+function renderChart() {
+  const scale = 460;
+  const vals = [WEEK_BASE[0], WEEK_BASE[1], kpi.validated, null, null, null, null];
+  $('#chart').innerHTML = vals.map((v, i) => {
+    const isToday = i === 2;
+    const h = v == null ? 4 : Math.max(6, Math.round((v / scale) * 100));
+    const cls = v == null
+      ? 'bg-white/[0.05]'
+      : isToday
+        ? 'bg-gradient-to-t from-gold-deep to-gold-pale'
+        : 'bg-gold/25';
+    return `
+      <div class="flex flex-1 flex-col items-center gap-1.5">
+        <div class="bar w-full rounded-t-md ${cls}" style="height:${h}%" title="${v == null ? '—' : fmtMin(v)}" id="${isToday ? 'bar-today' : ''}"></div>
+        <span class="whitespace-nowrap text-[9.5px] ${isToday ? 'font-semibold text-gold-pale' : 'text-ash'}">${DAY_LABELS[i]}</span>
+      </div>`;
+  }).join('');
+  $('#week-total').textContent = fmtMin(WEEK_BASE[0] + WEEK_BASE[1] + kpi.validated);
+}
+function updateChart() {
+  const bar = $('#bar-today');
+  if (bar) bar.style.height = Math.max(6, Math.round((kpi.validated / 460) * 100)) + '%';
+  $('#week-total').textContent = fmtMin(WEEK_BASE[0] + WEEK_BASE[1] + kpi.validated);
+}
+
+/* ═══════════════ VUE DOSSIERS ═══════════════ */
+
+function renderDossiers() {
+  const actifs = DOSSIER_CARDS.filter((d) => d.status !== 'archived');
+  const totalMin = actifs.reduce((s, d) => s + d.baseMin + validatedMinOf(d.key), 0);
+
+  const cards = DOSSIER_CARDS.map((d, i) => {
+    const time = d.baseMin + validatedMinOf(d.key);
+    const pMin = pendingMinOf(d.key);
+    const pct = Math.min(100, Math.round((time / d.budget) * 100));
+    const archived = d.status === 'archived';
+    let badge;
+    if (d.status === 'ready') badge = `<span class="shrink-0 rounded-full border border-gold/35 bg-gold/10 px-2.5 py-1 text-[10.5px] font-semibold text-gold-pale">Prêt à facturer</span>`;
+    else if (archived)        badge = `<span class="shrink-0 rounded-full border border-white/[0.1] bg-white/[0.04] px-2.5 py-1 text-[10.5px] text-ash">Archivé</span>`;
+    else                      badge = `<span class="shrink-0 rounded-full border border-white/[0.1] bg-white/[0.04] px-2.5 py-1 text-[10.5px] text-ash">En cours</span>`;
+    return `
+      <section class="glass fade-up p-5 transition hover:-translate-y-0.5 hover:border-gold/25 ${archived ? 'opacity-55' : ''}" style="animation-delay:${i * 0.06}s">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <h3 class="truncate font-display text-[19px] font-semibold text-ivory">${d.name}</h3>
+            <p class="mt-0.5 text-[11.5px] text-ash">${d.client}</p>
+          </div>
+          <div class="flex shrink-0 items-center gap-1.5">
+            ${badge}
+            <div class="relative">
+              <button type="button" data-di="${d.key}" aria-label="Actions pour le dossier ${d.name}" aria-haspopup="menu"
+                      class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-white/[0.08] text-ash transition hover:border-gold/35 hover:text-gold-pale">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <p class="mt-4 eyebrow">Temps capturé par l'IA · juillet</p>
+        <p class="mt-1 font-mono text-[22px] text-ivory">${fmtMin(time)}</p>
+        <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
+          <div class="hbar h-full rounded-full ${pct >= 90 ? 'bg-gradient-to-r from-amber-500 to-gold' : 'bg-gradient-to-r from-gold-pale to-gold-deep'}" style="width:${pct}%"></div>
+        </div>
+        <p class="mt-1.5 font-mono text-[11px] text-ash">${fmtMin(time)} / ${fmtMin(d.budget)} · ${pct} % du budget d'heures</p>
+        <div class="mt-4 flex items-center justify-between border-t border-white/[0.05] pt-3">
+          <span class="text-[11.5px] text-ash">Dernière activité · ${d.last}</span>
+          ${archived
+            ? `<span class="text-[11.5px] text-ash">Capture suspendue</span>`
+            : pMin > 0
+              ? `<button data-goval="${d.key}" class="cursor-pointer text-[11.5px] font-medium text-amber-300 transition hover:text-amber-200">● ${fmtMin(pMin)} à valider →</button>`
+              : `<span class="flex items-center gap-1 text-[11.5px] text-emerald-300"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Journal à jour</span>`}
+        </div>
+      </section>`;
+  }).join('');
+
+  $('#dossiers-root').innerHTML = `
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="eyebrow">Dossiers actifs</p>
+        <h2 class="mt-1 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">Vos dossiers les plus actifs</h2>
+      </div>
+      <div class="flex items-center gap-3">
+        <p class="font-mono text-[12px] text-gold-pale">${fmtMin(totalMin)} capturées ce mois</p>
+        <button type="button" data-newdossier
+                class="cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-3.5 py-1.5 text-[12px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">
+          + Nouveau Dossier
+        </button>
+      </div>
+    </div>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">${cards}</div>`;
+}
+
+/* ---------- Gestion des dossiers : menu •••, statuts, budget, création ---------- */
+
+const DOSSIER_STATUS_LABEL = { progress: 'En cours', ready: 'Prêt à facturer', archived: 'Archivé' };
+
+function openDossierActionsMenu(anchor, key) {
+  closeMenus();
+  const d = DOSSIER_CARDS.find((x) => x.key === key);
+  if (!d) return;
+  const archived = d.status === 'archived';
+  const stRow = (st, label) => `
+    <button type="button" data-dst="${st}" class="flex w-full cursor-pointer items-center justify-between px-3.5 py-2 pl-10 text-left text-[12px] ${d.status === st ? 'text-gold-pale' : 'text-ivory/85'} transition hover:bg-gold/10">
+      <span>${label}</span>
+      ${d.status === st ? ADMIN_IC.check : ''}
+    </button>`;
+
+  const menu = document.createElement('div');
+  menu.className = 'dossier-menu fade-up absolute right-0 top-[calc(100%+6px)] z-[70] w-[240px] overflow-hidden rounded-xl border border-white/[0.1] bg-carbon/95 shadow-[0_14px_40px_-8px_rgba(0,0,0,0.8)] backdrop-blur-xl';
+  menu.innerHTML = `
+    <p class="truncate border-b border-white/[0.06] px-3.5 py-2 text-[10px] uppercase tracking-[0.16em] text-ash">${d.name}</p>
+    <button type="button" data-dact="budget" class="flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-2.5 text-left text-[12.5px] text-ivory/90 transition hover:bg-white/[0.05]">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+      <span>Ajuster le budget d'heures</span>
+    </button>
+    <button type="button" data-dact="status" class="flex w-full cursor-pointer items-center justify-between gap-2.5 px-3.5 py-2.5 text-left text-[12.5px] text-ivory/90 transition hover:bg-white/[0.05]">
+      <span class="flex items-center gap-2.5">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r="0.5" fill="currentColor"/></svg>
+        <span>Changer le statut</span>
+      </span>
+      <svg class="dst-caret transition-transform" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="dst-list hidden border-y border-white/[0.05] bg-white/[0.02] py-1">
+      ${stRow('progress', 'En cours')}
+      ${stRow('ready', 'Prêt à facturer')}
+      ${stRow('archived', 'Archivé')}
+    </div>
+    ${archived
+      ? `<button type="button" data-dact="restore" class="flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-2.5 text-left text-[12.5px] text-emerald-300 transition hover:bg-emerald-400/10">${ADMIN_IC.check}<span>Restaurer le dossier</span></button>`
+      : `<button type="button" data-dact="archive" class="flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-2.5 text-left text-[12.5px] text-red-400 transition hover:bg-red-500/10"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg><span>Archiver le dossier</span></button>`}
+  `;
+  anchor.parentElement.appendChild(menu);
+
+  menu.addEventListener('click', (e) => {
+    const st = e.target.closest('[data-dst]');
+    if (st) { e.stopPropagation(); closeMenus(); setDossierStatus(key, st.dataset.dst); return; }
+    const act = e.target.closest('[data-dact]');
+    if (!act) return;
+    e.stopPropagation();
+    if (act.dataset.dact === 'status') {
+      const list = menu.querySelector('.dst-list');
+      list.classList.toggle('hidden');
+      menu.querySelector('.dst-caret').style.transform = list.classList.contains('hidden') ? '' : 'rotate(180deg)';
+      return; // le menu reste ouvert pour choisir le statut
+    }
+    closeMenus();
+    if (act.dataset.dact === 'budget') openBudgetModal(key);
+    if (act.dataset.dact === 'archive') setDossierStatus(key, 'archived');
+    if (act.dataset.dact === 'restore') setDossierStatus(key, 'progress');
+  });
+  setTimeout(() => document.addEventListener('click', function h(e) {
+    if (!menu.contains(e.target)) { closeMenus(); document.removeEventListener('click', h); }
+  }), 0);
+}
+
+function setDossierStatus(key, st) {
+  const d = DOSSIER_CARDS.find((x) => x.key === key);
+  if (!d || d.status === st) { renderDossiers(); return; }
+  d.status = st;
+  toast(`${d.name} · statut « ${DOSSIER_STATUS_LABEL[st]} »`);
+  addFeedLog(`Dossier <b>${d.name}</b> — statut passé à « ${DOSSIER_STATUS_LABEL[st]} »${st === 'archived' ? ' ; la capture est suspendue sur ce dossier.' : '.'}`, 'edit');
+  renderDossiers();
+}
+
+function openBudgetModal(key) {
+  const d = DOSSIER_CARDS.find((x) => x.key === key);
+  if (!d) return;
+  const wrap = openModal(`
+    <p class="eyebrow">Budget d'heures</p>
+    <h3 class="mt-1 truncate font-display text-[20px] font-semibold text-ivory">${d.name}</h3>
+    <label class="mt-4 block text-[11.5px] text-ash" for="bud-h">Forfait d'heures du dossier</label>
+    <div class="mt-1.5 flex items-center gap-3">
+      <input id="bud-h" type="number" min="1" step="1" value="${Math.round(d.budget / 60)}"
+             class="w-28 rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5 font-mono text-[15px] text-ivory outline-none transition focus:border-gold/40" />
+      <span class="text-[13px] text-ash">heures</span>
+    </div>
+    <p class="mt-3 text-[11px] leading-relaxed text-ash">Utilisation actuelle : <span class="font-mono text-gold-pale">${fmtMin(d.baseMin + validatedMinOf(key))}</span> — l'IA vous alertera à l'approche de la limite.</p>
+    <div class="mt-5 flex justify-end gap-2">
+      <button type="button" class="modal-cancel cursor-pointer rounded-full border border-white/[0.12] px-4 py-1.5 text-[12.5px] text-ivory/80 transition hover:border-white/25">Annuler</button>
+      <button type="button" id="bud-save" class="cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-1.5 text-[12.5px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">Enregistrer</button>
+    </div>`);
+  wrap.querySelector('.modal-cancel').addEventListener('click', closeModal);
+  wrap.querySelector('#bud-save').addEventListener('click', () => {
+    const h = Math.max(1, parseInt(wrap.querySelector('#bud-h').value, 10) || Math.round(d.budget / 60));
+    d.budget = h * 60;
+    closeModal();
+    toast(`${d.name} · budget porté à ${h} h`);
+    addFeedLog(`Budget du dossier <b>${d.name}</b> ajusté à <span class="font-mono text-gold-pale">${h} h</span>.`, 'edit');
+    renderDossiers();
+  });
+  setTimeout(() => wrap.querySelector('#bud-h').focus(), 60);
+}
+
+function openNewDossierModal() {
+  const wrap = openModal(`
+    <p class="eyebrow">Dossiers</p>
+    <h3 class="mt-1 font-display text-[20px] font-semibold text-ivory">Nouveau dossier</h3>
+    <label class="mt-4 block text-[11.5px] text-ash" for="nd-name">Nom du dossier</label>
+    <input id="nd-name" type="text" placeholder="Dupont c/ Assurances du Littoral" autocomplete="off"
+           class="mt-1.5 w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5 text-[13px] text-ivory placeholder-ash/50 outline-none transition focus:border-gold/40" />
+    <label class="mt-3.5 block text-[11.5px] text-ash" for="nd-client">Client</label>
+    <input id="nd-client" type="text" placeholder="M. A. Dupont" autocomplete="off"
+           class="mt-1.5 w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5 text-[13px] text-ivory placeholder-ash/50 outline-none transition focus:border-gold/40" />
+    <label class="mt-3.5 block text-[11.5px] text-ash" for="nd-budget">Budget d'heures</label>
+    <div class="mt-1.5 flex items-center gap-3">
+      <input id="nd-budget" type="number" min="1" step="1" value="10"
+             class="w-28 rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5 font-mono text-[15px] text-ivory outline-none transition focus:border-gold/40" />
+      <span class="text-[13px] text-ash">heures</span>
+    </div>
+    <p class="mt-3 text-[11px] leading-relaxed text-ash">Le dossier sera immédiatement proposé par l'IA dans le Journal du temps pour l'association des captures.</p>
+    <div class="mt-5 flex justify-end gap-2">
+      <button type="button" class="modal-cancel cursor-pointer rounded-full border border-white/[0.12] px-4 py-1.5 text-[12.5px] text-ivory/80 transition hover:border-white/25">Annuler</button>
+      <button type="button" id="nd-create" class="cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-1.5 text-[12.5px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">Créer le dossier</button>
+    </div>`);
+  wrap.querySelector('.modal-cancel').addEventListener('click', closeModal);
+  wrap.querySelector('#nd-create').addEventListener('click', () => {
+    const name = wrap.querySelector('#nd-name').value.trim();
+    if (!name) { toast('Le nom du dossier est requis'); return; }
+    const client = wrap.querySelector('#nd-client').value.trim() || 'Client à préciser';
+    const h = Math.max(1, parseInt(wrap.querySelector('#nd-budget').value, 10) || 10);
+    const key = 'D' + Date.now();
+    PREFIX[key] = name;
+    DOSSIER_CARDS.unshift({ key, name, client, baseMin: 0, budget: h * 60, status: 'progress', last: 'À l\u2019instant' });
+    DOSSIERS.splice(DOSSIERS.length - 1, 0, name); // inséré avant « Non facturable »
+    closeModal();
+    toast(`Dossier « ${name} » créé · budget ${h} h`);
+    addFeedLog(`Nouveau dossier <b>${name}</b> créé (${client}) — je l'associerai automatiquement aux prochaines captures correspondantes.`, 'check');
+    renderDossiers();
+  });
+  setTimeout(() => wrap.querySelector('#nd-name').focus(), 60);
+}
+
+/* ═══════════════ VUE STATISTIQUES ═══════════════ */
+
+function renderStats() {
+  const months = [...CA_MONTHS, { l: 'Juil', v: kpi.ca, now: true }];
+  const max = 13800;
+  const bars = months.map((m) => `
+    <div class="flex flex-1 flex-col items-center gap-1.5">
+      <span class="font-mono text-[9.5px] ${m.now ? 'text-gold-pale' : 'text-ash/80'}">${Math.round(m.v / 1000)}k</span>
+      <div class="bar w-full rounded-t-md ${m.now ? 'bg-gradient-to-t from-gold-deep to-gold-pale' : 'bg-gold/25'}"
+           style="height:${Math.max(6, Math.round((m.v / max) * 100))}%" title="${fmtEur(m.v)}"></div>
+      <span class="text-[10px] ${m.now ? 'font-semibold text-gold-pale' : 'text-ash'}">${m.l}</span>
+    </div>`).join('');
+
+  const apps = [
+    { src: 'outlook', name: 'Outlook',    p: 45 },
+    { src: 'word',    name: 'Word',       p: 35 },
+    { src: 'web',     name: 'Légifrance', p: 20 },
+  ].map((a) => `
+    <div class="flex items-center gap-3">
+      ${srcBadge(a.src, 6)}
+      <span class="w-24 shrink-0 text-[12.5px] text-ivory/90">${a.name}</span>
+      <div class="h-2 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
+        <div class="hbar h-full rounded-full bg-gradient-to-r from-gold-pale to-gold-deep" style="width:${a.p}%"></div>
+      </div>
+      <span class="w-10 shrink-0 text-right font-mono text-[11.5px] text-gold-pale">${a.p} %</span>
+    </div>`).join('');
+
+  $('#stats-root').innerHTML = `
+    <div class="mb-4">
+      <p class="eyebrow">Statistiques</p>
+      <h2 class="mt-1 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">Ce qu'ACTE vous a rapporté</h2>
+    </div>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+
+      <section class="glass fade-up p-5 md:col-span-2 md:row-span-2">
+        <div class="flex items-baseline justify-between">
+          <p class="eyebrow">CA récupéré par l'IA · 2026</p>
+          <p class="font-mono text-[12px] text-emerald-300">+18 % vs juin</p>
+        </div>
+        <div class="mt-5 flex h-[210px] items-end justify-between gap-3 px-1">${bars}</div>
+      </section>
+
+      <section class="glass fade-up p-5" style="animation-delay:0.06s">
+        <p class="eyebrow">Taux horaire moyen</p>
+        <p class="mt-2 font-display text-[25px] font-bold leading-none tracking-tight text-gold-grad">${RATE} €</p>
+        <p class="mt-[22px] text-[12px] text-ash">appliqué aux temps validés</p>
+      </section>
+
+      <section class="glass fade-up p-5" style="animation-delay:0.12s">
+        <p class="eyebrow">Temps capturé · juillet</p>
+        <p class="mt-2 font-display text-[25px] font-bold leading-none tracking-tight text-ivory">44 h 35</p>
+        <div class="mt-3 h-1 overflow-hidden rounded-full bg-white/[0.07]">
+          <div class="hbar h-full rounded-full bg-gradient-to-r from-gold-pale to-gold-deep" style="width:91%"></div>
+        </div>
+        <p class="mt-1.5 text-[12px] text-ash"><span class="font-mono text-gold-pale">91 %</span> de temps facturable</p>
+      </section>
+
+      <section class="glass fade-up p-5 md:col-span-3" style="animation-delay:0.18s">
+        <p class="eyebrow">Top applications capturées</p>
+        <div class="mt-4 space-y-3.5">${apps}</div>
+      </section>
+
+      <section class="glass fade-up p-5 md:col-span-3" style="animation-delay:0.24s">
+        <p class="eyebrow">L'enjeu du temps invisible</p>
+        <div class="mt-2 flex flex-wrap items-end justify-between gap-4">
+          <div class="min-w-[260px] flex-1">
+            <p class="font-display text-[30px] font-extrabold leading-none tracking-tight text-gold-grad">${fmtEur(RATE * 0.5 * 210)} / an</p>
+            <p class="mt-2 max-w-[600px] text-[12px] leading-relaxed text-ash">C'est ce que représentent <b class="text-ivory/90">30 minutes de temps oublié par jour</b> — le courriel de 12 min, la recherche Légifrance de 6 min — sur 210 jours facturables, à votre taux de <span class="font-mono">${RATE} € / h</span>. ACTE capture précisément ce temps que personne ne saisit à la main.</p>
+          </div>
+          <button type="button" data-invisible-cta
+                  class="cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-2 text-[12.5px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">Voir mon journal →</button>
+        </div>
+      </section>
+
+    </div>`;
+
+  const cta = document.querySelector('[data-invisible-cta]');
+  if (cta) cta.addEventListener('click', () => switchView('journal'));
+}
+
+/* ═══════════════ VUE FACTURATION ═══════════════ */
+
+const DOC_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="M9 15h6"/></svg>';
+
+function invoiceData(inv) {
+  const min = inv.baseMin + validatedMinOf(inv.key);
+  const pMin = pendingMinOf(inv.key);
+  return { min, pMin, amount: (min / 60) * RATE, ready: pMin === 0, generated: generatedSet.has(inv.id) };
+}
+
+function renderBilling() {
+  const readySum = INVOICES.reduce((s, inv) => {
+    const d = invoiceData(inv);
+    return s + (d.ready && !d.generated ? d.amount : 0);
+  }, 0);
+
+  const rows = INVOICES.map((inv) => {
+    const d = invoiceData(inv);
+    let action;
+    if (d.generated) {
+      action = `
+        <div class="flex items-center gap-2">
+          <span class="flex items-center gap-1.5 text-[12px] text-emerald-300"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Générée</span>
+          <button data-dl="${inv.id}" class="rounded-full border border-white/[0.12] px-3.5 py-1.5 text-[12px] text-ivory/85 transition hover:border-gold/35 hover:text-gold-pale">Télécharger</button>
+        </div>`;
+    } else if (d.ready) {
+      action = `
+        <button data-gen="${inv.id}" class="rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-1.5 text-[12.5px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">
+          Générer la facture
+        </button>`;
+    } else {
+      action = `
+        <div class="flex flex-col items-end gap-1">
+          <span class="text-[11px] text-amber-300">● ${fmtMin(d.pMin)} à valider au journal</span>
+          <button data-goval="${inv.key}" class="rounded-full border border-amber-500/35 px-3.5 py-1 text-[11.5px] text-amber-300 transition hover:bg-amber-500/10">Valider au journal →</button>
+        </div>`;
+    }
+    return `
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gold/25 bg-gold/[0.08] text-gold-pale">${DOC_ICON}</span>
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-[13.5px] font-medium text-ivory/95">${inv.name} <span class="ml-1.5 font-mono text-[10.5px] text-ash">${inv.id}</span></p>
+          <p class="mt-0.5 text-[11.5px] text-ash">${inv.period} · <span class="font-mono text-ivory/70">${fmtMin(d.min)}</span> validées</p>
+        </div>
+        <p class="shrink-0 font-display text-[21px] font-semibold ${d.ready || d.generated ? 'text-gold-grad' : 'text-ivory/50'}">${fmtEur(d.amount)}</p>
+        <div class="shrink-0">${action}</div>
+      </div>`;
+  }).join('<div class="border-t border-white/[0.05]"></div>');
+
+  $('#billing-root').innerHTML = `
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="eyebrow">Facturation</p>
+        <h2 class="mt-1 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">Factures issues du temps validé</h2>
+      </div>
+      <div class="text-right">
+        <p class="eyebrow">Prêt à facturer</p>
+        <p class="mt-0.5 font-display text-[20px] font-bold leading-none tracking-tight text-gold-grad">${fmtEur(readySum)}</p>
+      </div>
+    </div>
+    <div class="glass fade-up overflow-hidden">${rows}</div>
+    <p class="mt-3 px-1 text-[11.5px] leading-relaxed text-ash">Chaque montant est adossé au temps capturé par l'IA puis validé dans le Journal — la génération produit un document de démonstration, sans back-end.</p>
+
+    <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <section class="glass fade-up" style="animation-delay:0.12s">
+        <div class="flex items-center justify-between border-b border-white/[0.06] px-5 py-3.5">
+          <p class="eyebrow !mb-0">Intégrations logiciel de gestion</p>
+          <span class="text-[10px] uppercase tracking-[0.14em] text-ash">Simulation</span>
+        </div>
+        ${integrationRows()}
+        <p class="border-t border-white/[0.05] px-5 py-3 text-[11px] leading-relaxed text-ash">ACTE complète votre logiciel de gestion, il ne le remplace pas : les temps validés partent directement dans vos fiches de diligences.</p>
+      </section>
+
+      <section class="glass fade-up p-5" style="animation-delay:0.18s">
+        <p class="eyebrow">Exports comptables</p>
+        <div class="mt-3.5 space-y-2.5">
+          <div class="flex flex-wrap items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3">
+            <div class="min-w-0 flex-1">
+              <p class="text-[12.5px] font-medium text-ivory/95">Temps validés du jour (.csv)</p>
+              <p class="mt-0.5 text-[11px] text-ash">Compatible Excel · import de diligences</p>
+            </div>
+            <button type="button" id="exp-csv" class="cursor-pointer rounded-full border border-gold/35 bg-gold/10 px-3.5 py-1.5 text-[11.5px] font-semibold text-gold-pale transition hover:bg-gold/[0.18]">Exporter</button>
+          </div>
+          <div class="flex flex-wrap items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3">
+            <div class="min-w-0 flex-1">
+              <p class="text-[12.5px] font-medium text-ivory/95">Dernière facture au format Factur-X (.xml)</p>
+              <p class="mt-0.5 text-[11px] text-ash">Réforme e-facturation · syntaxe CII</p>
+            </div>
+            <button type="button" id="exp-fx" class="cursor-pointer rounded-full border border-gold/35 bg-gold/10 px-3.5 py-1.5 text-[11.5px] font-semibold text-gold-pale transition hover:bg-gold/[0.18]">Exporter</button>
+          </div>
+        </div>
+        <p class="mt-3 text-[11px] text-ash">Votre cabinet est prêt pour la facturation électronique obligatoire.</p>
+      </section>
+    </div>`;
+
+  /* Câblage des intégrations & exports */
+  const br = $('#billing-root');
+  br.querySelectorAll('[data-conn]').forEach((b) => b.addEventListener('click', () => openConnectModal(b.dataset.conn)));
+  br.querySelectorAll('[data-sync]').forEach((b) => b.addEventListener('click', () => syncIntegration(b.dataset.sync)));
+  br.querySelectorAll('[data-disc]').forEach((b) => b.addEventListener('click', () => {
+    INTEGRATIONS[b.dataset.disc] = false;
+    toast(INTEG_META[b.dataset.disc].name + ' déconnecté');
+    renderBilling();
+  }));
+  $('#exp-csv').addEventListener('click', exportValidatedCsv);
+  $('#exp-fx').addEventListener('click', exportFacturX);
+}
+
+/* ---------- Intégrations logiciel de gestion (Secib, Kleos, Jarvis) — simulées ---------- */
+
+const INTEG_META = {
+  secib:  { mark: 'S', name: 'Secib néo / Air',        sub: 'Diligences & facturation' },
+  kleos:  { mark: 'K', name: 'Kleos — Wolters Kluwer', sub: 'Prestations & dossiers' },
+  jarvis: { mark: 'J', name: 'Jarvis Legal',           sub: 'Temps & facturation' },
+};
+
+function integrationRows() {
+  return Object.keys(INTEG_META).map((k) => {
+    const m = INTEG_META[k];
+    const on = INTEGRATIONS[k];
+    return `
+      <div class="flex flex-wrap items-center gap-3 px-5 py-3">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${on ? 'border-gold/40 bg-gold/10 text-gold-pale' : 'border-white/[0.1] bg-white/[0.04] text-ivory/80'} font-display text-[14px] font-bold">${m.mark}</span>
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-[13px] font-medium text-ivory/95">${m.name}</p>
+          <p class="mt-0.5 flex items-center gap-1.5 text-[11px] ${on ? 'text-emerald-300' : 'text-ash'}">
+            <span class="h-1.5 w-1.5 rounded-full ${on ? 'bg-emerald-400 pulse-dot' : 'bg-white/25'}"></span>${on ? 'Connecté · synchronisation prête' : m.sub}
+          </p>
+        </div>
+        ${on
+          ? `<button type="button" data-sync="${k}" class="cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-3 py-1.5 text-[11px] font-semibold text-noir transition hover:brightness-110">Synchroniser</button>
+             <button type="button" data-disc="${k}" class="cursor-pointer rounded-full border border-white/[0.12] px-3 py-1.5 text-[11px] text-ivory/75 transition hover:border-red-400/40 hover:text-red-400">Déconnecter</button>`
+          : `<button type="button" data-conn="${k}" class="cursor-pointer rounded-full border border-gold/35 px-3.5 py-1.5 text-[11.5px] font-semibold text-gold-pale transition hover:bg-gold/10">Connecter</button>`}
+      </div>`;
+  }).join('<div class="border-t border-white/[0.05]"></div>');
+}
+
+function openConnectModal(k) {
+  const m = INTEG_META[k];
+  const wrap = openModal(`
+    <p class="eyebrow">Intégrations</p>
+    <h3 class="mt-1 font-display text-[19px] font-bold text-ivory">Connecter ${m.name}</h3>
+    <p class="mt-2 text-[11.5px] leading-relaxed text-ash">Connexion par jeton chiffré : ACTE n'écrira que des lignes de diligences (date, dossier, durée, montant) — jamais de lecture de vos documents. Simulation front-end, aucun échange réel.</p>
+    <label class="mt-4 block text-[11.5px] text-ash" for="conn-url">Adresse de votre instance</label>
+    <input id="conn-url" type="text" value="https://cabinet-charpentier.${k}.fr" autocomplete="off"
+           class="mt-1.5 w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5 font-mono text-[12px] text-ivory outline-none transition focus:border-gold/40" />
+    <div class="mt-5 flex justify-end gap-2">
+      <button type="button" class="modal-cancel cursor-pointer rounded-full border border-white/[0.12] px-4 py-1.5 text-[12.5px] text-ivory/80 transition hover:border-white/25">Annuler</button>
+      <button type="button" id="conn-ok" class="cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-1.5 text-[12.5px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">Autoriser la connexion</button>
+    </div>`);
+  wrap.querySelector('.modal-cancel').addEventListener('click', closeModal);
+  wrap.querySelector('#conn-ok').addEventListener('click', () => {
+    INTEGRATIONS[k] = true;
+    closeModal();
+    toast(`${m.name} connecté`);
+    addFeedLog(`Connecteur <b>${m.name}</b> autorisé — les temps validés peuvent partir en un clic vers vos diligences.`, 'check');
+    renderBilling();
+  });
+}
+
+function syncIntegration(k) {
+  const m = INTEG_META[k];
+  const done = tasks.filter((t) => t.validated);
+  if (!done.length) { toast('Validez d\u2019abord des temps au journal avant de synchroniser'); return; }
+  const total = done.reduce((x, t) => x + t.min, 0);
+  toast(`${done.length} temps envoyé${done.length > 1 ? 's' : ''} vers ${m.name} · ${fmtMin(total)}`);
+  addFeedLog(`<b>${done.length}</b> diligence${done.length > 1 ? 's' : ''} (${fmtMin(total)}) transmise${done.length > 1 ? 's' : ''} à <b>${m.name}</b>.`, 'check');
+}
+
+/* ---------- Exports comptables : CSV des temps validés + Factur-X ---------- */
+
+function exportValidatedCsv() {
+  const done = tasks.filter((t) => t.validated);
+  if (!done.length) { toast('Validez d\u2019abord des temps au journal'); return; }
+  const lignes = ['Date;Dossier;Intitulé;Durée (min);Taux (€/h);Montant (€);Source'];
+  done.forEach((t) => {
+    const montant = ((t.min / 60) * RATE).toFixed(2).replace('.', ',');
+    lignes.push(['08/07/2026', t.dossier, t.title.replace(/;/g, ','), t.min, RATE, montant, t.source].join(';'));
+  });
+  const url = URL.createObjectURL(new Blob(['\uFEFF' + lignes.join(String.fromCharCode(10))], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = 'acte-temps-valides-2026-07-08.csv'; a.click();
+  URL.revokeObjectURL(url);
+  toast(`Export CSV téléchargé · ${done.length} ligne${done.length > 1 ? 's' : ''} de diligences`);
+}
+
+function exportFacturX() {
+  const inv = INVOICES[0];
+  const amount = (((inv.baseMin + validatedMinOf(inv.key)) / 60) * RATE).toFixed(2);
+  const xml = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<!-- Facture Factur-X (profil BASIC, syntaxe CII) — document de démonstration ACTE -->',
+    '<rsm:CrossIndustryInvoice xmlns:rsm="urn:un:unece:uncefact:data:standard:CrossIndustryInvoice:100"',
+    '  xmlns:ram="urn:un:unece:uncefact:data:standard:ReusableAggregateBusinessInformationEntity:100">',
+    '  <rsm:ExchangedDocument>',
+    '    <ram:ID>' + inv.id + '</ram:ID>',
+    '    <ram:TypeCode>380</ram:TypeCode>',
+    '    <ram:IssueDateTime>20260708</ram:IssueDateTime>',
+    '  </rsm:ExchangedDocument>',
+    '  <rsm:SupplyChainTradeTransaction>',
+    '    <ram:SellerTradeParty><ram:Name>Cabinet Charpentier &amp; Associés</ram:Name></ram:SellerTradeParty>',
+    '    <ram:BuyerTradeParty><ram:Name>' + inv.name + '</ram:Name></ram:BuyerTradeParty>',
+    '    <ram:GrandTotalAmount currencyID="EUR">' + amount + '</ram:GrandTotalAmount>',
+    '  </rsm:SupplyChainTradeTransaction>',
+    '</rsm:CrossIndustryInvoice>',
+  ].join(String.fromCharCode(10));
+  const url = URL.createObjectURL(new Blob([xml], { type: 'application/xml' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = inv.id + '-facturx.xml'; a.click();
+  URL.revokeObjectURL(url);
+  toast('Facture ' + inv.id + ' exportée au format Factur-X');
+}
+
+function generateInvoice(id, btn) {
+  const inv = INVOICES.find((i) => i.id === id);
+  if (!inv || generatedSet.has(id)) return;
+  btn.disabled = true;
+  btn.innerHTML = `<span class="inline-flex items-center gap-2"><svg class="spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>Génération…</span>`;
+  setTimeout(() => {
+    generatedSet.add(id);
+    const d = invoiceData(inv);
+    toast(`Facture ${id} générée · ${fmtEur(d.amount)} — prête à l'envoi`);
+    addFeedLog(`Facture <b>${id}</b> générée — ${inv.name} · <span class="font-mono text-gold-pale">${fmtEur(d.amount)}</span>`, 'check');
+    renderBilling();
+    updateInsight();
+  }, 900);
+}
+
+function downloadInvoice(id) {
+  const inv = INVOICES.find((i) => i.id === id);
+  if (!inv) return;
+  const d = invoiceData(inv);
+  const txt = [
+    `ACTE — Facture ${inv.id}`,
+    `Cabinet Charpentier & Associés`,
+    `Date d'émission : mercredi 8 juillet 2026`,
+    ``,
+    `Dossier   : ${inv.name}`,
+    `Période   : ${inv.period}`,
+    `Temps     : ${fmtMin(d.min)} (capturé par l'IA et validé au journal)`,
+    `Taux      : ${RATE} € / heure`,
+    ``,
+    `TOTAL HT  : ${fmtEur(d.amount)}`,
+    ``,
+    `— Document de démonstration généré par le prototype front-end ACTE —`,
+  ].join('\n');
+  const url = URL.createObjectURL(new Blob([txt], { type: 'text/plain;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = `${inv.id}.txt`; a.click();
+  URL.revokeObjectURL(url);
+  toast(`Facture ${id} téléchargée`);
+}
+
+/* ═══════════════ VUE MON PROFIL & IMPACT ═══════════════ */
+
+function renderProfile() {
+  $('#profile-root').innerHTML = `
+    <div class="mb-4">
+      <p class="eyebrow">Mon profil &amp; impact</p>
+      <h2 class="mt-1 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">Me Valentine Charpentier</h2>
+    </div>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+
+      <!-- Carte identité -->
+      <section class="glass fade-up p-5">
+        <div class="flex items-center gap-3.5">
+          <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-gold-pale to-gold-deep font-display text-[22px] font-semibold text-noir">VC</span>
+          <div class="min-w-0">
+            <p class="font-display text-[19px] font-semibold leading-tight text-ivory">Me V. Charpentier</p>
+            <p class="mt-0.5 text-[12px] text-ash">Associée · Contentieux des affaires</p>
+          </div>
+        </div>
+        <div class="mt-5 space-y-3 border-t border-white/[0.06] pt-4 text-[12.5px]">
+          <div class="flex items-center justify-between"><span class="text-ash">Taux horaire</span><span class="font-mono text-gold-pale">${RATE} € / h</span></div>
+          <div class="flex items-center justify-between"><span class="text-ash">Barreau</span><span class="text-ivory/90">Nantes</span></div>
+          <div class="flex items-center justify-between"><span class="text-ash">Au cabinet depuis</span><span class="font-mono text-ivory/90">2019</span></div>
+          <div class="flex items-center justify-between gap-3"><span class="shrink-0 text-ash">Contact</span><span class="truncate font-mono text-[11px] text-ivory/80">vc@charpentier-associes.fr</span></div>
+        </div>
+      </section>
+
+      <!-- Carte Bilan Personnel IA -->
+      <section class="glass fade-up relative overflow-hidden border-gold/[0.22] p-5 md:col-span-2" style="animation-delay:0.06s">
+        <span class="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full" style="background:radial-gradient(circle, rgb(var(--c-accent) / 0.08), transparent 70%)"></span>
+        <p class="eyebrow !text-gold-pale/80">Bilan personnel IA · juillet 2026</p>
+        <p class="mt-3 max-w-[520px] font-display text-[21px] font-medium leading-snug text-ivory">
+          Ce mois-ci, ACTE a détecté en arrière-plan
+          <span class="font-mono text-[19px] font-semibold text-gold-pale">24 h 15</span>
+          de micro-tâches volatiles, sécurisant
+          <span class="font-mono text-[19px] font-semibold text-gold-pale">6 790 €</span>
+          pour votre compte.
+        </p>
+        <div class="mt-5 grid grid-cols-3 gap-3 border-t border-white/[0.06] pt-4">
+          <div>
+            <p class="font-mono text-[18px] text-ivory">127</p>
+            <p class="mt-0.5 text-[11px] text-ash">micro-tâches détectées</p>
+          </div>
+          <div>
+            <p class="font-mono text-[18px] text-ivory">96 %</p>
+            <p class="mt-0.5 text-[11px] text-ash">de suggestions validées</p>
+          </div>
+          <div>
+            <p class="font-mono text-[18px] text-emerald-300">+9 %</p>
+            <p class="mt-0.5 text-[11px] text-ash">de temps facturé vs saisie manuelle</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Temps forts -->
+      <section class="glass fade-up p-5 md:col-span-3" style="animation-delay:0.12s">
+        <p class="eyebrow">Vos temps forts du mois</p>
+        <div class="mt-3.5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div class="glass-soft rounded-xl px-4 py-3">
+            <p class="text-[11px] text-ash">Meilleure journée</p>
+            <p class="mt-1 text-[13px] text-ivory/95">Jeudi 2 juillet · <span class="font-mono text-gold-pale">4 h 50</span></p>
+          </div>
+          <div class="glass-soft rounded-xl px-4 py-3">
+            <p class="text-[11px] text-ash">Dossier dominant</p>
+            <p class="mt-1 text-[13px] text-ivory/95">Delcourt · <span class="font-mono text-gold-pale">38 %</span> du temps</p>
+          </div>
+          <div class="glass-soft rounded-xl px-4 py-3">
+            <p class="text-[11px] text-ash">Sauvées de l'oubli</p>
+            <p class="mt-1 text-[13px] text-ivory/95"><span class="font-mono text-gold-pale">41</span> tâches de moins de 10 min</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Liaison de l'application locale (clé d'activation du Compagnon) -->
+      <section class="glass fade-up p-5 md:col-span-3" style="animation-delay:0.18s">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <p class="eyebrow">Liaison de l'application locale</p>
+          <span class="flex items-center gap-1.5 text-[11px] text-ash">
+            <span class="h-1.5 w-1.5 rounded-full bg-white/25"></span>Compagnon non détecté sur ce poste ·
+            <button type="button" data-dl-link class="cursor-pointer font-medium text-gold-pale underline-offset-2 transition hover:underline">télécharger</button>
+          </span>
+        </div>
+        <div class="mt-3.5 flex flex-wrap items-center gap-2">
+          <div class="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5">
+            <svg class="shrink-0 text-gold-pale" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            <span class="shrink-0 text-[11.5px] text-ash">Clé d'activation :</span>
+            <code id="api-key" class="min-w-0 truncate font-mono text-[12.5px] tracking-wide text-ivory">••••••••••••••••</code>
+          </div>
+          <button type="button" id="key-toggle" class="cursor-pointer rounded-full border border-white/[0.12] px-3.5 py-2 text-[12px] text-ivory/85 transition hover:border-gold/35 hover:text-gold-pale">Afficher</button>
+          <button type="button" id="key-copy" class="w-[86px] cursor-pointer rounded-full border border-gold/35 bg-gold/10 px-3.5 py-2 text-[12px] font-semibold text-gold-pale transition hover:bg-gold/[0.18]">Copier</button>
+        </div>
+        <p class="mt-2.5 text-[11.5px] leading-relaxed text-ash">Copiez cette clé dans votre application de bureau ACTE pour synchroniser vos captures en toute sécurité. Elle est propre à votre poste et révocable à tout moment depuis cette page.</p>
+      </section>
+
+    </div>`;
+
+  /* Câblage de la carte « Liaison » */
+  let keyShown = false;
+  const keyEl = $('#api-key');
+  $('#key-toggle').addEventListener('click', () => {
+    keyShown = !keyShown;
+    keyEl.textContent = keyShown ? API_KEY : '••••••••••••••••';
+    $('#key-toggle').textContent = keyShown ? 'Masquer' : 'Afficher';
+  });
+  $('#key-copy').addEventListener('click', async () => {
+    const btn = $('#key-copy');
+    const done = await copyText(API_KEY);
+    if (done) {
+      toast('Clé d’activation copiée dans le presse-papiers');
+    } else {
+      keyShown = true; keyEl.textContent = API_KEY; $('#key-toggle').textContent = 'Masquer';
+      toast('Copie automatique indisponible — clé affichée pour copie manuelle');
+    }
+    btn.textContent = 'Copié !';
+    setTimeout(() => { btn.textContent = 'Copier'; }, 1600);
+  });
+}
+
+/* ═══════════════ VUE CONSOLE ADMIN (CABINET) ═══════════════ */
+
+function renderAdmin() {
+  const real = TEAM.filter((m) => !m.pending);
+  const totalMin = real.reduce((s, m) => s + m.min, 0);
+  const totalCa = real.reduce((s, m) => s + (m.min / 60) * m.rate, 0);
+  const actives = real.filter((m) => !m.suspended).length;
+
+  const rows = TEAM.map((m, i) => {
+    const busy = m.status === 'En audience';
+    let statusHtml;
+    if (m.pending) {
+      statusHtml = `<span class="flex w-28 shrink-0 items-center justify-end gap-1.5 text-[11.5px] text-amber-300"><span class="h-1.5 w-1.5 rounded-full bg-amber-400"></span>Invité·e</span>`;
+    } else if (m.suspended) {
+      statusHtml = `<span class="flex w-28 shrink-0 items-center justify-end gap-1.5 text-[11.5px] text-red-400"><span class="h-1.5 w-1.5 rounded-full bg-red-400"></span>Suspendu</span>`;
+    } else {
+      statusHtml = `<span class="flex w-28 shrink-0 items-center justify-end gap-1.5 text-[11.5px] ${busy ? 'text-amber-300' : 'text-emerald-300'}"><span class="h-1.5 w-1.5 rounded-full ${busy ? 'bg-amber-400' : 'bg-emerald-400 pulse-dot'}"></span>${m.status}</span>`;
+    }
+    return `
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5 ${m.suspended ? 'opacity-50' : ''}">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${m.partner ? 'bg-gradient-to-br from-gold-pale to-gold-deep text-noir' : 'border border-white/[0.12] bg-white/[0.05] text-ivory/85'} font-display text-[13px] font-semibold">${m.ini}</span>
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-[13.5px] font-medium text-ivory/95">${m.name}</p>
+          <p class="mt-0.5 truncate text-[11.5px] text-ash">${m.role}${m.reminded ? ' · <span class="text-emerald-300">rappel envoyé ✓</span>' : ''}</p>
+        </div>
+        <div class="hidden w-16 shrink-0 text-right md:block">
+          <p class="font-mono text-[13px] text-ivory">${m.rate} €</p>
+          <p class="text-[10px] text-ash">taux / h</p>
+        </div>
+        <div class="w-24 shrink-0 text-right">
+          <p class="font-mono text-[13px] text-ivory">${m.pending ? '—' : fmtMin(m.min)}</p>
+          <p class="text-[10px] text-ash">capturées</p>
+        </div>
+        <div class="hidden w-16 shrink-0 text-right sm:block">
+          <p class="font-mono text-[13px] text-gold-pale">${m.pending ? '—' : m.val + ' %'}</p>
+          <p class="text-[10px] text-ash">validées</p>
+        </div>
+        ${statusHtml}
+        <div class="relative shrink-0">
+          <button type="button" data-mi="${i}" aria-label="Actions pour ${m.name}" aria-haspopup="menu"
+                  class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-white/[0.08] text-ash transition hover:border-gold/35 hover:text-gold-pale">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+          </button>
+        </div>
+      </div>`;
+  }).join('<div class="border-t border-white/[0.05]"></div>');
+
+  $('#admin-root').innerHTML = `
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="eyebrow">Console admin</p>
+        <h2 class="mt-1 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">Cabinet Charpentier &amp; Associés</h2>
+      </div>
+      <span class="flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-3.5 py-1.5 text-[11.5px] font-medium text-emerald-300">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>
+        Secret professionnel &amp; chiffrement activés
+      </span>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <section class="glass fade-up p-5">
+        <p class="eyebrow">Volume capturé · juillet</p>
+        <p class="mt-2 font-display text-[23px] font-bold leading-none tracking-tight text-ivory">${fmtMin(totalMin)}</p>
+        <p class="mt-[24px] text-[12px] text-ash">tous membres confondus</p>
+      </section>
+      <section class="glass fade-up p-5" style="animation-delay:0.06s">
+        <p class="eyebrow">CA cabinet sécurisé</p>
+        <p class="mt-2 font-display text-[23px] font-bold leading-none tracking-tight text-gold-grad">${fmtEur(totalCa)}</p>
+        <p class="mt-[24px] text-[12px] text-ash">aux taux horaires individuels</p>
+      </section>
+      <section class="glass fade-up p-5" style="animation-delay:0.12s">
+        <p class="eyebrow">Membres actifs</p>
+        <p class="mt-2 font-display text-[23px] font-bold leading-none tracking-tight text-ivory">${actives} <span class="text-[20px] text-ash">/ ${real.length}</span></p>
+        <p class="mt-[24px] text-[12px] text-ash">${actives < real.length ? `${real.length - actives} compte${real.length - actives > 1 ? 's' : ''} suspendu${real.length - actives > 1 ? 's' : ''}` : 'capture passive en fonctionnement'}</p>
+      </section>
+
+      <section class="glass fade-up md:col-span-3" style="animation-delay:0.18s">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-3">
+          <div class="flex items-center gap-1.5" role="tablist" aria-label="Sections de la console">
+            <button type="button" data-atab="team" role="tab" aria-selected="${adminTab === 'team'}"
+                    class="cursor-pointer rounded-full px-3 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] transition ${adminTab === 'team' ? 'bg-gold/10 text-gold-pale' : 'text-ash hover:text-ivory'}">Équipe du cabinet</button>
+            <button type="button" data-atab="sub" role="tab" aria-selected="${adminTab === 'sub'}"
+                    class="cursor-pointer rounded-full px-3 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] transition ${adminTab === 'sub' ? 'bg-gold/10 text-gold-pale' : 'text-ash hover:text-ivory'}">Abonnement Cabinet</button>
+          </div>
+          ${adminTab === 'team'
+            ? `<div class="flex items-center gap-3">
+                 <p class="font-mono text-[11px] text-ash">${TEAM.length} membre${TEAM.length > 1 ? 's' : ''}</p>
+                 <button type="button" data-invite
+                         class="cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-3.5 py-1.5 text-[12px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">
+                   + Inviter un membre
+                 </button>
+               </div>`
+            : `<span class="flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-3 py-1 text-[11px] font-medium text-emerald-300"><span class="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot"></span>Abonnement actif</span>`}
+        </div>
+        ${adminTab === 'team' ? rows : subscriptionHtml(real)}
+      </section>
+
+      <section class="glass fade-up flex items-start gap-3.5 p-5 md:col-span-3" style="animation-delay:0.24s">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-400/25 bg-emerald-400/[0.08] text-emerald-300">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+        <div>
+          <p class="text-[13px] font-medium text-ivory/95">Chiffrement de bout en bout</p>
+          <p class="mt-1 text-[12px] leading-relaxed text-ash">Les contenus capturés (documents, courriels, recherches) sont traités localement sur le poste de chaque membre. Seules les métadonnées de temps — durée, dossier, source — remontent à la console, chiffrées en AES-256. Le secret professionnel reste sous le contrôle exclusif du cabinet. Certification <b class="text-ivory/90">ISO 27001</b> en préparation · audits de sécurité annuels.</p>
+        </div>
+      </section>
+    </div>`;
+}
+
+/* ---------- Abonnement Cabinet (facturation ACTE via Stripe, simulée) ---------- */
+
+function subscriptionHtml(real) {
+  const seats = real.length;
+  const price = seats * 50;
+  const pendingCount = TEAM.filter((m) => m.pending).length;
+  const pct = Math.min(100, Math.round((seats / 8) * 100));
+  return `
+    <div class="px-5 py-5">
+      <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p class="font-display text-[21px] font-semibold text-ivory">Formule Cabinet <span class="text-gold-grad">Actif</span></p>
+          <p class="mt-1 text-[12.5px] text-ash">${seats} licences utilisées · <span class="font-mono text-gold-pale">${price} € / mois</span> · 50 € par licence, sans engagement</p>
+          <p class="mt-1 text-[11.5px] text-ash">Aussi disponible : formule <b class="text-ivory/90">Solo</b> à <span class="font-mono text-gold-pale">29 € / mois</span> pour avocat individuel.</p>
+          ${pendingCount ? `<p class="mt-1 text-[11.5px] text-amber-300">${pendingCount} invitation${pendingCount > 1 ? 's' : ''} en attente — chaque licence sera facturée à l’activation du compte.</p>` : ''}
+        </div>
+        <div class="w-full max-w-[220px]">
+          <div class="flex items-baseline justify-between text-[11px] text-ash"><span>Licences</span><span class="font-mono">${seats} / 8 incluses</span></div>
+          <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/[0.07]"><div class="hbar h-full rounded-full bg-gradient-to-r from-gold-pale to-gold-deep" style="width:${pct}%"></div></div>
+        </div>
+      </div>
+      <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div class="glass-soft rounded-xl px-4 py-3">
+          <p class="text-[11px] text-ash">Prochain prélèvement</p>
+          <p class="mt-1 text-[13px] text-ivory/95">1er août 2026 · <span class="font-mono text-gold-pale">${price} €</span></p>
+        </div>
+        <div class="glass-soft rounded-xl px-4 py-3">
+          <p class="text-[11px] text-ash">Moyen de paiement</p>
+          <p class="mt-1 text-[13px] text-ivory/95">Visa <span class="font-mono">•••• 4242</span> · exp. 04/28</p>
+        </div>
+        <div class="glass-soft rounded-xl px-4 py-3">
+          <p class="text-[11px] text-ash">Client ACTE depuis</p>
+          <p class="mt-1 text-[13px] text-ivory/95">Mars 2026 · <span class="font-mono text-gold-pale">4 factures</span></p>
+        </div>
+      </div>
+      <div class="mt-5 flex flex-wrap items-center gap-2 border-t border-white/[0.05] pt-4">
+        <button type="button" data-stripe
+                class="flex cursor-pointer items-center gap-2 rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-2 text-[12.5px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+          Gérer le paiement &amp; Factures
+          <span class="text-[10px] font-medium opacity-70">via Stripe</span>
+        </button>
+        <button type="button" data-invite
+                class="cursor-pointer rounded-full border border-white/[0.12] px-4 py-2 text-[12.5px] text-ivory/85 transition hover:border-gold/35 hover:text-gold-pale">
+          Ajouter une licence
+        </button>
+      </div>
+    </div>`;
+}
+
+function openStripeModal() {
+  const seats = TEAM.filter((m) => !m.pending).length;
+  const price = seats * 50;
+  const wrap = openModal(`
+    <p class="eyebrow">Abonnement Cabinet</p>
+    <h3 class="mt-1 font-display text-[20px] font-semibold text-ivory">Paiement &amp; factures</h3>
+    <p class="mt-1.5 text-[11px] leading-relaxed text-ash">Session de facturation sécurisée via <b class="text-ivory/80">Stripe</b> — simulée dans ce prototype, aucune donnée bancaire réelle n’est traitée.</p>
+    <div class="glass-soft mt-4 flex items-center gap-3 rounded-xl px-3.5 py-3">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gold/25 bg-gold/[0.08] text-gold-pale">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
+      </span>
+      <div class="min-w-0 flex-1">
+        <p class="text-[13px] text-ivory/95">Visa <span class="font-mono">•••• 4242</span></p>
+        <p class="text-[11px] text-ash">Expire 04/28 · adresse de facturation à jour</p>
+      </div>
+      <button type="button" id="stripe-card-update" class="cursor-pointer rounded-full border border-white/[0.12] px-3 py-1.5 text-[11.5px] text-ivory/85 transition hover:border-gold/35 hover:text-gold-pale">Mettre à jour</button>
+    </div>
+    <p class="mt-4 eyebrow">Dernières factures</p>
+    <div class="mt-2 space-y-1.5">
+      ${[
+        { id: 'ACTE-SUB-2026-07', d: '1er juillet 2026', a: price },
+        { id: 'ACTE-SUB-2026-06', d: '1er juin 2026',    a: 250 },
+        { id: 'ACTE-SUB-2026-05', d: '1er mai 2026',     a: 200 },
+      ].map((f) => `
+        <div class="flex items-center gap-2.5 px-1 py-1 text-[12px]">
+          <span class="font-mono text-[11px] text-ash">${f.id}</span>
+          <span class="flex-1 truncate text-ash">${f.d}</span>
+          <span class="font-mono text-ivory/90">${f.a} €</span>
+          <span class="text-[10.5px] text-emerald-300">Payée</span>
+          <button type="button" data-subdl="${f.id}|${f.d}|${f.a}" class="cursor-pointer rounded-full border border-white/[0.12] px-2.5 py-1 text-[10.5px] text-ivory/80 transition hover:border-gold/35 hover:text-gold-pale">Télécharger</button>
+        </div>`).join('')}
+    </div>
+    <div class="mt-5 flex justify-end gap-2">
+      <button type="button" class="modal-cancel cursor-pointer rounded-full border border-white/[0.12] px-4 py-1.5 text-[12.5px] text-ivory/80 transition hover:border-white/25">Fermer</button>
+      <button type="button" id="stripe-portal" class="cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-1.5 text-[12.5px] font-semibold text-noir transition hover:brightness-110">Ouvrir le portail Stripe</button>
+    </div>`);
+  wrap.querySelector('.modal-cancel').addEventListener('click', closeModal);
+  wrap.querySelector('#stripe-portal').addEventListener('click', () => toast('Redirection vers le portail Stripe — simulée dans ce prototype'));
+  wrap.querySelector('#stripe-card-update').addEventListener('click', () => toast('Mise à jour de la carte — simulée dans ce prototype'));
+  wrap.querySelectorAll('[data-subdl]').forEach((b) => b.addEventListener('click', () => {
+    const parts = b.dataset.subdl.split('|');
+    downloadSubInvoice(parts[0], parts[1], parts[2]);
+  }));
+}
+
+function downloadSubInvoice(id, dateStr, amount) {
+  const lines = [
+    'ACTE — Facture d’abonnement ' + id,
+    'Formule Cabinet · Cabinet Charpentier & Associés',
+    'Date : ' + dateStr,
+    '',
+    'Licences          : ' + Math.round(amount / 50) + ' × 50 € / mois',
+    'TOTAL TTC         : ' + amount + ' €',
+    'Moyen de paiement : Visa •••• 4242 (via Stripe)',
+    '',
+    '— Document de démonstration généré par le prototype front-end ACTE —',
+  ];
+  const url = URL.createObjectURL(new Blob([lines.join(String.fromCharCode(10))], { type: 'text/plain;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = id + '.txt'; a.click();
+  URL.revokeObjectURL(url);
+  toast('Facture ' + id + ' téléchargée');
+}
+
+/* ═══════════════ ACTIONS D'ADMINISTRATION (Console Admin) ═══════════════ */
+
+const ADMIN_IC = {
+  edit:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
+  bell:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>',
+  power:  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></svg>',
+  check:  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  mail:   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>',
+  x:      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>',
+};
+
+function openMemberMenu(anchor, i) {
+  closeMenus();
+  const m = TEAM[i];
+  const item = (act, icon, label, cls = 'text-ivory/90 hover:bg-white/[0.05]') =>
+    `<button type="button" data-act="${act}" class="flex w-full cursor-pointer items-center gap-2.5 px-3.5 py-2.5 text-left text-[12.5px] ${cls} transition">${icon}<span>${label}</span></button>`;
+
+  const menu = document.createElement('div');
+  menu.className = 'dossier-menu member-menu fade-up absolute right-0 top-[calc(100%+6px)] z-[70] w-[248px] overflow-hidden rounded-xl border border-white/[0.1] bg-carbon/95 shadow-[0_14px_40px_-8px_rgba(0,0,0,0.8)] backdrop-blur-xl';
+  menu.innerHTML =
+    `<p class="truncate border-b border-white/[0.06] px-3.5 py-2 text-[10px] uppercase tracking-[0.16em] text-ash">${m.name}</p>` +
+    (m.pending
+      ? item('resend', ADMIN_IC.mail, 'Renvoyer l\u2019invitation') +
+        item('cancel-invite', ADMIN_IC.x, 'Annuler l\u2019invitation', 'text-red-400 hover:bg-red-500/10')
+      : item('edit', ADMIN_IC.edit, 'Modifier le profil / Taux horaire') +
+        item('remind', ADMIN_IC.bell, 'Rappeler la validation') +
+        (m.suspended
+          ? item('reactivate', ADMIN_IC.check, 'Réactiver le compte', 'text-emerald-300 hover:bg-emerald-400/10')
+          : item('suspend', ADMIN_IC.power, 'Désactiver le compte / Suspendre', 'text-red-400 hover:bg-red-500/10')));
+
+  anchor.parentElement.appendChild(menu);
+
+  menu.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    e.stopPropagation();
+    closeMenus();
+    memberAction(b.dataset.act, i);
+  });
+  setTimeout(() => document.addEventListener('click', function h(e) {
+    if (!menu.contains(e.target)) { closeMenus(); document.removeEventListener('click', h); }
+  }), 0);
+}
+
+function memberAction(act, i) {
+  const m = TEAM[i];
+  if (act === 'edit') openEditModal(i);
+  if (act === 'remind') remindMember(i);
+  if (act === 'suspend') {
+    m.suspended = true;
+    toast(`Compte de ${m.name} suspendu — capture désactivée`);
+    addFeedLog(`Compte <b>${m.name}</b> suspendu par Me Charpentier — accès à la capture révoqué.`, 'edit');
+    renderAdmin(); updateInsight();
+  }
+  if (act === 'reactivate') {
+    m.suspended = false;
+    toast(`Compte de ${m.name} réactivé`);
+    addFeedLog(`Compte <b>${m.name}</b> réactivé — la capture passive reprend.`, 'check');
+    renderAdmin(); updateInsight();
+  }
+  if (act === 'resend') toast(`Invitation renvoyée à ${m.name}`);
+  if (act === 'cancel-invite') {
+    TEAM.splice(i, 1);
+    toast('Invitation annulée');
+    renderAdmin(); updateInsight();
+  }
+}
+
+function remindMember(i) {
+  const m = TEAM[i];
+  m.reminded = true;
+  toast(`Rappel de validation envoyé à ${m.name}`);
+  addFeedLog(`Rappel de validation envoyé à <b>${m.name}</b> — temps en attente au journal.`, 'edit');
+  renderAdmin();
+  refreshCabinetCards();
+}
+
+/* ---------- Micro-fenêtres modales (simulation front-end) ---------- */
+
+function openModal(html) {
+  closeModal();
+  const wrap = document.createElement('div');
+  wrap.id = 'modal-root';
+  wrap.className = 'fixed inset-0 z-[80] flex items-center justify-center p-4';
+  wrap.innerHTML = `
+    <div class="modal-backdrop absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+    <div class="fade-up relative w-full max-w-[400px] rounded-2xl border border-white/[0.1] bg-carbon p-5 shadow-[0_24px_70px_-18px_rgba(0,0,0,0.9)]">
+      <button type="button" class="modal-close absolute right-3.5 top-3.5 flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg text-ash transition hover:bg-white/[0.06] hover:text-ivory" aria-label="Fermer">${ADMIN_IC.x}</button>
+      ${html}
+    </div>`;
+  document.body.appendChild(wrap);
+  wrap.querySelector('.modal-backdrop').addEventListener('click', closeModal);
+  wrap.querySelector('.modal-close').addEventListener('click', closeModal);
+  return wrap;
+}
+function closeModal() { const m = $('#modal-root'); if (m) m.remove(); }
+
+function openInviteModal() {
+  const wrap = openModal(`
+    <p class="eyebrow">Console admin</p>
+    <h3 class="mt-1 font-display text-[20px] font-semibold text-ivory">Inviter un membre</h3>
+    <label class="mt-4 block text-[11.5px] text-ash" for="inv-email">Adresse e-mail professionnelle</label>
+    <input id="inv-email" type="email" placeholder="prenom.nom@charpentier-associes.fr" autocomplete="off"
+           class="mt-1.5 w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5 text-[13px] text-ivory placeholder-ash/50 outline-none transition focus:border-gold/40" />
+    <label class="mt-3.5 block text-[11.5px] text-ash" for="inv-role">Rôle au cabinet</label>
+    <select id="inv-role"
+            class="mt-1.5 w-full cursor-pointer rounded-xl border border-white/[0.09] bg-carbon px-3.5 py-2.5 text-[13px] text-ivory outline-none transition focus:border-gold/40">
+      <option>Associé</option>
+      <option selected>Collaborateur</option>
+      <option>Stagiaire</option>
+    </select>
+    <p class="mt-3 text-[11px] leading-relaxed text-ash">Un lien d'activation chiffré sera envoyé au nouveau membre — simulation front-end, aucun e-mail réel n'est expédié.</p>
+    <div class="mt-5 flex justify-end gap-2">
+      <button type="button" class="modal-cancel cursor-pointer rounded-full border border-white/[0.12] px-4 py-1.5 text-[12.5px] text-ivory/80 transition hover:border-white/25">Annuler</button>
+      <button type="button" id="inv-send" class="cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-1.5 text-[12.5px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">Envoyer l'invitation</button>
+    </div>`);
+  wrap.querySelector('.modal-cancel').addEventListener('click', closeModal);
+  wrap.querySelector('#inv-send').addEventListener('click', () => {
+    const email = wrap.querySelector('#inv-email').value.trim();
+    const role = wrap.querySelector('#inv-role').value;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('Adresse e-mail invalide'); return; }
+    TEAM.push({
+      ini: email.slice(0, 2).toUpperCase(),
+      name: email,
+      role: `${role} · en attente d'activation`,
+      min: 0, val: 0, status: 'Invité·e', pending: true,
+      partner: role === 'Associé',
+      rate: role === 'Associé' ? 280 : role === 'Collaborateur' ? 200 : 120,
+    });
+    closeModal();
+    toast(`Invitation envoyée à ${email} · ${role}`);
+    addFeedLog(`Invitation <b>${role}</b> envoyée à ${email}.`, 'check');
+    renderAdmin(); updateInsight();
+  });
+  setTimeout(() => wrap.querySelector('#inv-email').focus(), 60);
+}
+
+function openEditModal(i) {
+  const m = TEAM[i];
+  const roles = ['Associé', 'Associée', 'Collaborateur', 'Collaboratrice', 'Juriste stagiaire'];
+  const wrap = openModal(`
+    <p class="eyebrow">Modifier le profil</p>
+    <h3 class="mt-1 truncate font-display text-[20px] font-semibold text-ivory">${m.name}</h3>
+    <label class="mt-4 block text-[11.5px] text-ash" for="ed-role">Rôle au cabinet</label>
+    <select id="ed-role"
+            class="mt-1.5 w-full cursor-pointer rounded-xl border border-white/[0.09] bg-carbon px-3.5 py-2.5 text-[13px] text-ivory outline-none transition focus:border-gold/40">
+      ${roles.map((r) => `<option ${r === m.role ? 'selected' : ''}>${r}</option>`).join('')}
+    </select>
+    <label class="mt-3.5 block text-[11.5px] text-ash" for="ed-rate">Taux horaire facturable</label>
+    <div class="mt-1.5 flex items-center gap-3">
+      <input id="ed-rate" type="number" min="50" step="10" value="${m.rate}"
+             class="w-28 rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5 font-mono text-[15px] text-ivory outline-none transition focus:border-gold/40" />
+      <span class="text-[13px] text-ash">€ / heure</span>
+    </div>
+    <p class="mt-3 text-[11px] leading-relaxed text-ash">Le nouveau taux s'applique aux prochains temps validés par ce membre.</p>
+    <div class="mt-5 flex justify-end gap-2">
+      <button type="button" class="modal-cancel cursor-pointer rounded-full border border-white/[0.12] px-4 py-1.5 text-[12.5px] text-ivory/80 transition hover:border-white/25">Annuler</button>
+      <button type="button" id="ed-save" class="cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-1.5 text-[12.5px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">Enregistrer</button>
+    </div>`);
+  wrap.querySelector('.modal-cancel').addEventListener('click', closeModal);
+  wrap.querySelector('#ed-save').addEventListener('click', () => {
+    const rate = Math.max(50, parseInt(wrap.querySelector('#ed-rate').value, 10) || m.rate);
+    const role = wrap.querySelector('#ed-role').value;
+    m.rate = rate;
+    m.role = role;
+    closeModal();
+    toast(`${m.name} — profil mis à jour · ${rate} € / h`);
+    addFeedLog(`Profil de <b>${m.name}</b> mis à jour — ${role}, <span class="font-mono text-gold-pale">${rate} €/h</span>.`, 'edit');
+    renderAdmin(); updateInsight();
+  });
+  setTimeout(() => wrap.querySelector('#ed-rate').focus(), 60);
+}
+
+/* ---------- Bascule du panneau IA : alertes perso ↔ Insights Cabinet ---------- */
+function updateFeedMode() {
+  const perso = $('#feed-personal');
+  const cab = $('#feed-cabinet');
+  if (!perso || !cab) return;
+  const isAdmin = currentView === 'admin';
+  perso.classList.toggle('hidden', isAdmin);
+  cab.classList.toggle('hidden', !isAdmin);
+}
+
+function refreshCabinetCards() {
+  const so = TEAM.find((m) => m.ini === 'SO');
+  const btn = document.querySelector('#cab-remind-btn');
+  if (so && so.reminded && btn) {
+    btn.outerHTML = `<p class="mt-2.5 flex items-center gap-1.5 text-[11.5px] text-emerald-300"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Rappel envoyé à Me S. Okafor.</p>`;
+  }
+}
+
+/* ═══════════════ VUE CLOUD & SYNCHRONISATION ═══════════════ */
+
+function renderCloud() {
+  const online = CLOUD.devices.filter((d) => d.online).length;
+  const rows = CLOUD.devices.map((d, i) => `
+    <div class="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] text-ash">
+        ${d.mac
+          ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/></svg>'
+          : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>'}
+      </span>
+      <div class="min-w-0 flex-1">
+        <p class="truncate text-[13.5px] font-medium text-ivory/95">${d.name}${d.me ? ' <span class="ml-1 rounded-full border border-gold/30 bg-gold/10 px-1.5 py-0.5 text-[9.5px] font-semibold text-gold-pale">Ce poste</span>' : ''}</p>
+        <p class="mt-0.5 truncate text-[11.5px] text-ash">${d.os}</p>
+      </div>
+      <span class="flex w-44 shrink-0 items-center justify-end gap-1.5 text-[11.5px] ${d.online ? 'text-emerald-300' : 'text-ash'}">
+        <span class="h-1.5 w-1.5 rounded-full ${d.online ? 'bg-emerald-400 pulse-dot' : 'bg-white/25'}"></span>${d.online ? 'Synchronisé · ' + CLOUD.last : 'Hors ligne · ' + d.last}
+      </span>
+      <button type="button" data-unlink="${i}" class="shrink-0 cursor-pointer rounded-full border border-white/[0.12] px-3 py-1 text-[11px] text-ivory/75 transition hover:border-red-400/40 hover:text-red-400">Délier</button>
+    </div>`).join('<div class="border-t border-white/[0.05]"></div>');
+
+  $('#cloud-root').innerHTML = `
+    <div class="mb-4 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="eyebrow">Cloud ACTE</p>
+        <h2 class="mt-0.5 font-display text-[22px] font-bold text-ivory">Synchronisation &amp; sauvegarde</h2>
+      </div>
+      <span id="cloud-status" class="flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-3.5 py-1.5 text-[11.5px] font-medium text-emerald-300">
+        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot"></span>Synchronisé · ${CLOUD.last}
+      </span>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+
+      <section class="glass fade-up md:col-span-2 md:row-span-2">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-3.5">
+          <p class="eyebrow !mb-0">Appareils liés</p>
+          <button type="button" data-linknew class="cursor-pointer rounded-full border border-gold/35 bg-gold/10 px-3 py-1.5 text-[11.5px] font-semibold text-gold-pale transition hover:bg-gold/[0.18]">+ Lier un appareil</button>
+        </div>
+        ${rows}
+      </section>
+
+      <section class="glass fade-up p-5" style="animation-delay:0.06s">
+        <p class="eyebrow">Stockage chiffré</p>
+        <p class="mt-2 font-mono text-[22px] font-semibold tracking-tight text-ivory">18,4 Mo <span class="text-[13px] font-normal text-ash">/ 5 Go</span></p>
+        <div class="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.07]"><div class="hbar h-full rounded-full bg-gradient-to-r from-gold-pale to-gold-deep" style="width:2%"></div></div>
+        <p class="mt-2 text-[11.5px] leading-relaxed text-ash">Métadonnées de temps uniquement — jamais vos documents ni vos courriels.</p>
+      </section>
+
+      <section class="glass fade-up p-5" style="animation-delay:0.12s">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <p class="eyebrow">Sauvegarde automatique</p>
+            <p class="mt-1.5 text-[12px] text-ash">Chaque nuit · dernière : <span class="font-mono text-ivory/85">03 h 00</span></p>
+          </div>
+          <label class="switch"><input type="checkbox" id="cloud-backup" ${CLOUD.backup ? 'checked' : ''}><span class="slider"></span></label>
+        </div>
+        <button type="button" id="cloud-sync"
+                class="mt-4 flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-2 text-[12.5px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+          Forcer la synchronisation
+        </button>
+      </section>
+
+      <section class="glass fade-up flex flex-wrap items-start gap-3.5 p-5 md:col-span-3" style="animation-delay:0.18s">
+        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-400/25 bg-emerald-400/[0.08] text-emerald-300">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+        <div class="min-w-[240px] flex-1">
+          <p class="text-[13px] font-medium text-ivory/95">Secret professionnel préservé</p>
+          <p class="mt-1 text-[12px] leading-relaxed text-ash">Le Cloud ACTE ne transporte que des métadonnées chiffrées de bout en bout (AES-256) : durées, dossiers, sources. Hébergement en Union européenne (Paris). Vous restez propriétaire et réversible : export intégral ou suppression à tout moment. Vos données n'entraînent jamais nos modèles d'IA — certification <b class="text-ivory/90">ISO 27001</b> en préparation.</p>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <button type="button" id="cloud-export" class="cursor-pointer rounded-full border border-white/[0.12] px-3.5 py-1.5 text-[11.5px] text-ivory/85 transition hover:border-gold/35 hover:text-gold-pale">Exporter mes données (.json)</button>
+            <button type="button" id="cloud-wipe" class="cursor-pointer rounded-full border border-red-500/35 px-3.5 py-1.5 text-[11.5px] text-red-400 transition hover:bg-red-500/10">Supprimer mes données cloud</button>
+          </div>
+        </div>
+      </section>
+    </div>`;
+
+  /* Câblage de la vue Cloud */
+  $('#cloud-root').querySelectorAll('[data-unlink]').forEach((b) => b.addEventListener('click', () => {
+    const i = parseInt(b.dataset.unlink, 10);
+    const d = CLOUD.devices[i];
+    if (!d) return;
+    if (d.me) { toast('Impossible de délier le poste actif — utilisez un autre appareil'); return; }
+    const wrap = openModal(`
+      <p class="eyebrow">Appareils liés</p>
+      <h3 class="mt-1 font-display text-[19px] font-bold text-ivory">Délier « ${d.name} » ?</h3>
+      <p class="mt-2 text-[12px] leading-relaxed text-ash">L'appareil cessera de synchroniser ses captures. Vous pourrez le relier à tout moment avec votre clé d'activation.</p>
+      <div class="mt-5 flex justify-end gap-2">
+        <button type="button" class="modal-cancel cursor-pointer rounded-full border border-white/[0.12] px-4 py-1.5 text-[12.5px] text-ivory/80 transition hover:border-white/25">Annuler</button>
+        <button type="button" id="unlink-ok" class="cursor-pointer rounded-full border border-red-500/40 bg-red-500/10 px-4 py-1.5 text-[12.5px] font-semibold text-red-400 transition hover:bg-red-500/20">Délier</button>
+      </div>`);
+    wrap.querySelector('.modal-cancel').addEventListener('click', closeModal);
+    wrap.querySelector('#unlink-ok').addEventListener('click', () => {
+      CLOUD.devices.splice(i, 1);
+      closeModal();
+      toast(`${d.name} délié du Cloud ACTE`);
+      addFeedLog(`Appareil <b>${d.name}</b> délié — sa synchronisation est arrêtée.`, 'edit');
+      renderCloud(); updateInsight();
+    });
+  }));
+  $('#cloud-root').querySelector('[data-linknew]').addEventListener('click', openCompanionModal);
+  $('#cloud-backup').addEventListener('change', (e) => {
+    CLOUD.backup = e.target.checked;
+    toast(CLOUD.backup ? 'Sauvegarde automatique activée' : 'Sauvegarde automatique suspendue');
+  });
+  $('#cloud-sync').addEventListener('click', () => {
+    const btn = $('#cloud-sync');
+    if (btn.disabled) return;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="inline-flex items-center gap-2"><svg class="spin" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>Synchronisation…</span>';
+    setTimeout(() => {
+      CLOUD.last = 'à l\u2019instant';
+      toast('Synchronisation terminée — métadonnées à jour');
+      addFeedLog('Synchronisation cloud forcée — <b>' + online + ' appareil' + (online > 1 ? 's' : '') + '</b> à jour.', 'check');
+      renderCloud(); updateInsight();
+    }, 1200);
+  });
+  $('#cloud-export').addEventListener('click', () => {
+    const data = { exporte_le: 'mercredi 8 juillet 2026', taches: tasks, dossiers: DOSSIER_CARDS, indicateurs: kpi };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url; a.download = 'acte-export-cloud.json'; a.click();
+    URL.revokeObjectURL(url);
+    toast('Export acte-export-cloud.json téléchargé');
+  });
+  $('#cloud-wipe').addEventListener('click', () => {
+    const wrap = openModal(`
+      <p class="eyebrow">Cloud ACTE</p>
+      <h3 class="mt-1 font-display text-[19px] font-bold text-ivory">Supprimer vos données cloud ?</h3>
+      <p class="mt-2 text-[12px] leading-relaxed text-ash">Les métadonnées synchronisées seront effacées de nos serveurs sous 24 h. Vos données locales sur chaque poste sont conservées. (Simulation front-end.)</p>
+      <div class="mt-5 flex justify-end gap-2">
+        <button type="button" class="modal-cancel cursor-pointer rounded-full border border-white/[0.12] px-4 py-1.5 text-[12.5px] text-ivory/80 transition hover:border-white/25">Annuler</button>
+        <button type="button" id="wipe-ok" class="cursor-pointer rounded-full border border-red-500/40 bg-red-500/10 px-4 py-1.5 text-[12.5px] font-semibold text-red-400 transition hover:bg-red-500/20">Supprimer définitivement</button>
+      </div>`);
+    wrap.querySelector('.modal-cancel').addEventListener('click', closeModal);
+    wrap.querySelector('#wipe-ok').addEventListener('click', () => {
+      closeModal();
+      toast('Suppression planifiée sous 24 h — simulée dans ce prototype');
+      addFeedLog('Demande de suppression des données cloud enregistrée (droit à la réversibilité).', 'edit');
+    });
+  });
+}
+
+/* ═══════════════ VUE PARAMÈTRES ═══════════════ */
+
+function renderSettings() {
+  const srcRows = [
+    { src: 'word',    name: 'Word',       desc: 'Documents, conclusions, protocoles' },
+    { src: 'outlook', name: 'Outlook',    desc: 'Courriels entrants et sortants' },
+    { src: 'web',     name: 'Navigateur', desc: 'Légifrance, Dalloz, recherches' },
+  ].map((r) => `
+    <div class="flex items-center gap-3 py-2.5">
+      ${srcBadge(r.src, 6)}
+      <div class="min-w-0 flex-1">
+        <p class="text-[13px] text-ivory/90">${r.name}</p>
+        <p class="text-[11px] text-ash">${r.desc}</p>
+      </div>
+      <label class="switch"><input type="checkbox" data-src="${r.src}" ${sourcesOn[r.src] ? 'checked' : ''}><span class="slider"></span></label>
+    </div>`).join('');
+
+  $('#settings-root').innerHTML = `
+    <div class="mb-4">
+      <p class="eyebrow">Paramètres</p>
+      <h2 class="mt-1 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">Réglages de la capture</h2>
+    </div>
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <section class="glass fade-up p-5">
+        <p class="eyebrow">Sources surveillées</p>
+        <div class="mt-2 divide-y divide-white/[0.05]">${srcRows}</div>
+      </section>
+      <section class="glass fade-up p-5" style="animation-delay:0.06s">
+        <p class="eyebrow">Taux horaire du cabinet</p>
+        <div class="mt-3 flex items-center gap-3">
+          <input id="rate-input" type="number" value="${RATE}" min="50" step="10"
+                 class="w-28 rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5 font-mono text-[15px] text-ivory outline-none transition focus:border-gold/40" />
+          <span class="text-[13px] text-ash">€ / heure</span>
+        </div>
+        <p class="mt-3 text-[11.5px] leading-relaxed text-ash">Appliqué immédiatement aux prochaines validations du journal et aux montants des factures.</p>
+      </section>
+      <section class="glass fade-up p-5 md:col-span-2" style="animation-delay:0.12s">
+        <p class="eyebrow">Confidentialité</p>
+        <p class="mt-2 text-[13px] leading-relaxed text-ivory/85">Dans cette démonstration, aucune donnée ne quitte votre navigateur : la capture, l'analyse et le journal sont intégralement simulés en local, sans API ni base de données. En production, vos contenus restent sur votre poste et ne servent <b class="text-ivory/90">jamais</b> à entraîner nos modèles d'IA.</p>
+      </section>
+    </div>`;
+
+  $('#settings-root').querySelectorAll('input[data-src]').forEach((cb) =>
+    cb.addEventListener('change', () => {
+      sourcesOn[cb.dataset.src] = cb.checked;
+      renderSources();
+      toast(`Capture ${SRC[cb.dataset.src].label.replace('Capturé via ', '')} ${cb.checked ? 'réactivée' : 'suspendue'}`);
+    })
+  );
+  $('#rate-input').addEventListener('change', (e) => {
+    const v = Math.max(50, parseInt(e.target.value, 10) || RATE);
+    RATE = v;
+    e.target.value = v;
+    $('#rate-label').textContent = `${RATE} €`;
+    toast(`Taux horaire mis à jour · ${RATE} € / heure`);
+    updateInsight();
+  });
+}
+
+/* ═══════════════ Validation ═══════════════ */
+
+function validateTask(id, opts = {}) {
+  const t = tasks.find((x) => x.id === id);
+  if (!t || t.validated) return;
+  t.validated = true;
+
+  const gain = eurOf(t.min);
+  kpi.validated += t.min;
+  kpi.ca += gain;
+  kpi.roi += 2;
+
+  const row = listEl().querySelector(`[data-id="${id}"]`);
+  if (row) {
+    row.style.maxHeight = row.offsetHeight + 'px';
+    void row.offsetWidth;
+    row.classList.add('leaving');
+    setTimeout(() => { row.remove(); updateBatchBar(); }, 460);
+  } else {
+    updateBatchBar();
+  }
+
+  updateKpis();
+  updateChart();
+  updateBatchBar();
+  floatGain($('#kpi-ca'), `+${gain.toLocaleString('fr-FR')} €`);
+  addFeedLog(`<b class="text-ivory">${fmtMin(t.min)}</b> actées — ${t.dossier} · <span class="font-mono text-gold-pale">+${gain.toLocaleString('fr-FR')} €</span>`, 'check');
+
+  if (!opts.batch) toast(`✓ ${fmtMin(t.min)} · ${t.dossier} — +${gain.toLocaleString('fr-FR')} € sécurisés`);
+  refreshBoneCard();
+  refreshActiveView();
+  updateInsight();
+}
+
+function validateAll(list) {
+  const p = list || pending();
+  if (!p.length) return;
+  const totalMin = p.reduce((s, t) => s + t.min, 0);
+  const totalEur = p.reduce((s, t) => s + eurOf(t.min), 0);
+  p.forEach((t, i) => setTimeout(() => validateTask(t.id, { batch: true }), i * 150));
+  setTimeout(() => toast(`✓ ${p.length} tâches intégrées · ${fmtMin(totalMin)} — +${totalEur.toLocaleString('fr-FR')} € sécurisés`), p.length * 150 + 350);
+}
+
+/* ═══════════════ Le Cerveau d'ACTE (panneau droit) ═══════════════ */
+
+const FEED_ICON = {
+  check: '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+  edit:  '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
+};
+
+function addFeedLog(html, icon = 'check') {
+  const el = document.createElement('div');
+  el.className = 'fade-up flex items-start gap-2.5 px-1 py-0.5 text-[12px] leading-relaxed text-ash';
+  el.innerHTML = `<span class="mt-0.5 flex shrink-0 items-center justify-center rounded-full ${icon === 'check' ? 'text-emerald-300' : 'text-gold-pale'}" style="height:18px;width:18px">${FEED_ICON[icon]}</span><span>${html}</span>`;
+  feedEl.appendChild(el);
+  feedEl.scrollTop = feedEl.scrollHeight;
+}
+
+function addBubble(text, who = 'ai') {
+  const el = document.createElement('div');
+  el.className = 'fade-up flex ' + (who === 'user' ? 'justify-end' : 'justify-start');
+  el.innerHTML = who === 'user'
+    ? `<div class="max-w-[85%] rounded-2xl rounded-br-md bg-gradient-to-br from-gold/90 to-gold-deep px-3.5 py-2.5 text-[12.5px] font-medium leading-relaxed text-noir">${text}</div>`
+    : `<div class="glass-soft max-w-[90%] rounded-2xl rounded-bl-md px-3.5 py-2.5 text-[12.5px] leading-relaxed text-ivory/90">${text}</div>`;
+  feedEl.appendChild(el);
+  feedEl.scrollTop = feedEl.scrollHeight;
+  return el;
+}
+
+/* ---------- Analyse IA contextuelle (change selon la vue active) ---------- */
+function updateInsight() {
+  const el = $('#view-insight');
+  if (!el) return;
+  const p = pending();
+  const pMin = p.reduce((s, t) => s + t.min, 0);
+  const pEur = p.reduce((s, t) => s + eurOf(t.min), 0);
+  const readyInv = INVOICES.map(invoiceData).filter((d) => d.ready && !d.generated);
+  const readySum = readyInv.reduce((s, d) => s + d.amount, 0);
+
+  const dayLine = p.length
+    ? `<b>${p.length}</b> tâche${p.length > 1 ? 's' : ''} en attente (${fmtMin(pMin)}). Un clic sur «&nbsp;Tout intégrer&nbsp;» sécurise <b class="text-gold-pale">${fmtEur(pEur)}</b>.`
+    : `Journée bouclée — l'intégralité du temps capturé a été actée.`;
+
+  const M = {
+    home:     `Vue d'ensemble du 8 juillet — ${dayLine}`,
+    journal:  `Journal du 8 juillet — ${dayLine}`,
+    dossiers: `Le dossier <b>Bône c/ SCI Alma</b> présente une rentabilité optimale cette semaine : 92 % du temps capturé y est facturable, sans dépassement du budget d'heures.`,
+    stats:    `Votre CA récupéré progresse de <b class="text-gold-pale">+18 %</b> par rapport à juin. Outlook reste votre premier gisement de temps facturable (45 % des captures).`,
+    billing:  readyInv.length
+      ? `<b>${readyInv.length}</b> facture${readyInv.length > 1 ? 's' : ''} prête${readyInv.length > 1 ? 's' : ''} — <b class="text-gold-pale">${fmtEur(readySum)}</b>. Les autres attendent la validation de temps au journal.`
+      : `Toutes les factures prêtes ont été générées. Validez le temps restant au journal pour en débloquer de nouvelles.`,
+    settings: `Ces réglages s'appliquent immédiatement à la simulation — le taux horaire modifie les montants des prochaines validations et des factures.`,
+    cloud:    `Cloud ACTE — <b>${CLOUD ? CLOUD.devices.length : 2}</b> appareil${CLOUD && CLOUD.devices.length > 1 ? 's' : ''} lié${CLOUD && CLOUD.devices.length > 1 ? 's' : ''}, dernière synchronisation ${CLOUD ? CLOUD.last : 'il y a 2 min'}. Seules des métadonnées chiffrées transitent — vos documents restent sur vos postes.`,
+    profile:  `Bilan personnel — ce mois-ci, j'ai détecté <b class="text-gold-pale">24 h 15</b> de micro-tâches volatiles en arrière-plan, soit <b class="text-gold-pale">6 790 €</b> sécurisés pour votre compte.`,
+    admin:    `Analyse IA Cabinet — <b class="text-gold-pale">142 h</b> capturées ce mois · taux de validation global <b class="text-gold-pale">92 %</b> · ${TEAM ? TEAM.filter((m) => !m.pending && !m.suspended).length : 5} membres actifs. Chiffrement et secret professionnel actifs sur tous les postes.`,
+  };
+
+  el.innerHTML = `
+    <p class="eyebrow !text-gold-pale/80">Analyse IA</p>
+    <p class="mt-1.5 text-[12.5px] leading-relaxed text-ivory/90">${M[currentView] || M.home}</p>`;
+}
+
+/* ---------- Cartes de raisonnement initiales ---------- */
+function boneCardHtml() {
+  const bonePending = pending().filter((t) => t.dossier.startsWith('Bône'));
+  const min = bonePending.reduce((s, t) => s + t.min, 0);
+  return `
+    <p class="eyebrow !text-gold-pale/80">Raisonnement</p>
+    <p class="mt-1.5 text-[12.5px] leading-relaxed text-ivory/90">
+      J'ai détecté <b class="text-gold-pale">${fmtMin(min || 45)}</b> sur le dossier
+      <b>Bône c/ SCI Alma</b> ce matin — un protocole Word et un courriel Outlook.
+      Voulez-vous tout intégrer&nbsp;?
+    </p>
+    ${bonePending.length
+      ? `<div class="mt-3 flex gap-2">
+           <button id="bone-integrate" class="rounded-full bg-gradient-to-r from-gold to-gold-deep px-3.5 py-1.5 text-[11.5px] font-semibold text-noir transition hover:brightness-110">Intégrer ${fmtMin(min)}</button>
+           <button id="bone-view" class="rounded-full border border-white/[0.12] px-3.5 py-1.5 text-[11.5px] text-ivory/80 transition hover:border-gold/35 hover:text-gold-pale">Voir les tâches</button>
+         </div>`
+      : `<p class="mt-2.5 flex items-center gap-1.5 text-[11.5px] text-emerald-300"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Intégré au journal.</p>`}`;
+}
+
+function refreshBoneCard() {
+  const card = $('#bone-card');
+  if (!card) return;
+  const hadPending = !!card.querySelector('#bone-integrate');
+  const hasPending = pending().some((t) => t.dossier.startsWith('Bône'));
+  if (hadPending && !hasPending) { card.innerHTML = boneCardHtml(); }
+}
+
+function bindBoneCard() {
+  const card = $('#bone-card');
+  card.addEventListener('click', (e) => {
+    if (e.target.id === 'bone-integrate') {
+      validateAll(pending().filter((t) => t.dossier.startsWith('Bône')));
+      closePanelIfMobile();
+    }
+    if (e.target.id === 'bone-view') {
+      closePanelIfMobile();
+      ensureJournalVisible();
+      const rows = pending().filter((t) => t.dossier.startsWith('Bône'));
+      setTimeout(() => rows.forEach((t) => flashRow(t.id)), 120);
+    }
+  });
+}
+
+function flashRow(id) {
+  const row = listEl().querySelector(`[data-id="${id}"]`);
+  if (!row) return;
+  row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  row.classList.remove('flash'); void row.offsetWidth; row.classList.add('flash');
+}
+
+function seedFeed() {
+  feedEl.innerHTML = '';
+
+  // Carte d'analyse contextuelle — son contenu change avec la vue active
+  const insight = document.createElement('div');
+  insight.id = 'view-insight';
+  insight.className = 'glass-soft rounded-2xl border-l-2 border-l-gold/60 p-3.5';
+  feedEl.appendChild(insight);
+
+  /* ── Bloc personnel (masqué en vue Console Admin) ── */
+  const perso = document.createElement('div');
+  perso.id = 'feed-personal';
+  perso.className = 'space-y-3';
+  feedEl.appendChild(perso);
+
+  const sys = document.createElement('p');
+  sys.className = 'px-1 text-[11px] text-ash/80';
+  sys.innerHTML = 'Capture passive active — Word, Outlook et navigateur sont surveillés. Rien ne quitte votre poste dans cette démo.';
+  perso.appendChild(sys);
+
+  const bone = document.createElement('div');
+  bone.id = 'bone-card';
+  bone.className = 'glass-soft fade-up rounded-2xl border-gold/[0.2] p-3.5';
+  bone.innerHTML = boneCardHtml();
+  perso.appendChild(bone);
+  bindBoneCard();
+
+  const warn = document.createElement('div');
+  warn.className = 'glass-soft fade-up rounded-2xl p-3.5';
+  warn.innerHTML = `
+    <p class="eyebrow !text-amber-400/90">Attention</p>
+    <p class="mt-1.5 text-[12.5px] leading-relaxed text-ivory/90">
+      La tâche «&nbsp;Relecture bail commercial&nbsp;» n'a que <b class="text-amber-400">76&nbsp;% de confiance</b> :
+      aucun dossier actif ne correspond exactement à la SARL Toison d'Or.
+    </p>
+    <button id="fix-t6" class="mt-3 cursor-pointer rounded-full border border-amber-500/35 px-3.5 py-1.5 text-[11.5px] text-amber-300 transition hover:bg-amber-500/10">Vérifier le dossier</button>`;
+  perso.appendChild(warn);
+  warn.querySelector('#fix-t6').addEventListener('click', () => {
+    const t = tasks.find((x) => x.id === 't6');
+    if (!t || t.validated) { addBubble('Cette tâche a déjà été validée — tout est en ordre, Maître.'); return; }
+    closePanelIfMobile();
+    ensureJournalVisible();
+    setTimeout(() => {
+      flashRow('t6');
+      setTimeout(() => {
+        const chip = listEl().querySelector(`[data-id="t6"] .dossier-chip`);
+        if (chip) openDossierMenu(chip, t);
+      }, 500);
+    }, 120);
+  });
+
+  /* ── Insights Cabinet (visibles uniquement en vue Console Admin) ── */
+  const cab = document.createElement('div');
+  cab.id = 'feed-cabinet';
+  cab.className = 'hidden space-y-3';
+  cab.innerHTML = `
+    <div class="glass-soft fade-up rounded-2xl border-gold/[0.2] p-3.5">
+      <p class="eyebrow !text-gold-pale/80">Analyse IA Cabinet</p>
+      <p class="mt-1.5 text-[12.5px] leading-relaxed text-ivory/90">
+        Le taux de validation global du cabinet est de <b class="text-gold-pale">92 %</b> cette semaine.
+        Me Djebbari mène avec 94 % — la moyenne des cabinets équipés d'ACTE se situe à 84 %.
+      </p>
+    </div>
+    <div class="glass-soft fade-up rounded-2xl p-3.5">
+      <p class="eyebrow !text-amber-400/90">Attention</p>
+      <p class="mt-1.5 text-[12.5px] leading-relaxed text-ivory/90">
+        Le volume capturé sur le dossier <b>SARL Toison d'Or</b> approche de la limite du forfait d'heures :
+        <b class="text-amber-400">77 %</b> du budget déjà consommé.
+      </p>
+      <button type="button" id="cab-see-dossier" class="mt-3 cursor-pointer rounded-full border border-amber-500/35 px-3.5 py-1.5 text-[11.5px] text-amber-300 transition hover:bg-amber-500/10">Voir le dossier</button>
+    </div>
+    <div class="glass-soft fade-up rounded-2xl p-3.5" id="cab-remind-card">
+      <p class="eyebrow !text-gold-pale/80">Suggestion</p>
+      <p class="mt-1.5 text-[12.5px] leading-relaxed text-ivory/90">
+        <b>Me S. Okafor</b> a le taux de validation le plus bas de l'équipe (89 %).
+        Un rappel doux maintient le journal du cabinet à jour pour la facturation.
+      </p>
+      <button type="button" id="cab-remind-btn" class="mt-3 cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-3.5 py-1.5 text-[11.5px] font-semibold text-noir transition hover:brightness-110">Envoyer un rappel</button>
+    </div>`;
+  feedEl.appendChild(cab);
+  cab.querySelector('#cab-see-dossier').addEventListener('click', () => switchView('dossiers'));
+  cab.querySelector('#cab-remind-btn').addEventListener('click', () => {
+    const idx = TEAM.findIndex((m) => m.ini === 'SO');
+    if (idx >= 0) remindMember(idx);
+  });
+
+  updateInsight();
+  updateFeedMode();
+}
+
+/* ---------- Chat (réponses simulées, sans API) ---------- */
+function botReply(q) {
+  const s = q.toLowerCase();
+  if (s.includes('résumé') || s.includes('journée') || s.includes('resume')) {
+    const p = pending();
+    const pMin = p.reduce((a, t) => a + t.min, 0);
+    return `Aujourd'hui, mercredi 8 juillet : <b>${fmtMin(CAPTURED_TOTAL)}</b> capturées, dont <b class="text-gold-pale">${fmtMin(kpi.validated)}</b> validées.` +
+      (p.length ? ` Il reste <b>${p.length} tâche${p.length > 1 ? 's' : ''}</b> (${fmtMin(pMin)}) à acter — un clic sur «&nbsp;Tout intégrer&nbsp;» et la journée est bouclée.` : ' Votre journal est entièrement à jour. Belle journée, Maître.');
+  }
+  if (s.includes('bône') || s.includes('bone')) {
+    const today = tasks.filter((t) => t.dossier.startsWith('Bône')).reduce((a, t) => a + t.min, 0);
+    return `Dossier <b>Bône c/ SCI Alma</b> — en juillet 2026 : <b class="text-gold-pale">6 h 45</b>, dont ${fmtMin(today)} aujourd'hui. Honoraires correspondants : <b>${fmtEur((405 / 60) * RATE)}</b> au taux de ${RATE} €/h.`;
+  }
+  if (s.includes('factur') || s.includes('honoraire') || s.includes(' ca') || s.startsWith('ca')) {
+    const readySum = INVOICES.map(invoiceData).filter((d) => d.ready && !d.generated).reduce((s2, d) => s2 + d.amount, 0);
+    return `CA sécurisé en juillet 2026 : <b class="text-gold-pale">${fmtEur(kpi.ca)}</b>. Et <b>${fmtEur(readySum)}</b> sont prêts à être facturés dans l'onglet Facturation.`;
+  }
+  return `Bonne question, Maître. Dans ce prototype, je réponds à partir de données fictives — la version connectée s'appuiera sur vos dossiers et votre journal réels.`;
+}
+
+function sendChat(text) {
+  if (!text.trim()) return;
+  addBubble(text, 'user');
+  const typing = addBubble('<span class="inline-flex gap-1"><span class="typing-dot h-1.5 w-1.5 rounded-full bg-ash inline-block"></span><span class="typing-dot h-1.5 w-1.5 rounded-full bg-ash inline-block"></span><span class="typing-dot h-1.5 w-1.5 rounded-full bg-ash inline-block"></span></span>');
+  setTimeout(() => {
+    typing.querySelector('div').innerHTML = botReply(text);
+    feedEl.scrollTop = feedEl.scrollHeight;
+  }, 750);
+}
+
+/* ---------- Dictée vocale (simulation front-end) ---------- */
+const micBtn = $('#mic-btn');
+const chatInput = $('#chat-input');
+let listening = false;
+
+micBtn.addEventListener('click', () => {
+  if (listening) return;
+  listening = true;
+  micBtn.classList.add('listening');
+  const prevPlaceholder = chatInput.placeholder;
+  chatInput.value = '';
+  chatInput.placeholder = 'Je vous écoute, Maître…';
+  toast('Dictée vocale simulée — démo front-end');
+
+  setTimeout(() => { chatInput.value = 'Résumé de ma journée'; }, 1300);
+  setTimeout(() => {
+    micBtn.classList.remove('listening');
+    chatInput.placeholder = prevPlaceholder;
+    listening = false;
+    sendChat(chatInput.value);
+    chatInput.value = '';
+  }, 2100);
+});
+
+/* ---------- Menu Profil (dropdown du header) ---------- */
+const profileBtn = $('#profile-btn');
+const profileMenu = $('#profile-menu');
+
+function openProfileMenu() {
+  profileMenu.classList.add('open');
+  profileBtn.setAttribute('aria-expanded', 'true');
+}
+function closeProfileMenu() {
+  profileMenu.classList.remove('open');
+  profileBtn.setAttribute('aria-expanded', 'false');
+}
+
+profileBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  profileMenu.classList.contains('open') ? closeProfileMenu() : openProfileMenu();
+});
+document.addEventListener('click', (e) => {
+  if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) closeProfileMenu();
+});
+/* Passerelle globale pour les attributs onclick des options du menu profil.
+   Voie de secours : fonctionne même si l'attachement des listeners échouait.
+   Le marquage de l'événement évite le double déclenchement (onclick + délégation)
+   sans bloquer les navigations rapprochées. */
+window.acteGoView = function (v, ev) {
+  if (ev) ev.__acteHandled = true;
+  closeProfileMenu();
+  switchView(v);
+};
+
+// Clic sur une option du menu → fermeture du dropdown + bascule de vue.
+// Délégation sur le conteneur : le clic est capté même s'il touche un <span>
+// ou une icône à l'intérieur du bouton (closest remonte jusqu'au .pm-item).
+profileMenu.addEventListener('click', (e) => {
+  const item = e.target.closest('.pm-item');
+  if (!item) return;
+  e.stopPropagation();               // n'atteint jamais le handler "clic extérieur"
+  if (e.__acteHandled) return;       // déjà traité par l'onclick inline du bouton
+  window.acteGoView(item.dataset.view, e);
+});
+
+/* ---------- Bascule de thème Light / Dark ---------- */
+const themeBtn = $('#theme-btn');
+function applyTheme(light) {
+  document.documentElement.classList.toggle('light', light);
+  $('#icon-sun').classList.toggle('hidden', light);
+  $('#icon-moon').classList.toggle('hidden', !light);
+  themeBtn.setAttribute('aria-label', light ? 'Passer en mode sombre' : 'Passer en mode clair');
+}
+themeBtn.addEventListener('click', () => {
+  const light = !document.documentElement.classList.contains('light');
+  applyTheme(light);
+  toast(light ? 'Mode clair activé' : 'Mode sombre activé');
+});
+
+/* ---------- Compagnon de capture : confirmation puis simulation de téléchargement ---------- */
+
+function startCompanionDownload(file) {
+  toast(`Téléchargement de ${file} démarré…`);
+  addFeedLog(`Compagnon de capture <b>${file}</b> téléchargé — installez-le puis collez votre clé d’activation (vue «&nbsp;Mon Profil&nbsp;»).`, 'check');
+  setTimeout(() => toast(`${file} téléchargé — lancez l’installeur pour lier ce poste.`), 2100);
+}
+
+function openCompanionModal() {
+  const isMac = /mac/i.test((navigator.platform || '') + ' ' + (navigator.userAgent || ''));
+  let choice = isMac ? 'mac' : 'win';
+
+  const osRow = (os, label, file, size, icon) => `
+    <button type="button" data-os="${os}"
+            class="flex w-full cursor-pointer items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition ${choice === os ? 'border-gold/45 bg-gold/10' : 'border-white/[0.09] bg-white/[0.03] hover:border-gold/25'}">
+      <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.03] text-ash">${icon}</span>
+      <span class="min-w-0 flex-1">
+        <span class="block text-[13px] font-medium text-ivory/95">${label}</span>
+        <span class="block font-mono text-[11px] text-ash">${file} · ${size}</span>
+      </span>
+      <span class="os-check ${choice === os ? '' : 'invisible'} text-gold-pale"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+    </button>`;
+
+  const wrap = openModal(`
+    <p class="eyebrow">Compagnon de capture</p>
+    <h3 class="mt-1 font-display text-[20px] font-semibold text-ivory">Télécharger ACTE Tracker</h3>
+    <p class="mt-1.5 text-[11.5px] leading-relaxed text-ash">L'application s'installe sur votre poste et capture Word, Outlook et votre navigateur <b class="text-ivory/80">en local</b>. Liez-la ensuite avec votre clé d'activation, disponible sur la vue «&nbsp;Mon Profil&nbsp;».</p>
+    <div class="mt-4 space-y-2">
+      ${osRow('win', 'Windows 10 / 11', 'ACTE_Tracker.exe', '38 Mo', '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>')}
+      ${osRow('mac', 'macOS 13+', 'ACTE_Tracker.dmg', '42 Mo', '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v9m16 0H4m16 0 1.28 2.55a1 1 0 0 1-.9 1.45H3.62a1 1 0 0 1-.9-1.45L4 16"/></svg>')}
+    </div>
+    <p class="mt-3 text-[11px] text-ash">Version 1.4.2 · installeur signé · ${isMac ? 'macOS' : 'Windows'} détecté sur ce poste.</p>
+    <div class="mt-5 flex justify-end gap-2">
+      <button type="button" class="modal-cancel cursor-pointer rounded-full border border-white/[0.12] px-4 py-1.5 text-[12.5px] text-ivory/80 transition hover:border-white/25">Annuler</button>
+      <button type="button" id="comp-dl" class="flex cursor-pointer items-center gap-2 rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-1.5 text-[12.5px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+        Télécharger
+      </button>
+    </div>`);
+
+  const paint = () => {
+    wrap.querySelectorAll('[data-os]').forEach((x) => {
+      const on = x.dataset.os === choice;
+      x.classList.toggle('border-gold/45', on);
+      x.classList.toggle('bg-gold/10', on);
+      x.classList.toggle('border-white/[0.09]', !on);
+      x.classList.toggle('bg-white/[0.03]', !on);
+      x.querySelector('.os-check').classList.toggle('invisible', !on);
+    });
+  };
+  wrap.querySelectorAll('[data-os]').forEach((b) =>
+    b.addEventListener('click', () => { choice = b.dataset.os; paint(); })
+  );
+  wrap.querySelector('.modal-cancel').addEventListener('click', closeModal);
+  wrap.querySelector('#comp-dl').addEventListener('click', () => {
+    closeModal();
+    startCompanionDownload(choice === 'mac' ? 'ACTE_Tracker.dmg' : 'ACTE_Tracker.exe');
+  });
+}
+
+/* Alias conservé : tous les points d'entrée (rail, lien de la carte Liaison)
+   passent désormais par la confirmation. */
+function simulateCompanionDownload() { openCompanionModal(); }
+$('#dl-companion').addEventListener('click', openCompanionModal);
+
+/* ---------- Copie dans le presse-papiers (avec repli hors contexte sécurisé) ---------- */
+async function copyText(t) {
+  try {
+    await navigator.clipboard.writeText(t);
+    return true;
+  } catch (errA) {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = t;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      const done = document.execCommand('copy');
+      ta.remove();
+      return done;
+    } catch (errB) { return false; }
+  }
+}
+
+/* ---------- Panneau IA rétractable (< 1280px) ---------- */
+const panel = $('#brain-panel');
+const backdrop = $('#brain-backdrop');
+const fab = $('#brain-fab');
+
+function openPanel() { panel.classList.add('panel-open'); backdrop.classList.add('show'); }
+function closePanel() { panel.classList.remove('panel-open'); backdrop.classList.remove('show'); }
+function closePanelIfMobile() { if (window.matchMedia('(max-width: 1279px)').matches) closePanel(); }
+
+fab.addEventListener('click', openPanel);
+$('#brain-close').addEventListener('click', closePanel);
+backdrop.addEventListener('click', closePanel);
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { closePanel(); closeMenus(); closeProfileMenu(); closeModal(); }
+});
+
+/* ═══════════════ Toast ═══════════════ */
+let toastTimer;
+function toast(msg) {
+  const el = $('#toast');
+  el.textContent = msg;
+  el.classList.remove('opacity-0', 'translate-y-3');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.add('opacity-0', 'translate-y-3'), 2600);
+}
+
+/* ═══════════════ Initialisation & navigation ═══════════════ */
+
+function init() {
+  TEAM = structuredClone(INITIAL_TEAM);
+  adminTab = 'team';
+  DOSSIER_CARDS = structuredClone(INITIAL_DOSSIER_CARDS);
+  DOSSIERS = structuredClone(INITIAL_DOSSIERS);
+  PREFIX = Object.assign({}, BASE_PREFIX);
+  CLOUD = {
+    last: 'il y a 2 min',
+    backup: true,
+    devices: [
+      { name: 'PC Cabinet',  os: 'Windows 11 · Compagnon v1.4.2', me: true,  mac: false, online: true,  last: 'il y a 2 min' },
+      { name: 'MacBook Pro — Me Charpentier', os: 'macOS 14 · Compagnon v1.4.2', me: false, mac: true,  online: false, last: 'hier · 19 h 42' },
+    ],
+  };
+  INTEGRATIONS = { secib: false, kleos: false, jarvis: false };
+  tasks = structuredClone(INITIAL_TASKS);
+  kpi = { ...BASE };
+  generatedSet.clear();
+  $('#kpi-validated').dataset.val = BASE.validated;
+  $('#kpi-ca-value').dataset.val = BASE.ca;
+  $('#kpi-roi-value').dataset.val = BASE.roi;
+  renderJournal();
+  renderSources();
+  updateKpis();
+  updateBatchBar();
+  renderChart();
+  seedFeed();
+  refreshActiveView();
+  updateInsight();
+}
+
+$('#batch-btn').addEventListener('click', () => validateAll());
+$('#reset-btn').addEventListener('click', () => { init(); toast('Démo réinitialisée'); });
+$('#empty-reset').addEventListener('click', () => { init(); toast('Démo réinitialisée'); });
+
+$('#chat-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  sendChat(chatInput.value);
+  chatInput.value = '';
+});
+document.querySelectorAll('.chip').forEach((c) => c.addEventListener('click', () => sendChat(c.dataset.msg)));
+
+// Navigation réelle : rail gauche + onglets du header
+document.querySelectorAll('.rail-btn[data-view], .tab[data-view]').forEach((b) =>
+  b.addEventListener('click', () => switchView(b.dataset.view))
+);
+
+// Délégation : liens "à valider" (vues Dossiers & Facturation) + actions factures
+// + menus d'action des membres et invitation (Console Admin)
+document.body.addEventListener('click', (e) => {
+  const mact = e.target.closest('[data-mi]');
+  if (mact) { e.stopPropagation(); openMemberMenu(mact, parseInt(mact.dataset.mi, 10)); return; }
+  if (e.target.closest('[data-invite]')) { openInviteModal(); return; }
+  const atab = e.target.closest('[data-atab]');
+  if (atab) { adminTab = atab.dataset.atab; renderAdmin(); return; }
+  if (e.target.closest('[data-stripe]')) { openStripeModal(); return; }
+  if (e.target.closest('[data-dl-link]')) { simulateCompanionDownload(); return; }
+  if (e.target.closest('[data-newdossier]')) { openNewDossierModal(); return; }
+  const di = e.target.closest('[data-di]');
+  if (di) { e.stopPropagation(); openDossierActionsMenu(di, di.dataset.di); return; }
+  const goval = e.target.closest('[data-goval]');
+  if (goval) {
+    const key = goval.dataset.goval;
+    const rows = pendingTasksOf(key);
+    ensureJournalVisible();
+    setTimeout(() => rows.forEach((t) => flashRow(t.id)), 120);
+    return;
+  }
+  const gen = e.target.closest('[data-gen]');
+  if (gen) { generateInvoice(gen.dataset.gen, gen); return; }
+  const dl = e.target.closest('[data-dl]');
+  if (dl) { downloadInvoice(dl.dataset.dl); return; }
+});
+
+try {
+  init();
+  renderSettings();
+  switchView('home');
+  console.log('[ACTE] Prototype v16 chargé — intégrations Secib/Kleos/Jarvis, exports CSV et Factur-X, positionnement affiné.');
+} catch (err) {
+  console.error('[ACTE] Erreur d\u2019initialisation :', err);
+}
+</script>
+</body>
+</html>

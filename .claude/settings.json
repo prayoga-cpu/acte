@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "deny": [
+      "Edit(./prototype/**)",
+      "Write(./prototype/**)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./docs/05-commercial/*.pdf)",
+      "Bash(cat .env*)",
+      "Bash(rm -rf *)"
+    ],
+    "allow": [
+      "Bash(pnpm install)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm build)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm test)",
+      "Bash(pnpm --filter *)",
+      "Bash(bash scripts/verify-prototype.sh)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)"
+    ]
+  }
+}
