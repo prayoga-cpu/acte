@@ -25,11 +25,11 @@ Owners: **D** = Darwin (engineering) · **Y** = Yann (client, product) · **E** 
 - [ ] Annex A (Data Protection & Security) signed (**D, Y**)
 
 ### Code side
-- [ ] `git init`, first commit of this pack, push to a **client-owned** private repository
-- [ ] `bash scripts/verify-prototype.sh` passes; CI workflow runs it on every push
-- [ ] Add `pnpm-lock.yaml` after first install; confirm Node version from `.nvmrc`
-- [ ] Verify `packages/contracts` typechecks (`pnpm --filter @acte/contracts typecheck`)
-- [ ] Record the Tailwind v3.4 pin and font strategy as DECIDED in `DECISIONS.md` (D-007)
+- [x] `git init`, first commit of this pack — **local only**; no client-owned remote exists yet (human side below), so nothing has been pushed
+- [x] `bash scripts/verify-prototype.sh` passes; CI workflow runs it on every push
+- [x] Add `pnpm-lock.yaml` after first install; confirm Node version from `.nvmrc` — lockfile generated; **note:** local Node is v23.7.0, `.nvmrc` pins 22 — use `nvm`/`fnm` to match 22 before relying on engine-specific behaviour
+- [x] Verify `packages/contracts` typechecks (`pnpm --filter @acte/contracts typecheck`) — passes, tests pass (4/4)
+- [x] Record the Tailwind v3.4 pin and font strategy as DECIDED in `DECISIONS.md` (D-007) — already DECIDED in this pack
 
 ### Human side
 - [ ] Create private GitHub organisation / repository in Yann's name, invite Darwin (**Y**)

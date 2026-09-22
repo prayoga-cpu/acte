@@ -16,5 +16,9 @@ export const confidenceBand = (score: number) =>
   score >= 90 ? "high" : score >= 80 ? "acceptable" : "review";
 
 export type MemberRole = z.infer<typeof MemberRole>;
+export type MemberStatus = z.infer<typeof MemberStatus>;
 export type DossierStatus = z.infer<typeof DossierStatus>;
 export type TaskSource = z.infer<typeof TaskSource>;
+export type TaskStatus = z.infer<typeof TaskStatus>;
+export type DeviceStatus = z.infer<typeof DeviceStatus>;
+export type NotificationType = z.infer<typeof NotificationType>;
