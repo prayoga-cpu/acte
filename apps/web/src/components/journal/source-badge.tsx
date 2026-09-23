@@ -1,29 +1,35 @@
-import type { TaskSource } from "@acte/contracts";
+"use client";
 
-const SRC: Record<Exclude<TaskSource, "manual">, { label: string; style: React.CSSProperties }> = {
-  outlook: {
-    label: "Capturé via Outlook",
-    style: { background: "rgba(56,132,222,0.12)", border: "1px solid rgba(92,164,240,0.38)", color: "#5ca4f0" },
-  },
-  word: {
-    label: "Capturé via Word",
-    style: { background: "rgba(43,87,154,0.16)", border: "1px solid rgba(110,146,220,0.38)", color: "#8aa8ea" },
-  },
-  web: {
-    label: "Capturé via le navigateur",
-    style: { background: "rgba(148,190,210,0.08)", border: "1px solid rgba(148,190,210,0.3)", color: "#9fc2d4" },
-  },
-};
+import type { TaskSource } from "@acte/contracts";
+import { useI18n, type Dictionary } from "@/i18n/locale-context";
+
+function sourceCopy(t: Dictionary): Record<Exclude<TaskSource, "manual">, { label: string; style: React.CSSProperties }> {
+  return {
+    outlook: {
+      label: t.journal.capturedViaOutlook,
+      style: { background: "rgba(56,132,222,0.12)", border: "1px solid rgba(92,164,240,0.38)", color: "#5ca4f0" },
+    },
+    word: {
+      label: t.journal.capturedViaWord,
+      style: { background: "rgba(43,87,154,0.16)", border: "1px solid rgba(110,146,220,0.38)", color: "#8aa8ea" },
+    },
+    web: {
+      label: t.journal.capturedViaWeb,
+      style: { background: "rgba(148,190,210,0.08)", border: "1px solid rgba(148,190,210,0.3)", color: "#9fc2d4" },
+    },
+  };
+}
 
 const SIZE_CLASS = { 6: "h-6 w-6", 8: "h-8 w-8" } as const;
 
 export function SourceBadge({ source, size = 8 }: { source: TaskSource; size?: 6 | 8 }) {
+  const { t } = useI18n();
   if (source === "manual") {
     return (
       <span
         className={`flex ${SIZE_CLASS[size]} shrink-0 items-center justify-center rounded-lg border border-white/[0.1] bg-white/[0.04] text-ash`}
-        title="Saisie manuelle"
-        aria-label="Saisie manuelle"
+        title={t.journal.manualEntry}
+        aria-label={t.journal.manualEntry}
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
           <path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
@@ -31,7 +37,7 @@ export function SourceBadge({ source, size = 8 }: { source: TaskSource; size?: 6
       </span>
     );
   }
-  const s = SRC[source];
+  const s = sourceCopy(t)[source];
   return (
     <span
       className={`flex ${SIZE_CLASS[size]} shrink-0 items-center justify-center rounded-lg`}

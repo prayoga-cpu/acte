@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import type { Device } from "@acte/contracts";
 import { api } from "@/lib/api-client";
+import { useI18n } from "@/i18n/locale-context";
 
 export function CloudView({ complianceClaimsEnabled }: { complianceClaimsEnabled: boolean }) {
+  const { t } = useI18n();
   const [devices, setDevices] = useState<Device[] | null>(null);
 
   useEffect(() => {
@@ -14,21 +16,19 @@ export function CloudView({ complianceClaimsEnabled }: { complianceClaimsEnabled
   return (
     <div className="mx-auto max-w-[1080px]">
       <div className="mb-4">
-        <p className="eyebrow">Cloud ACTE</p>
-        <h2 className="mt-0.5 font-display text-[22px] font-bold text-ivory">Synchronisation &amp; sauvegarde</h2>
+        <p className="eyebrow">{t.cloud.title}</p>
+        <h2 className="mt-0.5 font-display text-[22px] font-bold text-ivory">{t.cloud.subtitle}</h2>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <section className="glass fade-up md:col-span-2 md:row-span-2">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-3.5">
-            <p className="eyebrow !mb-0">Appareils liés</p>
+            <p className="eyebrow !mb-0">{t.cloud.linkedDevices}</p>
           </div>
           {devices === null ? (
-            <p className="px-5 py-6 text-[13px] text-ash">Chargement…</p>
+            <p className="px-5 py-6 text-[13px] text-ash">{t.cloud.loading}</p>
           ) : devices.length === 0 ? (
-            <p className="px-5 py-6 text-[13px] text-ash">
-              Aucun appareil lié pour l&rsquo;instant — le Compagnon de capture (Word, Outlook, navigateur) arrive au stage 4 du projet.
-            </p>
+            <p className="px-5 py-6 text-[13px] text-ash">{t.cloud.noDevices}</p>
           ) : (
             devices.map((dv, i) => (
               <div key={dv.id} className={`flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3.5 ${i > 0 ? "border-t border-white/[0.05]" : ""}`}>
@@ -48,12 +48,12 @@ export function CloudView({ complianceClaimsEnabled }: { complianceClaimsEnabled
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13.5px] font-medium text-ivory/95">{dv.name}</p>
                   <p className="mt-0.5 truncate text-[11.5px] text-ash">
-                    {dv.os === "macos" ? "macOS" : "Windows"} · Compagnon v{dv.companionVersion}
+                    {dv.os === "macos" ? "macOS" : "Windows"} · {t.cloud.companionVersion(dv.companionVersion)}
                   </p>
                 </div>
                 <span className={`flex w-44 shrink-0 items-center justify-end gap-1.5 text-[11.5px] ${dv.status === "online" ? "text-emerald-300" : "text-ash"}`}>
                   <span className={`h-1.5 w-1.5 rounded-full ${dv.status === "online" ? "bg-emerald-400 pulse-dot" : "bg-white/25"}`} />
-                  {dv.status === "online" ? "Synchronisé" : "Hors ligne"}
+                  {dv.status === "online" ? t.cloud.synced : t.cloud.offline}
                 </span>
               </div>
             ))
@@ -68,16 +68,10 @@ export function CloudView({ complianceClaimsEnabled }: { complianceClaimsEnabled
             </svg>
           </span>
           <div className="min-w-[240px] flex-1">
-            <p className="text-[13px] font-medium text-ivory/95">Secret professionnel préservé</p>
+            <p className="text-[13px] font-medium text-ivory/95">{t.cloud.professionalSecrecyTitle}</p>
             <p className="mt-1 text-[12px] leading-relaxed text-ash">
-              Le Cloud ACTE ne transporte que des métadonnées chiffrées de bout en bout (AES-256) : durées, dossiers, sources. Hébergement en Union
-              européenne (Paris). Vous restez propriétaire de vos données.
-              {complianceClaimsEnabled && (
-                <>
-                  {" "}
-                  Certification <b className="text-ivory/90">ISO 27001</b> en préparation.
-                </>
-              )}
+              {t.cloud.professionalSecrecyBody}
+              {complianceClaimsEnabled && <> {t.cloud.isoCertification}</>}
             </p>
           </div>
         </section>

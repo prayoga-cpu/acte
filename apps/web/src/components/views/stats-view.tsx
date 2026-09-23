@@ -3,8 +3,7 @@
 import type { StatsSummary, TaskSource } from "@acte/contracts";
 import { fmtEurFromCents } from "@/lib/format";
 import { SourceBadge } from "@/components/journal/source-badge";
-
-const SOURCE_LABEL: Record<TaskSource, string> = { word: "Word", outlook: "Outlook", web: "Navigateur", manual: "Saisie manuelle" };
+import { useI18n } from "@/i18n/locale-context";
 
 export function StatsView({
   stats,
@@ -15,6 +14,13 @@ export function StatsView({
   averageRateCents: number;
   onGoToJournal: () => void;
 }) {
+  const { t } = useI18n();
+  const SOURCE_LABEL: Record<TaskSource, string> = {
+    word: t.settingsView.wordName,
+    outlook: t.settingsView.outlookName,
+    web: t.settingsView.webName,
+    manual: t.journal.manualEntry,
+  };
   const maxRevenue = Math.max(1, ...stats.months.map((m) => m.revenueCents));
   const totalSourceMin = stats.sourceBreakdown.reduce((s, b) => s + b.minutes, 0) || 1;
   const currentMonth = stats.months[stats.months.length - 1];
@@ -22,13 +28,13 @@ export function StatsView({
   return (
     <div className="mx-auto max-w-[1080px]">
       <div className="mb-4">
-        <p className="eyebrow">Statistiques</p>
-        <h2 className="mt-1 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">Ce qu&rsquo;ACTE vous a rapporté</h2>
+        <p className="eyebrow">{t.stats.title}</p>
+        <h2 className="mt-1 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">{t.stats.subtitle}</h2>
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <section className="glass fade-up p-5 md:col-span-2 md:row-span-2">
-          <p className="eyebrow">CA sécurisé par mois</p>
+          <p className="eyebrow">{t.stats.revenueByMonth}</p>
           <div className="mt-5 flex h-[210px] items-end justify-between gap-3 px-1">
             {stats.months.map((m, i) => {
               const isNow = i === stats.months.length - 1;
@@ -48,23 +54,23 @@ export function StatsView({
         </section>
 
         <section className="glass fade-up p-5">
-          <p className="eyebrow">Taux horaire</p>
+          <p className="eyebrow">{t.stats.hourlyRate}</p>
           <p className="mt-2 font-display text-[25px] font-bold leading-none tracking-tight text-gold-grad">{fmtEurFromCents(averageRateCents)}</p>
-          <p className="mt-[22px] text-[12px] text-ash">appliqué aux temps validés</p>
+          <p className="mt-[22px] text-[12px] text-ash">{t.stats.appliedToValidated}</p>
         </section>
 
         <section className="glass fade-up p-5">
-          <p className="eyebrow">CA sécurisé ce mois-ci</p>
+          <p className="eyebrow">{t.stats.securedThisMonth}</p>
           <p className="mt-2 font-display text-[25px] font-bold leading-none tracking-tight text-ivory">
             {currentMonth ? fmtEurFromCents(currentMonth.revenueCents) : "—"}
           </p>
-          <p className="mt-[22px] text-[12px] text-ash">temps validé uniquement</p>
+          <p className="mt-[22px] text-[12px] text-ash">{t.stats.validatedOnly}</p>
         </section>
 
         <section className="glass fade-up p-5 md:col-span-3">
-          <p className="eyebrow">Répartition par source</p>
+          <p className="eyebrow">{t.stats.bySource}</p>
           <div className="mt-4 space-y-3.5">
-            {stats.sourceBreakdown.length === 0 && <p className="text-[12.5px] text-ash">Pas encore de temps validé ce mois-ci.</p>}
+            {stats.sourceBreakdown.length === 0 && <p className="text-[12.5px] text-ash">{t.stats.noValidatedYet}</p>}
             {stats.sourceBreakdown.map((b) => {
               const pct = Math.round((b.minutes / totalSourceMin) * 100);
               return (
@@ -82,16 +88,15 @@ export function StatsView({
         </section>
 
         <section className="glass fade-up p-5 md:col-span-3">
-          <p className="eyebrow">L&rsquo;enjeu du temps invisible</p>
+          <p className="eyebrow">{t.stats.invisibleTimeTitle}</p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
             <div className="min-w-[260px] flex-1">
               <p className="font-display text-[30px] font-extrabold leading-none tracking-tight text-gold-grad">
-                {fmtEurFromCents(Math.round(averageRateCents * 0.5 * 210))} / an
+                {fmtEurFromCents(Math.round(averageRateCents * 0.5 * 210))} {t.stats.perYear}
               </p>
               <p className="mt-2 max-w-[600px] text-[12px] leading-relaxed text-ash">
-                C&rsquo;est ce que représentent <b className="text-ivory/90">30 minutes de temps oublié par jour</b> sur 210 jours facturables, à votre
-                taux de <span className="font-mono">{fmtEurFromCents(averageRateCents)} / h</span>. ACTE capture précisément ce temps que personne ne
-                saisit à la main.
+                {t.stats.invisibleTimeIntro} <b className="text-ivory/90">{t.stats.invisibleTimeHighlight}</b> {t.stats.invisibleTimeMiddle}{" "}
+                <span className="font-mono">{fmtEurFromCents(averageRateCents)} / h</span>. {t.stats.invisibleTimeEnd}
               </p>
             </div>
             <button
@@ -99,7 +104,7 @@ export function StatsView({
               onClick={onGoToJournal}
               className="rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-2 text-[12.5px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]"
             >
-              Voir mon journal →
+              {t.stats.goToJournal}
             </button>
           </div>
         </section>

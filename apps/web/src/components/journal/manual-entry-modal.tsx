@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { Dossier } from "@acte/contracts";
 import { Modal, ModalActions, ModalCancelButton, ModalPrimaryButton } from "@/components/modal";
-import { fr } from "@/i18n/fr";
+import { useI18n } from "@/i18n/locale-context";
 import { parisTimeToIso } from "@/lib/time";
 
 export function ManualEntryModal({
@@ -15,6 +15,7 @@ export function ManualEntryModal({
   onClose: () => void;
   onSubmit: (input: { title: string; dossierId: string | null; startedAt: string; durationMin: number }) => Promise<void>;
 }) {
+  const { t } = useI18n();
   const [title, setTitle] = useState("");
   const [dossierId, setDossierId] = useState<string>("");
   const [startTime, setStartTime] = useState("09:00");
@@ -39,23 +40,23 @@ export function ManualEntryModal({
 
   return (
     <Modal onClose={onClose}>
-      <p className="eyebrow">Journal</p>
-      <h3 className="mt-1 font-display text-[20px] font-semibold text-ivory">{fr.journal.manualEntry}</h3>
+      <p className="eyebrow">{t.nav.journal}</p>
+      <h3 className="mt-1 font-display text-[20px] font-semibold text-ivory">{t.journal.manualEntry}</h3>
 
       <label className="mt-4 block text-[11.5px] text-ash" htmlFor="me-title">
-        {fr.journal.manualEntryTitle}
+        {t.journal.manualEntryTitle}
       </label>
       <input
         id="me-title"
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Rédaction de conclusions — Dupont c/ Durand"
+        placeholder={t.journal.manualEntryTitlePlaceholder}
         className="mt-1.5 w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5 text-[13px] text-ivory placeholder-ash/50 outline-none transition focus:border-gold/40"
       />
 
       <label className="mt-3.5 block text-[11.5px] text-ash" htmlFor="me-dossier">
-        {fr.journal.manualEntryDossier}
+        {t.journal.manualEntryDossier}
       </label>
       <select
         id="me-dossier"
@@ -63,7 +64,7 @@ export function ManualEntryModal({
         onChange={(e) => setDossierId(e.target.value)}
         className="mt-1.5 w-full rounded-xl border border-white/[0.09] bg-carbon px-3.5 py-2.5 text-[13px] text-ivory outline-none transition focus:border-gold/40"
       >
-        <option value="">Non assigné</option>
+        <option value="">{t.journal.unassigned}</option>
         {dossiers.map((d) => (
           <option key={d.id} value={d.id}>
             {d.name}
@@ -74,7 +75,7 @@ export function ManualEntryModal({
       <div className="mt-3.5 flex gap-3">
         <div className="flex-1">
           <label className="block text-[11.5px] text-ash" htmlFor="me-start">
-            {fr.journal.manualEntryStart}
+            {t.journal.manualEntryStart}
           </label>
           <input
             id="me-start"
@@ -86,7 +87,7 @@ export function ManualEntryModal({
         </div>
         <div className="flex-1">
           <label className="block text-[11.5px] text-ash" htmlFor="me-duration">
-            {fr.journal.manualEntryDuration}
+            {t.journal.manualEntryDuration}
           </label>
           <input
             id="me-duration"
@@ -103,7 +104,7 @@ export function ManualEntryModal({
       <ModalActions>
         <ModalCancelButton onClick={onClose} />
         <ModalPrimaryButton onClick={submit} disabled={saving || !title.trim()}>
-          {fr.journal.manualEntrySubmit}
+          {t.journal.manualEntrySubmit}
         </ModalPrimaryButton>
       </ModalActions>
     </Modal>

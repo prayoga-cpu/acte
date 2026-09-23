@@ -3,24 +3,25 @@
 import { useState } from "react";
 import type { DossierStatus, DossierUsage } from "@acte/contracts";
 import { fmtMin } from "@/lib/format";
+import { useI18n, type Dictionary } from "@/i18n/locale-context";
 import { DossierMenu } from "@/components/dossiers/dossier-menu";
 import { BudgetModal } from "@/components/dossiers/budget-modal";
 import { NewDossierModal } from "@/components/dossiers/new-dossier-modal";
 
-function fmtActivity(iso: string | null): string {
-  if (!iso) return "Aucune activité";
+function fmtActivity(iso: string | null, t: Dictionary): string {
+  if (!iso) return t.dossiers.noActivity;
   const fmt = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
   return fmt.format(new Date(iso)).replace(":", " h ");
 }
 
-function StatusBadge({ status }: { status: DossierStatus }) {
+function StatusBadge({ status, t }: { status: DossierStatus; t: Dictionary }) {
   if (status === "ready") {
-    return <span className="shrink-0 rounded-full border border-gold/35 bg-gold/10 px-2.5 py-1 text-[10.5px] font-semibold text-gold-pale">Prêt à facturer</span>;
+    return <span className="shrink-0 rounded-full border border-gold/35 bg-gold/10 px-2.5 py-1 text-[10.5px] font-semibold text-gold-pale">{t.dossiers.statusReady}</span>;
   }
   if (status === "archived") {
-    return <span className="shrink-0 rounded-full border border-white/[0.1] bg-white/[0.04] px-2.5 py-1 text-[10.5px] text-ash">Archivé</span>;
+    return <span className="shrink-0 rounded-full border border-white/[0.1] bg-white/[0.04] px-2.5 py-1 text-[10.5px] text-ash">{t.dossiers.statusArchived}</span>;
   }
-  return <span className="shrink-0 rounded-full border border-white/[0.1] bg-white/[0.04] px-2.5 py-1 text-[10.5px] text-ash">En cours</span>;
+  return <span className="shrink-0 rounded-full border border-white/[0.1] bg-white/[0.04] px-2.5 py-1 text-[10.5px] text-ash">{t.dossiers.statusProgress}</span>;
 }
 
 export function DossiersView({
@@ -36,6 +37,7 @@ export function DossiersView({
   onSetStatus: (id: string, status: DossierStatus) => Promise<void>;
   onGoToPending: () => void;
 }) {
+  const { t } = useI18n();
   const [newDossierOpen, setNewDossierOpen] = useState(false);
   const [budgetTarget, setBudgetTarget] = useState<DossierUsage | null>(null);
 
@@ -45,17 +47,17 @@ export function DossiersView({
     <div className="mx-auto max-w-[1080px]">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="eyebrow">Dossiers actifs</p>
-          <h2 className="mt-1 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">Vos dossiers les plus actifs</h2>
+          <p className="eyebrow">{t.dossiers.activeEyebrow}</p>
+          <h2 className="mt-1 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">{t.dossiers.activeHeading}</h2>
         </div>
         <div className="flex items-center gap-3">
-          <p className="font-mono text-[12px] text-gold-pale">{fmtMin(totalMin)} capturées ce mois</p>
+          <p className="font-mono text-[12px] text-gold-pale">{fmtMin(totalMin)} {t.dossiers.capturedThisMonth}</p>
           <button
             type="button"
             onClick={() => setNewDossierOpen(true)}
             className="rounded-full bg-gradient-to-r from-gold to-gold-deep px-3.5 py-1.5 text-[12px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]"
           >
-            + Nouveau Dossier
+            + {t.dossiers.newDossier}
           </button>
         </div>
       </div>
@@ -74,7 +76,7 @@ export function DossiersView({
                   <p className="mt-0.5 text-[11.5px] text-ash">{d.clientLabel}</p>
                 </div>
                 <div className="flex shrink-0 items-center gap-1.5">
-                  <StatusBadge status={d.status} />
+                  <StatusBadge status={d.status} t={t} />
                   <DossierMenu
                     dossier={d}
                     onEditBudget={() => setBudgetTarget(d)}
@@ -82,7 +84,7 @@ export function DossiersView({
                   />
                 </div>
               </div>
-              <p className="mt-4 eyebrow">Temps capturé par l&rsquo;IA · ce mois-ci</p>
+              <p className="mt-4 eyebrow">{t.dossiers.aiCapturedThisMonth}</p>
               <p className="mt-1 font-mono text-[22px] text-ivory">{fmtMin(time)}</p>
               {budget > 0 ? (
                 <>
@@ -93,26 +95,26 @@ export function DossiersView({
                     />
                   </div>
                   <p className="mt-1.5 font-mono text-[11px] text-ash">
-                    {fmtMin(time)} / {fmtMin(budget)} · {pct} % du budget d&rsquo;heures
+                    {fmtMin(time)} / {fmtMin(budget)} · {pct} {t.dossiers.percentOfBudget}
                   </p>
                 </>
               ) : (
-                <p className="mt-1.5 font-mono text-[11px] text-ash">Sans budget</p>
+                <p className="mt-1.5 font-mono text-[11px] text-ash">{t.dossiers.noBudget}</p>
               )}
               <div className="mt-4 flex items-center justify-between border-t border-white/[0.05] pt-3">
-                <span className="text-[11.5px] text-ash">Dernière activité · {fmtActivity(d.lastActivityAt)}</span>
+                <span className="text-[11.5px] text-ash">{t.dossiers.lastActivity} · {fmtActivity(d.lastActivityAt, t)}</span>
                 {archived ? (
-                  <span className="text-[11.5px] text-ash">Capture suspendue</span>
+                  <span className="text-[11.5px] text-ash">{t.dossiers.captureSuspended}</span>
                 ) : d.pendingMinutes > 0 ? (
                   <button onClick={onGoToPending} className="text-[11.5px] font-medium text-amber-300 transition hover:text-amber-200">
-                    ● {fmtMin(d.pendingMinutes)} à valider →
+                    ● {fmtMin(d.pendingMinutes)} {t.dossiers.toValidateArrow}
                   </button>
                 ) : (
                   <span className="flex items-center gap-1 text-[11.5px] text-emerald-300">
                     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M20 6 9 17l-5-5" />
                     </svg>
-                    Journal à jour
+                    {t.dossiers.upToDateJournal}
                   </span>
                 )}
               </div>

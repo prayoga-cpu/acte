@@ -2,10 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { fr } from "@/i18n/fr";
+import Link from "next/link";
+import { useI18n } from "@/i18n/locale-context";
+import { Logo } from "@/components/marketing/logo";
 
 export function LoginForm() {
   const router = useRouter();
+  const { t } = useI18n();
+  const auth = t.auth;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [mode, setMode] = useState<"password" | "magic-link">("password");
@@ -24,10 +28,10 @@ export function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
       if (!res.ok) {
-        setError(fr.auth.error);
+        setError(auth.error);
         return;
       }
-      router.push("/");
+      router.push("/dashboard");
       router.refresh();
     } finally {
       setBusy(false);
@@ -45,10 +49,10 @@ export function LoginForm() {
         body: JSON.stringify({ email }),
       });
       if (!res.ok) {
-        setError(fr.auth.error);
+        setError(auth.error);
         return;
       }
-      setNotice(fr.auth.magicLinkSent);
+      setNotice(auth.magicLinkSent);
     } finally {
       setBusy(false);
     }
@@ -56,22 +60,15 @@ export function LoginForm() {
 
   return (
     <div className="glass fade-up w-full max-w-[380px] p-6">
-      <h1 className="flex items-baseline font-display text-[22px] font-extrabold uppercase leading-none tracking-[0.01em] text-ivory">
-        ACT
-        <span className="relative pr-1.5">
-          E
-          <svg className="absolute -right-1 -top-2 h-[15px] w-[15px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4.5" strokeLinecap="square">
-            <path d="M4 13l5 5L20 6" />
-          </svg>
-        </span>
-        <span className="-ml-1">.</span>
-      </h1>
-      <p className="mt-1.5 text-[12.5px] text-ash">{fr.auth.subtitle}</p>
+      <Link href="/">
+        <Logo />
+      </Link>
+      <p className="mt-1.5 text-[12.5px] text-ash">{auth.subtitle}</p>
 
       <form onSubmit={mode === "password" ? submitPassword : submitMagicLink} className="mt-6 space-y-3.5">
         <div>
           <label className="block text-[11.5px] text-ash" htmlFor="email">
-            {fr.auth.email}
+            {auth.email}
           </label>
           <input
             id="email"
@@ -87,7 +84,7 @@ export function LoginForm() {
         {mode === "password" && (
           <div>
             <label className="block text-[11.5px] text-ash" htmlFor="password">
-              {fr.auth.password}
+              {auth.password}
             </label>
             <input
               id="password"
@@ -109,13 +106,13 @@ export function LoginForm() {
           disabled={busy}
           className="w-full rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-2.5 text-[13px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98] disabled:opacity-60"
         >
-          {mode === "password" ? fr.auth.signIn : fr.auth.magicLink}
+          {mode === "password" ? auth.signIn : auth.magicLink}
         </button>
       </form>
 
       <div className="mt-4 flex items-center gap-3 text-[11px] text-ash">
         <div className="h-px flex-1 bg-white/[0.08]" />
-        {fr.auth.orDivider}
+        {auth.orDivider}
         <div className="h-px flex-1 bg-white/[0.08]" />
       </div>
 
@@ -128,8 +125,15 @@ export function LoginForm() {
         }}
         className="mt-4 w-full rounded-full border border-white/[0.12] px-4 py-2 text-[12.5px] text-ivory/80 transition hover:border-gold/35 hover:text-gold-pale"
       >
-        {mode === "password" ? fr.auth.magicLink : fr.auth.signIn}
+        {mode === "password" ? auth.magicLink : auth.signIn}
       </button>
+
+      <p className="mt-5 text-center text-[12px] text-ash">
+        {auth.noAccount}{" "}
+        <Link href="/signup" className="text-ivory/85 transition hover:text-gold-pale">
+          {auth.createAccount}
+        </Link>
+      </p>
     </div>
   );
 }

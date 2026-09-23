@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import type { ActivationKeyCreated, ActivationKeySummary } from "@acte/contracts";
 import { api } from "@/lib/api-client";
+import { useI18n } from "@/i18n/locale-context";
 
 export function ActivationKeys() {
+  const { t } = useI18n();
   const [keys, setKeys] = useState<ActivationKeySummary[]>([]);
   const [justCreated, setJustCreated] = useState<ActivationKeyCreated | null>(null);
   const [copied, setCopied] = useState(false);
@@ -45,30 +47,28 @@ export function ActivationKeys() {
   return (
     <section className="glass fade-up p-5 md:col-span-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="eyebrow">Liaison de l&rsquo;application locale</p>
+        <p className="eyebrow">{t.profile.activationKeysTitle}</p>
         <span className="flex items-center gap-1.5 text-[11px] text-ash">
           <span className="h-1.5 w-1.5 rounded-full bg-white/25" />
-          Compagnon non détecté sur ce poste
+          {t.profile.companionNotDetected}
         </span>
       </div>
 
       {justCreated ? (
         <div className="mt-3.5 flex flex-wrap items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-2.5 rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5">
-            <span className="shrink-0 text-[11.5px] text-ash">Nouvelle clé :</span>
+            <span className="shrink-0 text-[11.5px] text-ash">{t.profile.newKey}</span>
             <code className="min-w-0 truncate font-mono text-[12.5px] tracking-wide text-ivory">{justCreated.plainKey}</code>
           </div>
           <button
             onClick={copy}
             className="w-[86px] rounded-full border border-gold/35 bg-gold/10 px-3.5 py-2 text-[12px] font-semibold text-gold-pale transition hover:bg-gold/[0.18]"
           >
-            {copied ? "Copié !" : "Copier"}
+            {copied ? t.profile.copied : t.profile.copy}
           </button>
         </div>
       ) : (
-        <p className="mt-3.5 text-[11.5px] leading-relaxed text-ash">
-          Cette clé se copie une seule fois, à la création. Générez-en une pour lier le Compagnon ACTE à ce poste dès qu&rsquo;il sera disponible (stage 4).
-        </p>
+        <p className="mt-3.5 text-[11.5px] leading-relaxed text-ash">{t.profile.activationKeyOnceHint}</p>
       )}
 
       {!loading && active.length > 0 && (
@@ -77,7 +77,7 @@ export function ActivationKeys() {
             <li key={k.id} className="flex items-center justify-between gap-2 text-[12px]">
               <code className="font-mono text-ivory/80">{k.prefix}…</code>
               <button onClick={() => revoke(k.id)} className="text-red-400 transition hover:text-red-300">
-                Révoquer
+                {t.profile.revokeKey}
               </button>
             </li>
           ))}
@@ -89,7 +89,7 @@ export function ActivationKeys() {
         onClick={create}
         className="mt-3.5 rounded-full border border-white/[0.12] px-3.5 py-2 text-[12px] text-ivory/85 transition hover:border-gold/35 hover:text-gold-pale"
       >
-        + Générer une clé d&rsquo;activation
+        {t.profile.generateKey}
       </button>
     </section>
   );

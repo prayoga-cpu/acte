@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Montserrat, Spline_Sans_Mono } from "next/font/google";
+import { LocaleProvider } from "@/i18n/locale-context";
+import { detectLocale } from "@/lib/locale-server";
 import "./globals.css";
 
 const montserrat = Montserrat({
@@ -36,13 +38,17 @@ const THEME_INIT_SCRIPT = `
 })();
 `;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = await detectLocale();
+
   return (
-    <html lang="fr" className={`${montserrat.variable} ${inter.variable} ${splineSansMono.variable}`}>
+    <html lang={locale} className={`${montserrat.variable} ${inter.variable} ${splineSansMono.variable}`}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="h-[100dvh] overflow-hidden font-body text-ivory antialiased">{children}</body>
+      <body className="h-[100dvh] overflow-hidden font-body text-ivory antialiased" suppressHydrationWarning>
+        <LocaleProvider initialLocale={locale}>{children}</LocaleProvider>
+      </body>
     </html>
   );
 }

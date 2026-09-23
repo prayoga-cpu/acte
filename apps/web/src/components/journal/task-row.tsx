@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import type { Dossier, Task } from "@acte/contracts";
 import { fmtMin } from "@/lib/format";
 import { fmtTimeRange } from "@/lib/format";
+import { useI18n } from "@/i18n/locale-context";
 import { useOutsideClick } from "@/lib/use-outside-click";
 import { ConfidenceBadge } from "./confidence-badge";
 import { SourceBadge } from "./source-badge";
@@ -26,11 +27,12 @@ export function TaskRow({
   onValidate: (id: string) => void;
   onReassign: (id: string, dossierId: string) => void;
 }) {
+  const { t } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   useOutsideClick(menuRef, () => setMenuOpen(false), menuOpen);
 
-  const dossierName = dossiers.find((d) => d.id === task.dossierId)?.name ?? "Non assigné";
+  const dossierName = dossiers.find((d) => d.id === task.dossierId)?.name ?? t.journal.unassigned;
 
   return (
     <article className="task-row group">
@@ -46,7 +48,7 @@ export function TaskRow({
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}
-            title="Modifier le dossier"
+            title={t.journal.editDossier}
             className="dossier-chip flex max-w-[180px] items-center gap-1.5 rounded-full border border-white/[0.09] bg-white/[0.03] px-2.5 py-1 text-[11.5px] text-ivory/85 transition hover:border-gold/35 hover:text-gold-pale"
           >
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-60">
@@ -59,7 +61,7 @@ export function TaskRow({
           </button>
           {menuOpen && (
             <div className="dossier-menu fade-up absolute right-0 top-[calc(100%+6px)] z-30 w-[230px] overflow-hidden rounded-xl border border-white/[0.1] bg-carbon/95 shadow-[0_14px_40px_-8px_rgba(0,0,0,0.8)] backdrop-blur-xl">
-              <p className="border-b border-white/[0.06] px-3.5 py-2 text-[10px] uppercase tracking-[0.16em] text-ash">Associer à un dossier</p>
+              <p className="border-b border-white/[0.06] px-3.5 py-2 text-[10px] uppercase tracking-[0.16em] text-ash">{t.journal.associateToDossier}</p>
               {dossiers.map((d) => (
                 <button
                   key={d.id}
@@ -85,13 +87,13 @@ export function TaskRow({
         <ConfidenceBadge confidence={task.confidence} />
         <button
           onClick={() => onValidate(task.id)}
-          aria-label={`Valider ${task.title}`}
+          aria-label={`${t.journal.validate} ${task.title}`}
           className="validate-btn flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-400/25 px-3 py-1.5 text-[12px] font-semibold text-emerald-300 opacity-60 transition hover:bg-emerald-400/15 group-hover:opacity-100"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 6 9 17l-5-5" />
           </svg>
-          Valider
+          {t.journal.validate}
         </button>
       </div>
     </article>

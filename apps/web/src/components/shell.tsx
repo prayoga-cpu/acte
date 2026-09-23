@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { DossierStatus } from "@acte/contracts";
-import { fr } from "@/i18n/fr";
+import { useI18n, type Dictionary } from "@/i18n/locale-context";
 import { isLightMode, setThemeLight } from "@/lib/theme";
 import { useOutsideClick } from "@/lib/use-outside-click";
 import { useDashboard, type DashboardInitialData } from "@/lib/use-dashboard";
@@ -16,59 +16,64 @@ import { ProfileView } from "@/components/views/profile-view";
 import { CloudView } from "@/components/views/cloud-view";
 import { SettingsView } from "@/components/views/settings-view";
 import { BrainPanel } from "@/components/brain-panel";
+import { CompanionModal } from "@/components/companion-modal";
 import { Toast } from "@/components/toast";
 
 type View = "home" | "journal" | "dossiers" | "stats" | "billing" | "profile" | "cloud" | "settings";
 
-const RAIL_ITEMS: { view: View; label: string; icon: React.ReactNode }[] = [
-  {
-    view: "journal",
-    label: fr.nav.journal,
-    icon: (
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-        <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-      </svg>
-    ),
-  },
-  {
-    view: "dossiers",
-    label: fr.nav.dossiers,
-    icon: (
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
-      </svg>
-    ),
-  },
-  {
-    view: "stats",
-    label: fr.nav.stats,
-    icon: (
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="12" x2="12" y1="20" y2="10" />
-        <line x1="18" x2="18" y1="20" y2="4" />
-        <line x1="6" x2="6" y1="20" y2="16" />
-      </svg>
-    ),
-  },
-  {
-    view: "cloud",
-    label: fr.nav.cloud,
-    icon: (
-      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
-      </svg>
-    ),
-  },
-];
+function railItems(t: Dictionary): { view: View; label: string; icon: React.ReactNode }[] {
+  return [
+    {
+      view: "journal",
+      label: t.nav.journal,
+      icon: (
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+        </svg>
+      ),
+    },
+    {
+      view: "dossiers",
+      label: t.nav.dossiers,
+      icon: (
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+        </svg>
+      ),
+    },
+    {
+      view: "stats",
+      label: t.nav.stats,
+      icon: (
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" x2="12" y1="20" y2="10" />
+          <line x1="18" x2="18" y1="20" y2="4" />
+          <line x1="6" x2="6" y1="20" y2="16" />
+        </svg>
+      ),
+    },
+    {
+      view: "cloud",
+      label: t.nav.cloud,
+      icon: (
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z" />
+        </svg>
+      ),
+    },
+  ];
+}
 
 export function Shell({ initial, complianceClaimsEnabled }: { initial: DashboardInitialData; complianceClaimsEnabled: boolean }) {
   const router = useRouter();
+  const { t, locale, setLocale } = useI18n();
   const d = useDashboard(initial);
   const [view, setView] = useState<View>("home");
   const [isLight, setIsLight] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [brainOpen, setBrainOpen] = useState(false);
+  const [companionModalOpen, setCompanionModalOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   useOutsideClick(profileMenuRef, () => setProfileMenuOpen(false), profileMenuOpen);
 
@@ -86,7 +91,14 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
     const next = !isLight;
     setIsLight(next);
     setThemeLight(next);
-    d.showToast(next ? "Mode clair activé" : "Mode sombre activé");
+    d.showToast(next ? t.shell.lightModeOn : t.shell.darkModeOn);
+  };
+
+  const toggleLocale = () => setLocale(locale === "fr" ? "en" : "fr");
+
+  const startCompanionDownload = (file: string) => {
+    d.showToast(t.companion.downloadStarted(file));
+    window.setTimeout(() => d.showToast(t.companion.downloadDone(file)), 2100);
   };
 
   const logout = async () => {
@@ -108,7 +120,7 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
         </div>
 
         <nav className="flex flex-col gap-1.5" aria-label="Navigation principale">
-          {RAIL_ITEMS.map((item) => (
+          {railItems(t).map((item) => (
             <button
               key={item.view}
               onClick={() => setView(item.view)}
@@ -125,9 +137,22 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
 
         <div className="mt-auto flex flex-col items-center gap-1.5">
           <button
+            type="button"
+            onClick={() => setCompanionModalOpen(true)}
+            title={t.nav.downloadCompanion}
+            aria-label={t.nav.downloadCompanion}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-ash transition hover:bg-white/[0.05] hover:text-gold-pale"
+          >
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" x2="12" y1="3" y2="15" />
+            </svg>
+          </button>
+          <button
             onClick={() => setView("settings")}
-            title={fr.nav.settings}
-            aria-label={fr.nav.settings}
+            title={t.nav.settings}
+            aria-label={t.nav.settings}
             className={`rail-btn flex h-10 w-10 items-center justify-center rounded-xl transition hover:bg-white/[0.05] hover:text-ivory ${view === "settings" ? "is-active" : "text-ash"}`}
           >
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
@@ -154,7 +179,7 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
               </span>
               <span className="-ml-1">.</span>
             </h1>
-            <span className="hidden text-[9px] font-medium uppercase tracking-[0.32em] text-ash sm:block">{fr.header.timeTracking}</span>
+            <span className="hidden text-[9px] font-medium uppercase tracking-[0.32em] text-ash sm:block">{t.header.timeTracking}</span>
           </div>
 
           <nav className="flex items-center gap-1 rounded-full border border-white/[0.07] bg-white/[0.03] p-1" aria-label="Onglets">
@@ -164,7 +189,7 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
                 onClick={() => setView(v)}
                 className={`tab rounded-full px-2.5 py-1.5 text-[12px] font-medium text-ash transition hover:text-ivory sm:px-4 sm:text-[13px] ${view === v ? "is-active" : ""}`}
               >
-                {fr.nav.tabs[v]}
+                {t.nav.tabs[v]}
               </button>
             ))}
           </nav>
@@ -172,9 +197,19 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
           <div className="flex items-center gap-2.5">
             <button
               type="button"
+              onClick={toggleLocale}
+              aria-label={t.common.languageToggle}
+              title={t.common.languageToggle}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] font-mono text-[11px] font-semibold text-ash transition hover:border-gold/30 hover:text-gold-pale"
+            >
+              {locale.toUpperCase()}
+            </button>
+
+            <button
+              type="button"
               onClick={toggleTheme}
-              aria-label={isLight ? fr.header.toDark : fr.header.toLight}
-              title={fr.header.toggleTheme}
+              aria-label={isLight ? t.header.toDark : t.header.toLight}
+              title={t.header.toggleTheme}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] text-ash transition hover:border-gold/30 hover:text-gold-pale"
             >
               {isLight ? (
@@ -249,8 +284,8 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
                       </svg>
                     </span>
                     <span>
-                      <span className="block text-[13px] font-medium text-ivory/95">{fr.profileMenu.myProfile}</span>
-                      <span className="mt-0.5 block text-[11px] text-ash">{fr.profileMenu.myProfileSub}</span>
+                      <span className="block text-[13px] font-medium text-ivory/95">{t.profileMenu.myProfile}</span>
+                      <span className="mt-0.5 block text-[11px] text-ash">{t.profileMenu.myProfileSub}</span>
                     </span>
                   </button>
                   <button
@@ -264,7 +299,7 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
                         <line x1="21" x2="9" y1="12" y2="12" />
                       </svg>
                     </span>
-                    <span className="text-[13px] font-medium text-ivory/95">{fr.profileMenu.logout}</span>
+                    <span className="text-[13px] font-medium text-ivory/95">{t.profileMenu.logout}</span>
                   </button>
                 </div>
               )}
@@ -306,20 +341,29 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
             />
           )}
           {view === "stats" && <StatsView stats={d.stats} averageRateCents={d.member.hourlyRateCents} onGoToJournal={goToPendingJournal} />}
-          {view === "billing" && <BillingView invoices={d.invoices} dossiers={d.dossiers} onGenerate={d.generateInvoice} />}
+          {view === "billing" && (
+            <BillingView invoices={d.invoices} dossiers={d.dossiers} member={d.member} onGenerate={d.generateInvoice} onToast={d.showToast} />
+          )}
           {view === "profile" && <ProfileView member={d.member} />}
           {view === "cloud" && <CloudView complianceClaimsEnabled={complianceClaimsEnabled} />}
-          {view === "settings" && <SettingsView member={d.member} />}
+          {view === "settings" && <SettingsView member={d.member} onToast={d.showToast} />}
         </main>
       </div>
 
-      <BrainPanel open={brainOpen} onClose={() => setBrainOpen(false)} summary={d.summary} dossiers={d.dossiers} insights={d.insights} />
+      <BrainPanel
+        open={brainOpen}
+        onClose={() => setBrainOpen(false)}
+        summary={d.summary}
+        dossiers={d.dossiers}
+        insights={d.insights}
+        onToast={d.showToast}
+      />
 
       {!brainOpen && (
         <button
           onClick={() => setBrainOpen(true)}
           className="fixed bottom-5 right-5 z-30 flex items-center gap-2 rounded-full border border-gold/40 bg-gradient-to-br from-gold to-gold-deep px-4 py-3 font-semibold text-noir shadow-[0_10px_35px_-10px_rgba(0,0,0,0.55)] transition hover:brightness-110 active:scale-95 xl:hidden"
-          aria-label="Ouvrir le Cerveau d'ACTE"
+          aria-label={t.brain.openPanel}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z" />
@@ -329,6 +373,10 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
       )}
 
       <Toast message={d.toastMessage} />
+
+      {companionModalOpen && (
+        <CompanionModal onClose={() => setCompanionModalOpen(false)} onDownloadStart={startCompanionDownload} />
+      )}
     </div>
   );
 }

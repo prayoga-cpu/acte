@@ -3,8 +3,11 @@
 import { useRef, useState } from "react";
 import type { DossierStatus, DossierUsage } from "@acte/contracts";
 import { useOutsideClick } from "@/lib/use-outside-click";
+import { useI18n, type Dictionary } from "@/i18n/locale-context";
 
-const STATUS_LABEL: Record<DossierStatus, string> = { progress: "En cours", ready: "Prêt à facturer", archived: "Archivé" };
+function statusLabel(t: Dictionary): Record<DossierStatus, string> {
+  return { progress: t.dossiers.statusProgress, ready: t.dossiers.statusReady, archived: t.dossiers.statusArchived };
+}
 const CHECK = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 6 9 17l-5-5" />
@@ -20,6 +23,7 @@ export function DossierMenu({
   onEditBudget: () => void;
   onSetStatus: (status: DossierStatus) => void;
 }) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [statusListOpen, setStatusListOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -38,7 +42,7 @@ export function DossierMenu({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label={`Actions pour le dossier ${dossier.name}`}
+        aria-label={t.dossiers.dossierActionsAria(dossier.name)}
         aria-haspopup="menu"
         className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/[0.08] text-ash transition hover:border-gold/35 hover:text-gold-pale"
       >
@@ -70,7 +74,7 @@ export function DossierMenu({
               <line x1="8" x2="8" y1="10" y2="14" />
               <line x1="16" x2="16" y1="18" y2="22" />
             </svg>
-            <span>Ajuster le budget d&rsquo;heures</span>
+            <span>{t.dossiers.adjustHoursBudget}</span>
           </button>
           <button
             type="button"
@@ -82,7 +86,7 @@ export function DossierMenu({
                 <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
                 <circle cx="7.5" cy="7.5" r="0.5" fill="currentColor" />
               </svg>
-              <span>Changer le statut</span>
+              <span>{t.dossiers.changeStatus}</span>
             </span>
             <svg
               className="transition-transform"
@@ -101,7 +105,7 @@ export function DossierMenu({
           </button>
           {statusListOpen && (
             <div className="border-y border-white/[0.05] bg-white/[0.02] py-1">
-              {(Object.keys(STATUS_LABEL) as DossierStatus[]).map((st) => (
+              {(Object.keys(statusLabel(t)) as DossierStatus[]).map((st) => (
                 <button
                   key={st}
                   type="button"
@@ -114,7 +118,7 @@ export function DossierMenu({
                     dossier.status === st ? "text-gold-pale" : "text-ivory/85"
                   }`}
                 >
-                  <span>{STATUS_LABEL[st]}</span>
+                  <span>{statusLabel(t)[st]}</span>
                   {dossier.status === st ? CHECK : null}
                 </button>
               ))}
@@ -130,7 +134,7 @@ export function DossierMenu({
               className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[12.5px] text-emerald-300 transition hover:bg-emerald-400/10"
             >
               {CHECK}
-              <span>Restaurer le dossier</span>
+              <span>{t.dossiers.restoreDossier}</span>
             </button>
           ) : (
             <button
@@ -146,7 +150,7 @@ export function DossierMenu({
                 <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
                 <path d="M10 12h4" />
               </svg>
-              <span>Archiver le dossier</span>
+              <span>{t.dossiers.archiveDossier}</span>
             </button>
           )}
         </div>
