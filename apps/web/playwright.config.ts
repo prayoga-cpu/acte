@@ -15,5 +15,12 @@ export default defineConfig({
   use: {
     baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000",
     trace: "retain-on-failure",
+    // Pin French regardless of the runner's own Accept-Language: the suite's
+    // assertions are French-only, and the app's real Accept-Language-based
+    // device detection (apps/web/src/lib/locale-server.ts) would otherwise
+    // render English here, since CI/local browsers commonly default to an
+    // en-* locale. A manual switch or the `acte-locale` cookie still take
+    // priority over this in the app itself.
+    locale: "fr-FR",
   },
 });

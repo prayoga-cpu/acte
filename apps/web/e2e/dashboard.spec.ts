@@ -17,8 +17,14 @@ test.describe.serial("ACTE dashboard — demo firm", () => {
     await page.close();
   });
 
-  test("unauthenticated visit to / redirects to /login", async () => {
+  test("unauthenticated visit to / renders the public marketing page", async () => {
     await page.goto("/");
+    await expect(page).toHaveURL("/");
+    await expect(page.getByRole("link", { name: "Se connecter" }).first()).toBeVisible();
+  });
+
+  test("unauthenticated visit to /dashboard redirects to /login", async () => {
+    await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/login$/);
   });
 
@@ -27,19 +33,19 @@ test.describe.serial("ACTE dashboard — demo firm", () => {
     await page.getByLabel("Adresse e-mail").fill("vc@charpentier-associes.fr");
     await page.getByLabel("Mot de passe").fill("acte-dev-2026");
     await page.getByRole("button", { name: "Se connecter" }).click();
-    await expect(page).toHaveURL("/");
+    await expect(page).toHaveURL("/dashboard");
     await expect(page.getByText("Me V. Charpentier")).toBeVisible();
   });
 
   test("Home renders the seeded KPIs and Journal card", async () => {
-    await page.goto("/");
+    await page.goto("/dashboard");
     await expect(page.getByText("6 h 20")).toBeVisible();
     await expect(page.getByText("Rédaction de conclusions")).toBeVisible();
     await expect(page.getByText("6 en attente")).toBeVisible();
   });
 
   test("validating a task removes it from the pending list", async () => {
-    await page.goto("/");
+    await page.goto("/dashboard");
     const row = page.locator(".task-row", { hasText: "Recherche jurisprudence" });
     await expect(row).toHaveCount(1);
     await row.getByRole("button", { name: "Valider" }).click();
@@ -47,7 +53,7 @@ test.describe.serial("ACTE dashboard — demo firm", () => {
   });
 
   test("Dossiers view renders seeded dossiers and creates a new one", async () => {
-    await page.goto("/");
+    await page.goto("/dashboard");
     await page.locator("aside nav button").nth(1).click();
     await expect(page.getByText("Bône c/ SCI Alma")).toBeVisible();
 
@@ -58,7 +64,7 @@ test.describe.serial("ACTE dashboard — demo firm", () => {
   });
 
   test("logs out back to the login page", async () => {
-    await page.goto("/");
+    await page.goto("/dashboard");
     await page.getByRole("button", { name: /Me V\. Charpentier/ }).click();
     await page.getByRole("button", { name: "Se déconnecter" }).click();
     await expect(page).toHaveURL(/\/login$/);
