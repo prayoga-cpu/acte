@@ -58,6 +58,11 @@ export class MembersRepository {
     return rows.find((r) => r.id === memberId) ?? null;
   }
 
+  async updateSourceSettings(memberId: string, settings: Record<string, boolean>) {
+    const [row] = await this.db.update(members).set({ sourceSettings: settings }).where(eq(members.id, memberId)).returning();
+    return row ?? null;
+  }
+
   async insertDemoMember(input: {
     authUserId: string;
     email: string;

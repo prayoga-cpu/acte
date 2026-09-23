@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import type { HomeSummary, Member, StatsSummary, WeekSummary } from "@acte/contracts";
+import type { HomeSummary, Member, SourceSettings, StatsSummary, WeekSummary } from "@acte/contracts";
 import { MembersRepository } from "../data-access/members.repository.js";
 import { TasksRepository } from "../data-access/tasks.repository.js";
 import type { FirmContext } from "../data-access/firm-context.js";
@@ -116,5 +116,17 @@ export class MeService {
         minutes,
       })),
     };
+  }
+
+  async sources(ctx: FirmContext): Promise<SourceSettings> {
+    const member = await this.members.findById(ctx.firmId, ctx.memberId);
+    if (!member) throw new NotFoundException();
+    return member.sourceSettings as SourceSettings;
+  }
+
+  async updateSources(ctx: FirmContext, settings: SourceSettings): Promise<SourceSettings> {
+    const updated = await this.members.updateSourceSettings(ctx.memberId, settings);
+    if (!updated) throw new NotFoundException();
+    return updated.sourceSettings as SourceSettings;
   }
 }

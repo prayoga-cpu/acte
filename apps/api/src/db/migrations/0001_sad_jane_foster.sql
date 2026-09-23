@@ -1,0 +1,1 @@
+ALTER TABLE "member" ADD COLUMN "source_settings" jsonb DEFAULT '{"word":true,"outlook":true,"web":true}'::jsonb NOT NULL;

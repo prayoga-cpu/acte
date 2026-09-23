@@ -1,5 +1,5 @@
 import { integer, pgTable, text } from "drizzle-orm/pg-core";
-import { bytea, idColumn, timestamps } from "./columns.js";
+import { bytea, idColumn, timestamps } from "./columns";
 
 export const firms = pgTable("firm", {
   id: idColumn(),

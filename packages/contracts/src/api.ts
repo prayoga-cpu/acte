@@ -87,3 +87,4 @@ export type ActivationKeyCreated = z.infer<typeof ActivationKeyCreated>;
 export type ActivationKeySummary = z.infer<typeof ActivationKeySummary>;
 export type ClientInvoiceSummary = z.infer<typeof ClientInvoiceSummary>;
 export type BrainInsight = z.infer<typeof BrainInsight>;
+export type SourceSettings = z.infer<typeof SourceSettings>;

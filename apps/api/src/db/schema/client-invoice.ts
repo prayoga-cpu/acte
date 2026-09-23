@@ -1,8 +1,8 @@
 import { integer, pgTable, text, uuid } from "drizzle-orm/pg-core";
-import { idColumn, timestamps } from "./columns.js";
-import { invoiceStatusEnum } from "./enums.js";
-import { dossiers } from "./dossier.js";
-import { firms } from "./firm.js";
+import { idColumn, timestamps } from "./columns";
+import { invoiceStatusEnum } from "./enums";
+import { dossiers } from "./dossier";
+import { firms } from "./firm";
 
 /** Firm-to-client invoice drafts (Billing view). Stripe subscription billing is separate (stage 6). */
 export const clientInvoices = pgTable("client_invoice", {

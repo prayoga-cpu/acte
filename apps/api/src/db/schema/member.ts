@@ -1,7 +1,7 @@
-import { boolean, integer, pgTable, text, uuid } from "drizzle-orm/pg-core";
-import { idColumn, timestamps } from "./columns.js";
-import { memberRoleEnum, memberStatusEnum } from "./enums.js";
-import { firms } from "./firm.js";
+import { boolean, integer, jsonb, pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { idColumn, timestamps } from "./columns";
+import { memberRoleEnum, memberStatusEnum } from "./enums";
+import { firms } from "./firm";
 
 export const members = pgTable("member", {
   id: idColumn(),
@@ -19,5 +19,11 @@ export const members = pgTable("member", {
   isAdmin: boolean("is_admin").notNull().default(false), // enforcement gated by D-004
   hourlyRateCents: integer("hourly_rate_cents").notNull().default(0),
   status: memberStatusEnum("status").notNull().default("active"),
+  // Settings view "Sources surveillées" — per-member on/off, not yet acted on
+  // by anything real since the Companion (apps/tracker) doesn't exist.
+  sourceSettings: jsonb("source_settings")
+    .$type<Record<string, boolean>>()
+    .notNull()
+    .default({ word: true, outlook: true, web: true }),
   ...timestamps,
 });
