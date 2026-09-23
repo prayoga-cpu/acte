@@ -1,4 +1,5 @@
 {
+  "installCommand": "pnpm install",
   "builds": [{ "src": "api/index.cjs", "use": "@vercel/node" }],
   "routes": [{ "src": "/(.*)", "dest": "/api/index.cjs" }]
 }
