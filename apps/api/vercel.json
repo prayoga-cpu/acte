@@ -1,5 +1,4 @@
 {
-  "framework": null,
-  "buildCommand": "node scripts/build-vercel.mjs",
-  "rewrites": [{ "source": "/(.*)", "destination": "/api/index" }]
+  "builds": [{ "src": "api/index.cjs", "use": "@vercel/node" }],
+  "routes": [{ "src": "/(.*)", "dest": "/api/index.cjs" }]
 }
