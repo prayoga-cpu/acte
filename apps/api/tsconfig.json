@@ -8,5 +8,5 @@
     "outDir": "dist",
     "baseUrl": "."
   },
-  "include": ["src", "test", "api"]
+  "include": ["src", "test", "vercel-entry.ts"]
 }
