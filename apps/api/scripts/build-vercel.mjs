@@ -15,7 +15,7 @@ await build({
   platform: "node",
   format: "cjs",
   target: "node20",
-  outfile: "api/index.cjs",
+  outfile: "api/index.js",
   logLevel: "info",
   // Optional peer packages NestJS conditionally requires that this app
   // never installs (no microservices/websockets/GraphQL here) — esbuild
