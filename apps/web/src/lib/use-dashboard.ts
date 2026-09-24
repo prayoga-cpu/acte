@@ -2,22 +2,27 @@
 
 import { useCallback, useState } from "react";
 import type {
+  ActivityEntry,
   BrainInsight,
   ClientInvoiceSummary,
   Dossier,
   DossierStatus,
   DossierUsage,
   HomeSummary,
-  Member,
+  MemberProfile,
+  MemberRole,
+  NotificationView,
   StatsSummary,
   Task,
+  TeamMemberSummary,
   WeekSummary,
 } from "@acte/contracts";
-import { api } from "./api-client";
+import { api, ApiError } from "./api-client";
+import { useI18n } from "@/i18n/locale-context";
 import { todayKeyParis } from "./time";
 
 export interface DashboardInitialData {
-  member: Member;
+  member: MemberProfile;
   summary: HomeSummary;
   week: WeekSummary;
   tasks: Task[];
@@ -28,6 +33,7 @@ export interface DashboardInitialData {
 const EMPTY_STATS: StatsSummary = { months: [], sourceBreakdown: [] };
 
 export function useDashboard(initial: DashboardInitialData) {
+  const { t } = useI18n();
   const [member, setMember] = useState(initial.member);
   const [summary, setSummary] = useState(initial.summary);
   const [week, setWeek] = useState(initial.week);
@@ -36,10 +42,16 @@ export function useDashboard(initial: DashboardInitialData) {
   const [insights, setInsights] = useState(initial.insights);
   const [stats, setStats] = useState<StatsSummary>(EMPTY_STATS);
   const [invoices, setInvoices] = useState<ClientInvoiceSummary[]>([]);
+  const [team, setTeam] = useState<TeamMemberSummary[]>([]);
+  const [notifications, setNotifications] = useState<NotificationView[]>([]);
+  const [activity, setActivity] = useState<ActivityEntry[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  // Bumped on every toast, so two identical messages in a row still count as two events.
+  const [toastSeq, setToastSeq] = useState(0);
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
+    setToastSeq((n) => n + 1);
     window.setTimeout(() => setToastMessage((current) => (current === msg ? null : current)), 2600);
   }, []);
 
@@ -131,7 +143,7 @@ export function useDashboard(initial: DashboardInitialData) {
   );
 
   const refreshMember = useCallback(async () => {
-    setMember(await api.get<Member>("/v1/me/profile"));
+    setMember(await api.get<MemberProfile>("/v1/me/profile"));
   }, []);
 
   const refreshStats = useCallback(async () => {
@@ -151,6 +163,131 @@ export function useDashboard(initial: DashboardInitialData) {
     [showToast],
   );
 
+  const refreshTeam = useCallback(async () => {
+    setTeam(await api.get<TeamMemberSummary[]>("/v1/firm/members"));
+  }, []);
+
+  /**
+   * Menu-driven admin actions report failures as a toast instead of an
+   * unhandled rejection (cannot_suspend_self, already_reminded, a 404 after
+   * another admin acted, email_unavailable, …), then resync the table.
+   */
+  const runAdminAction = useCallback(
+    async (fn: () => Promise<string>) => {
+      try {
+        showToast(await fn());
+      } catch (err) {
+        const code = err instanceof ApiError ? err.code : "unknown";
+        const messages = t.admin.errors as Record<string, string>;
+        showToast(messages[code] ?? messages.generic!);
+      }
+      await refreshTeam().catch(() => undefined);
+    },
+    [t, refreshTeam, showToast],
+  );
+
+  /** Rethrows: the invite modal shows the error inline. */
+  const inviteMember = useCallback(
+    async (email: string, role: MemberRole) => {
+      await api.post("/v1/firm/invitations", { email, role });
+      showToast(t.admin.toasts.invited(email, t.admin.roles[role]));
+      await refreshTeam();
+    },
+    [t, refreshTeam, showToast],
+  );
+
+  const resendInvitation = useCallback(
+    (invitationId: string) =>
+      runAdminAction(async () => {
+        const updated = await api.post<TeamMemberSummary>(`/v1/firm/invitations/${invitationId}/resend`);
+        return t.admin.toasts.resent(updated.email);
+      }),
+    [t, runAdminAction],
+  );
+
+  const cancelInvitation = useCallback(
+    (invitationId: string) =>
+      runAdminAction(async () => {
+        await api.delete(`/v1/firm/invitations/${invitationId}`);
+        return t.admin.toasts.cancelled;
+      }),
+    [t, runAdminAction],
+  );
+
+  /** Rethrows: the edit modal shows the error inline and stays open. */
+  const updateMember = useCallback(
+    async (memberId: string, patch: { role?: MemberRole; hourlyRateCents?: number }) => {
+      const updated = await api.patch<TeamMemberSummary>(`/v1/firm/members/${memberId}`, patch);
+      showToast(t.admin.toasts.updated(updated.displayName, Math.round(updated.hourlyRateCents / 100)));
+      // Editing yourself changes your own rate-based figures too. The save already succeeded,
+      // so a failed refresh here must not surface as a save error in the modal.
+      await Promise.all([refreshTeam(), ...(memberId === member.id ? [refreshMember(), refreshHome()] : [])]).catch(() => undefined);
+    },
+    [t, member.id, refreshTeam, refreshMember, refreshHome, showToast],
+  );
+
+  const remindMember = useCallback(
+    (memberId: string) =>
+      runAdminAction(async () => {
+        const updated = await api.post<TeamMemberSummary>(`/v1/firm/members/${memberId}/remind`);
+        return t.admin.toasts.reminded(updated.displayName);
+      }),
+    [t, runAdminAction],
+  );
+
+  const suspendMember = useCallback(
+    (memberId: string) =>
+      runAdminAction(async () => {
+        const updated = await api.post<TeamMemberSummary>(`/v1/firm/members/${memberId}/suspend`);
+        return t.admin.toasts.suspended(updated.displayName);
+      }),
+    [t, runAdminAction],
+  );
+
+  const reactivateMember = useCallback(
+    (memberId: string) =>
+      runAdminAction(async () => {
+        const updated = await api.post<TeamMemberSummary>(`/v1/firm/members/${memberId}/reactivate`);
+        return t.admin.toasts.reactivated(updated.displayName);
+      }),
+    [t, runAdminAction],
+  );
+
+  // Background refreshes: a failure (network blip, expired session) must not surface as an unhandled rejection.
+  const refreshActivity = useCallback(async () => {
+    try {
+      setActivity(await api.get<ActivityEntry[]>("/v1/me/activity"));
+    } catch {
+      /* keep the last good feed */
+    }
+  }, []);
+
+  const refreshNotifications = useCallback(async () => {
+    try {
+      setNotifications(await api.get<NotificationView[]>("/v1/notifications"));
+    } catch {
+      /* keep the last good list */
+    }
+  }, []);
+
+  const markNotificationRead = useCallback(async (id: string) => {
+    try {
+      await api.post(`/v1/notifications/${id}/read`);
+      setNotifications((current) => current.map((n) => (n.id === id ? { ...n, readAt: new Date().toISOString() } : n)));
+    } catch {
+      await refreshNotifications();
+    }
+  }, [refreshNotifications]);
+
+  const markAllNotificationsRead = useCallback(async () => {
+    try {
+      await api.post("/v1/notifications/read-all");
+      setNotifications((current) => current.map((n) => ({ ...n, readAt: n.readAt ?? new Date().toISOString() })));
+    } catch {
+      await refreshNotifications();
+    }
+  }, [refreshNotifications]);
+
   return {
     member,
     summary,
@@ -160,7 +297,12 @@ export function useDashboard(initial: DashboardInitialData) {
     insights,
     stats,
     invoices,
+    team,
+    notifications,
+    activity,
+    refreshActivity,
     toastMessage,
+    toastSeq,
     showToast,
     refreshHome,
     refreshDossiers,
@@ -175,6 +317,17 @@ export function useDashboard(initial: DashboardInitialData) {
     createDossier,
     updateDossierBudget,
     setDossierStatus,
+    refreshTeam,
+    inviteMember,
+    resendInvitation,
+    cancelInvitation,
+    updateMember,
+    remindMember,
+    suspendMember,
+    reactivateMember,
+    refreshNotifications,
+    markNotificationRead,
+    markAllNotificationsRead,
   };
 }
 

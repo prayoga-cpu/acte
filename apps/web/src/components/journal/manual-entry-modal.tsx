@@ -65,7 +65,7 @@ export function ManualEntryModal({
         className="mt-1.5 w-full rounded-xl border border-white/[0.09] bg-carbon px-3.5 py-2.5 text-[13px] text-ivory outline-none transition focus:border-gold/40"
       >
         <option value="">{t.journal.unassigned}</option>
-        {dossiers.map((d) => (
+        {dossiers.filter((d) => d.status !== "archived").map((d) => (
           <option key={d.id} value={d.id}>
             {d.name}
           </option>

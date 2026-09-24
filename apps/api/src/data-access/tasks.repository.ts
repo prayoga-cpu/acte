@@ -198,6 +198,44 @@ export class TasksRepository {
     return [...byDossier.entries()].map(([dossierId, v]) => ({ dossierId, ...v }));
   }
 
+  /**
+   * Firm-wide per-member captured/validated minutes, pending count and the
+   * oldest still-pending task's date — for the admin console team table and
+   * the "team validation lagging" notification rule. Durations and status
+   * only, no task titles (PRIVACY_MODEL rule 4: an admin sees aggregates,
+   * never another member's task detail).
+   */
+  async taskStatsByMember(
+    firmId: string,
+  ): Promise<Map<string, { capturedMin: number; validatedMin: number; pendingCount: number; oldestPendingAt: string | null }>> {
+    const rows = await this.db
+      .select({ memberId: tasks.memberId, status: tasks.status, durationMin: tasks.durationMin, startedAt: tasks.startedAt })
+      .from(tasks)
+      .where(eq(tasks.firmId, firmId));
+
+    const byMember = new Map<
+      string,
+      { capturedMin: number; validatedMin: number; pendingCount: number; oldestPendingAt: string | null }
+    >();
+    for (const row of rows) {
+      const entry = byMember.get(row.memberId) ?? {
+        capturedMin: 0,
+        validatedMin: 0,
+        pendingCount: 0,
+        oldestPendingAt: null,
+      };
+      entry.capturedMin += row.durationMin;
+      if (row.status === "validated") entry.validatedMin += row.durationMin;
+      if (row.status === "pending") {
+        entry.pendingCount += 1;
+        const iso = row.startedAt.toISOString();
+        if (!entry.oldestPendingAt || iso < entry.oldestPendingAt) entry.oldestPendingAt = iso;
+      }
+      byMember.set(row.memberId, entry);
+    }
+    return byMember;
+  }
+
   /** All validated tasks for the firm, decrypted, for CSV export. Firm-wide by design (export is an admin/lawyer action on their own validated time). */
   async listValidatedForExport(ctx: FirmContext): Promise<TaskRecord[]> {
     const dataKey = await this.firmKeys.getDataKey(ctx.firmId);

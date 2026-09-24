@@ -3,7 +3,7 @@ import { eq } from "drizzle-orm";
 import { DB } from "../db/db.module.js";
 import type { Database } from "../db/client.js";
 import { firms } from "../db/schema/index.js";
-import { encryptField, generateDataKey, wrapDataKey } from "../crypto/field-encryption.js";
+import { decryptField, encryptField, generateDataKey, unwrapDataKey, wrapDataKey } from "../crypto/field-encryption.js";
 import { MASTER_KEY } from "../crypto/firm-key.service.js";
 
 /**
@@ -34,5 +34,13 @@ export class FirmsRepository {
   async exists(firmId: string): Promise<boolean> {
     const [row] = await this.db.select({ id: firms.id }).from(firms).where(eq(firms.id, firmId));
     return !!row;
+  }
+
+  /** Decrypted firm name — used for the invite email/preview, where showing "which firm" matters. */
+  async findNameById(firmId: string): Promise<string | null> {
+    const [row] = await this.db.select({ name: firms.name, dataKeyWrapped: firms.dataKeyWrapped }).from(firms).where(eq(firms.id, firmId));
+    if (!row) return null;
+    const dataKey = unwrapDataKey(row.dataKeyWrapped, this.masterKey);
+    return decryptField(row.name, dataKey);
   }
 }

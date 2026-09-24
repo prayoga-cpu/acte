@@ -5,7 +5,9 @@ import { ClientInvoicesRepository } from "./client-invoices.repository.js";
 import { DevicesRepository } from "./devices.repository.js";
 import { DossiersRepository } from "./dossiers.repository.js";
 import { FirmsRepository } from "./firms.repository.js";
+import { InvitationsRepository } from "./invitations.repository.js";
 import { MembersRepository } from "./members.repository.js";
+import { NotificationsRepository } from "./notifications.repository.js";
 import { TasksRepository } from "./tasks.repository.js";
 
 const repositories = [
@@ -17,6 +19,8 @@ const repositories = [
   ActivationKeysRepository,
   DevicesRepository,
   ClientInvoicesRepository,
+  NotificationsRepository,
+  InvitationsRepository,
 ];
 
 @Global()

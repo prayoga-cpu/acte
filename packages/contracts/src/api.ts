@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { Dossier } from "./entities";
-import { TaskSource } from "./enums";
+import { Dossier, Member, Notification } from "./entities";
+import { MemberRole, TaskSource } from "./enums";
 
 const id = z.string().uuid();
 const ts = z.string().datetime();
@@ -80,6 +80,64 @@ export const ApiError = z.object({ error: z.object({ code: z.string(), message: 
 
 export const SourceSettings = z.record(TaskSource.exclude(["manual"]), z.boolean());
 
+/**
+ * Admin console team table (D-004: role-gated, server-enforced — see
+ * AdminGuard). Extends Member with the per-member stats the prototype's
+ * "Équipe du cabinet" table shows, computed the same way DossierUsage
+ * computes usage: joined from tasks at read time, not stored.
+ */
+export const TeamMemberSummary = Member.extend({
+  capturedMin: z.number().int(),
+  validationRate: z.number().int().min(0).max(100),
+  remindedAt: z.string().datetime().nullable(),
+  /** Only meaningful for status "invited" rows, whose `id` is the invitation id, not a member id. */
+  invitationExpired: z.boolean(),
+});
+
+export const InviteMemberBody = z.object({
+  email: z.string().email(),
+  role: MemberRole,
+}).strict();
+
+export const UpdateMemberBody = z.object({
+  role: MemberRole.optional(),
+  hourlyRateCents: z.number().int().min(0).max(5_000_00).optional(),
+}).strict();
+
+/**
+ * Accepting an invitation (public, token-gated). No email field on purpose:
+ * the account is created for the invitation's own address, so the only way
+ * to join a firm is to hold the emailed token.
+ */
+export const AcceptInvitationBody = z.object({
+  name: z.string().trim().min(1).max(120),
+  password: z.string().min(8).max(128),
+}).strict();
+
+/** GET /v1/me/profile — the member plus their firm's (decrypted) name, e.g. for the admin console heading. */
+export const MemberProfile = Member.extend({ firmName: z.string() });
+
+/** Public preview for the invite-acceptance page — token-gated, no session required. */
+export const InvitationPreview = z.object({
+  email: z.string().email(),
+  firmName: z.string(),
+  role: MemberRole,
+});
+
+/**
+ * D-005 interim (in-app only). The stored row is just type + refId
+ * (DATA_MODEL.md: no free text with client data) — `message` is templated
+ * server-side at read time, same pattern as BrainInsight.
+ */
+export const NotificationView = Notification.extend({ message: z.string() });
+
+/**
+ * Brain panel activity feed (PROTOTYPE_MAP.md: "Activity feed from audit
+ * log"). Templated from fixed action strings + a target's display name —
+ * never a task title (PRIVACY_MODEL rule 4).
+ */
+export const ActivityEntry = z.object({ id, message: z.string(), createdAt: ts });
+
 export type HomeSummary = z.infer<typeof HomeSummary>;
 export type WeekSummary = z.infer<typeof WeekSummary>;
 export type StatsSummary = z.infer<typeof StatsSummary>;
@@ -88,3 +146,8 @@ export type ActivationKeySummary = z.infer<typeof ActivationKeySummary>;
 export type ClientInvoiceSummary = z.infer<typeof ClientInvoiceSummary>;
 export type BrainInsight = z.infer<typeof BrainInsight>;
 export type SourceSettings = z.infer<typeof SourceSettings>;
+export type TeamMemberSummary = z.infer<typeof TeamMemberSummary>;
+export type InvitationPreview = z.infer<typeof InvitationPreview>;
+export type MemberProfile = z.infer<typeof MemberProfile>;
+export type NotificationView = z.infer<typeof NotificationView>;
+export type ActivityEntry = z.infer<typeof ActivityEntry>;

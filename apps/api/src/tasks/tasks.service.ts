@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import type { CreateManualTaskBody, ReassignTaskBody } from "@acte/contracts";
 import type { z } from "zod";
 import { AuditLogRepository } from "../data-access/audit-log.repository.js";
@@ -18,7 +18,16 @@ export class TasksService {
     return this.tasks.listForMember(ctx, date);
   }
 
+  /** Firm-scoped and not archived — PRODUCT_SPEC.md: "Archived dossiers stop receiving captures." */
+  private async assertAssignableDossier(ctx: FirmContext, dossierId: string) {
+    const dossier = await this.dossiers.findById(ctx, dossierId);
+    if (!dossier || dossier.status === "archived") {
+      throw new BadRequestException({ error: { code: "dossier_not_assignable", message: "Unknown or archived dossier" } });
+    }
+  }
+
   async createManual(ctx: FirmContext, body: z.infer<typeof CreateManualTaskBody>) {
+    if (body.dossierId) await this.assertAssignableDossier(ctx, body.dossierId);
     const task = await this.tasks.createManual(ctx, body);
     if (body.dossierId) {
       await this.dossiers.touchActivity(ctx, body.dossierId, new Date());
@@ -27,6 +36,7 @@ export class TasksService {
   }
 
   async reassign(ctx: FirmContext, taskId: string, body: z.infer<typeof ReassignTaskBody>) {
+    await this.assertAssignableDossier(ctx, body.dossierId);
     const task = await this.tasks.reassign(ctx, taskId, body.dossierId);
     if (!task) throw new NotFoundException({ error: { code: "task_not_found", message: "Task not found" } });
     await this.auditLog.record(ctx, "task.reassign", "task", taskId);

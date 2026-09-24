@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
-import type { BrainInsight, DossierUsage, HomeSummary, Member, Task, WeekSummary } from "@acte/contracts";
+import type { BrainInsight, DossierUsage, HomeSummary, MemberProfile, Task, WeekSummary } from "@acte/contracts";
 import { apiServerFetch } from "@/lib/api-server";
 import { todayKeyParis } from "@/lib/time";
 import { Shell } from "@/components/shell";
 
 export default async function DashboardPage() {
-  const member = await apiServerFetch<Member>("/v1/me/profile");
+  const member = await apiServerFetch<MemberProfile>("/v1/me/profile");
   if (!member) {
     redirect("/login");
   }
@@ -29,6 +29,7 @@ export default async function DashboardPage() {
         insights: insights!,
       }}
       complianceClaimsEnabled={process.env.COMPLIANCE_CLAIMS_ENABLED === "true"}
+      companionUiEnabled={process.env.COMPANION_UI_ENABLED === "true"}
     />
   );
 }

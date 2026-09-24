@@ -60,7 +60,7 @@ test.describe.serial("ACTE dashboard — demo firm", () => {
     await page.getByRole("button", { name: "+ Nouveau Dossier" }).click();
     await page.getByLabel("Nom du dossier").fill("Test e2e c/ Playwright");
     await page.getByRole("button", { name: "Créer le dossier" }).click();
-    await expect(page.getByText("Test e2e c/ Playwright")).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole("heading", { name: "Test e2e c/ Playwright" })).toBeVisible({ timeout: 10_000 });
   });
 
   test("logs out back to the login page", async () => {

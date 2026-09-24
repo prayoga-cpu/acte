@@ -15,6 +15,13 @@
       "when": 1790103883781,
       "tag": "0001_sad_jane_foster",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790174262336,
+      "tag": "0002_pale_rawhide_kid",
+      "breakpoints": true
     }
   ]
 }

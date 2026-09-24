@@ -36,6 +36,8 @@ jobs:
       API_ORIGIN: http://localhost:4000
       COMPLIANCE_CLAIMS_ENABLED: "false"
       PORT: "4000"
+      # No Brevo in CI: emails go to this dev outbox, where the e2e suite reads invite links.
+      EMAIL_DEV_OUTBOX: /tmp/acte-dev-outbox
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

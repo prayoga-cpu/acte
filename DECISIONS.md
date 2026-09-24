@@ -36,12 +36,12 @@ Format: ID · title · status · owner · date · context · options · decision
 **Owner:** Yann · **Blocks:** stage 2 admin work
 **Context:** In the prototype any user reaches the admin view from the profile menu.
 **Recommendation:** role-gated. Only members with `is_admin` see Admin; server enforces it, not only the UI.
-**Decision:** —
+**Decision:** — still OPEN for Yann. Built on the recommendation as an interim default, see **D-014**.
 
 ## D-005 · Alert delivery channels — OPEN
 **Owner:** Yann · **Blocks:** stage 2 notifications
 **Options:** in-app only · in-app + email digest · in-app + desktop notification from the Companion (stage 4+).
-**Decision:** —
+**Decision:** — still OPEN for Yann. Built as in-app only as an interim default, see **D-014**.
 
 ## D-006 · Browser source and site allowlist — OPEN
 **Owner:** Yann · **Blocks:** browser source (Later)
@@ -106,3 +106,18 @@ Format: ID · title · status · owner · date · context · options · decision
 1. Serverless cold-starts will re-run `NestFactory.create()` (and open a fresh Postgres connection) more often than a long-running Scaleway process would — acceptable at beta-test traffic levels, not something to scale up on as-is.
 2. `apps/api` needs a real, network-reachable Postgres instance (Vercel doesn't provide one on the Hobby plan by default — use its Neon/Supabase marketplace integration, or any other managed Postgres) since there's nowhere to run `docker-compose`/a native install on Vercel.
 3. `WEB_ORIGIN` (API env) and `API_ORIGIN` (web env) must point at each app's real deployed Vercel URL, or auth (CORS + the better-auth cookie flow) breaks.
+
+## D-014 · Admin console and notifications built on interim defaults for D-004 / D-005 — DECIDED (interim, pending Yann)
+**Date:** 2026-09-23 (revised 2026-09-24 after an adversarial pre-push review) · **Owner:** Darwin (interim call) · Yann (the real decision, still owed)
+**Context:** Every remaining unbuilt Stage 2 feature (Admin console, invite flow, Subscription tab UI, Notifications) depends on D-004 or D-005, both OPEN and owned by Yann. Darwin was asked directly whether to wait or build on a stated default, and chose to build using this file's own recommendations — same override pattern as D-011.
+**Decision:**
+- **D-004 → role-gated, server-enforced** (D-004's own written recommendation). `AdminGuard` (`apps/api/src/auth/admin.guard.ts`) runs after `SessionGuard` on every `/v1/firm/*` route and returns 403 to non-admins. In the web app the console is reached from the profile menu ("Console Admin (Cabinet)"), exactly where the prototype puts it, rendered only for admins — the server remains the boundary.
+- **D-005 → in-app only** (no external channel, no new sub-processor). `notification` table + header bell. Rules: dossier budget ≥ 80 % (lawyer + admin), a member's oldest pending task > 48 h (admin), an invitation unanswered 48 h after its last send (admin). Each alert is an *episode*: it stays read while its condition holds, closes when the condition clears, and a partial unique index keeps one open episode per (member, type, ref). Low-confidence is stage 5.
+**How invitations work (revised — the first version was unsafe, see below):**
+- A pending invite is an `invitation` row (firm, email, role, sha256 of the token, expiry), **not** a `member` row. Pending uniqueness is per (firm, email), so one firm's invitation can't reserve or block an address for another firm, and duplicate checks never reveal whether an address has an account elsewhere.
+- **Joining a firm is token-bound.** The only path is `POST /v1/invitations/:token/accept {name, password}`: it creates the account for the *invitation's* email (the client can't supply one), then binds it to that invitation's firm in one transaction that re-checks the token hash, "still pending" and expiry. The account is marked email-verified (the emailed token proves the inbox). A plain signup — password or magic link — **never** joins an existing firm; it always founds a new one.
+- Suspension revokes access everywhere: no session is issued to a suspended member (`session.create.before` → 403 `MEMBER_SUSPENDED`), their existing sessions are deleted, and `SessionGuard` rejects them.
+- The Subscription tab is a UI simulation — Stripe is stage 6 — carrying the prototype's own "simulée" disclaimer.
+**What the first version got wrong (2026-09-23, never pushed):** it stored invites as `member` rows and joined a new signup to a firm by matching its **email**, with the token only gating a preview page. Anyone who signed up first with an invited address joined that firm and could read its dossier names; any self-registered admin could "invite" a stranger's address to capture that person's later signup; and this file claimed that was "no weaker than founder signup" — which was wrong. Caught by a 5-lens adversarial review before push, redesigned as above, and covered by e2e tests (`apps/web/e2e/admin-console.spec.ts`).
+**Known limitation — blocks onboarding a real firm:** there is still **no email verification** on plain signup. Someone who registers an address before its owner does (1) blocks that person's invitation (`409 account_exists` — an account belongs to one firm, and there's no self-serve move), and (2) keeps a password on an account the real owner may later reach by magic link. Neither exposes another firm's data any more, but both need `requireEmailVerification` + a Brevo verification email (and the seed marking demo users verified) before a real firm onboards.
+**If Yann decides differently:** ungated → drop `AdminGuard` from `AdminController`; email digest → add a sender beside the in-app episodes in `NotificationsService`.

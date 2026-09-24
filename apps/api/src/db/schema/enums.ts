@@ -14,3 +14,4 @@ export const taskStatusEnum = pgEnum("task_status", ["pending", "validated", "di
 export const deviceOsEnum = pgEnum("device_os", ["windows", "macos"]);
 export const deviceStatusEnum = pgEnum("device_status", ["online", "offline", "unlinked"]);
 export const invoiceStatusEnum = pgEnum("invoice_status", ["draft", "issued"]);
+export const notificationTypeEnum = pgEnum("notification_type", ["low_confidence", "budget", "validation_lag", "health"]);

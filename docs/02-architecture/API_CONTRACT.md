@@ -19,12 +19,15 @@ REST, JSON, versioned under `/v1`. Every request and response body is a schema i
 | GET/POST/DELETE | /v1/me/keys | Activation keys | 2 |
 | GET | /v1/devices | Cloud & Sync | 2 |
 | POST | /v1/devices/:id/sync · DELETE /v1/devices/:id | Force sync, unlink | 4 |
-| GET | /v1/notifications · POST /v1/notifications/:id/read | Alerts | 2 |
+| GET | /v1/notifications · POST /v1/notifications/:id/read · POST /v1/notifications/read-all | Alerts (D-014: in-app only; episodes synced on read). Both POSTs → 204 | 2 |
 | GET | /v1/exports/validated.csv | CSV export | 2 |
 | GET/POST | /v1/billing/invoices | List drafts, generate one from validated time (Billing view) | 2 — not in the original contract; added to match PRODUCT_SPEC.md's "generate invoice draft" and the `client_invoice` table already in DATA_MODEL.md |
 | GET | /v1/firm/members · PATCH /v1/firm/members/:id | Admin team | 2 |
 | POST | /v1/firm/members/:id/remind · /suspend · /reactivate | Admin actions | 2 |
-| POST/DELETE | /v1/firm/invitations | Invite, cancel, resend | 2 |
+| POST/DELETE | /v1/firm/invitations · POST /v1/firm/invitations/:id/resend | Invite, cancel (→ 204), resend — admin-only via AdminGuard (D-014). `:id` is the invitation id | 2 |
+| GET | /v1/invitations/:token | Public, token-gated invite preview for `/invite/[token]` — no session | 2 |
+| POST | /v1/invitations/:token/accept | Public, token-gated: `{name, password}` → creates the account for the invitation's own email, joins that firm, sets the session cookie (→ 204). 409 `account_exists` if the address already has an account (D-014) | 2 |
+| GET | /v1/me/activity | Brain panel activity feed, templated from audit_log (own actions; admins also see admin/dossier actions) | 2 |
 | GET | /v1/firm/subscription · POST /v1/firm/subscription/portal | Stripe | 6 |
 | POST | /v1/webhooks/stripe | Stripe events | 6 |
 | POST | /v1/ingest/tasks | Companion upload, sealed payload, no body logging | 4 |

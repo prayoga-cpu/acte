@@ -28,7 +28,8 @@ export function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
       if (!res.ok) {
-        setError(auth.error);
+        const code = ((await res.json().catch(() => null)) as { code?: string } | null)?.code;
+        setError(code === "MEMBER_SUSPENDED" ? auth.suspended : auth.error);
         return;
       }
       router.push("/dashboard");

@@ -1,4 +1,4 @@
-import { boolean, integer, jsonb, pgTable, text, uuid } from "drizzle-orm/pg-core";
+import { boolean, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { idColumn, timestamps } from "./columns";
 import { memberRoleEnum, memberStatusEnum } from "./enums";
 import { firms } from "./firm";
@@ -25,5 +25,9 @@ export const members = pgTable("member", {
     .$type<Record<string, boolean>>()
     .notNull()
     .default({ word: true, outlook: true, web: true }),
+  // Pending invites live in the `invitation` table, not here — see its comment.
+  // "Rappeler la validation" (admin nudges a member with pending Journal
+  // tasks) — last-sent timestamp, shown as "rappel envoyé ✓" in the prototype.
+  remindedAt: timestamp("reminded_at", { withTimezone: true }),
   ...timestamps,
 });

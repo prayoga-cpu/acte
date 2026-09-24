@@ -15,11 +15,13 @@ import { BillingView } from "@/components/views/billing-view";
 import { ProfileView } from "@/components/views/profile-view";
 import { CloudView } from "@/components/views/cloud-view";
 import { SettingsView } from "@/components/views/settings-view";
+import { AdminView } from "@/components/views/admin-view";
 import { BrainPanel } from "@/components/brain-panel";
 import { CompanionModal } from "@/components/companion-modal";
+import { NotificationBell } from "@/components/notification-bell";
 import { Toast } from "@/components/toast";
 
-type View = "home" | "journal" | "dossiers" | "stats" | "billing" | "profile" | "cloud" | "settings";
+type View = "home" | "journal" | "dossiers" | "stats" | "billing" | "profile" | "cloud" | "settings" | "admin";
 
 function railItems(t: Dictionary): { view: View; label: string; icon: React.ReactNode }[] {
   return [
@@ -65,7 +67,15 @@ function railItems(t: Dictionary): { view: View; label: string; icon: React.Reac
   ];
 }
 
-export function Shell({ initial, complianceClaimsEnabled }: { initial: DashboardInitialData; complianceClaimsEnabled: boolean }) {
+export function Shell({
+  initial,
+  complianceClaimsEnabled,
+  companionUiEnabled,
+}: {
+  initial: DashboardInitialData;
+  complianceClaimsEnabled: boolean;
+  companionUiEnabled: boolean;
+}) {
   const router = useRouter();
   const { t, locale, setLocale } = useI18n();
   const d = useDashboard(initial);
@@ -85,7 +95,36 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
     if (view === "dossiers") d.refreshDossiers();
     if (view === "stats") d.refreshStats();
     if (view === "billing") d.refreshInvoices();
+    if (view === "admin" && d.member.isAdmin) void d.refreshTeam().catch(() => undefined);
   }, [view]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetched once on mount, independent of the current view — the bell shows
+  // an unread count regardless of which view is open.
+  useEffect(() => {
+    void d.refreshNotifications();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Every mutating action ends in a toast (fired after its API write
+  // resolved), so a new toast is the cue that the audit log and the alert
+  // conditions may have changed.
+  useEffect(() => {
+    void d.refreshActivity();
+    if (d.toastSeq > 0) void d.refreshNotifications();
+  }, [view, d.toastSeq]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Time-based alerts (validation lag, stale invites) and colleagues' actions
+  // never follow from this tab's own clicks — poll lightly while visible.
+  useEffect(() => {
+    const tick = () => {
+      if (document.visibilityState === "visible") void d.refreshNotifications();
+    };
+    const id = window.setInterval(tick, 3 * 60 * 1000);
+    document.addEventListener("visibilitychange", tick);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", tick);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleTheme = () => {
     const next = !isLight;
@@ -136,19 +175,21 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
         </nav>
 
         <div className="mt-auto flex flex-col items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setCompanionModalOpen(true)}
-            title={t.nav.downloadCompanion}
-            aria-label={t.nav.downloadCompanion}
-            className="flex h-10 w-10 items-center justify-center rounded-xl text-ash transition hover:bg-white/[0.05] hover:text-gold-pale"
-          >
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" x2="12" y1="3" y2="15" />
-            </svg>
-          </button>
+          {companionUiEnabled && (
+            <button
+              type="button"
+              onClick={() => setCompanionModalOpen(true)}
+              title={t.nav.downloadCompanion}
+              aria-label={t.nav.downloadCompanion}
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-ash transition hover:bg-white/[0.05] hover:text-gold-pale"
+            >
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" x2="12" y1="3" y2="15" />
+              </svg>
+            </button>
+          )}
           <button
             onClick={() => setView("settings")}
             title={t.nav.settings}
@@ -195,6 +236,13 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
           </nav>
 
           <div className="flex items-center gap-2.5">
+            <NotificationBell
+              notifications={d.notifications}
+              onMarkRead={d.markNotificationRead}
+              onMarkAllRead={d.markAllNotificationsRead}
+              onOpen={d.refreshNotifications}
+            />
+
             <button
               type="button"
               onClick={toggleLocale}
@@ -233,11 +281,12 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
 
             <div ref={profileMenuRef} className="relative">
               <button
+                id="profile-btn"
                 onClick={() => setProfileMenuOpen((v) => !v)}
                 aria-haspopup="menu"
                 aria-expanded={profileMenuOpen}
                 className={`flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.03] py-1 pl-1 pr-3 transition hover:border-gold/30 ${
-                  view === "profile" ? "is-active" : ""
+                  view === "profile" || view === "admin" ? "is-active" : ""
                 }`}
               >
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-gold-pale to-gold-deep font-display text-[13px] font-semibold text-noir">
@@ -288,6 +337,26 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
                       <span className="mt-0.5 block text-[11px] text-ash">{t.profileMenu.myProfileSub}</span>
                     </span>
                   </button>
+                  {d.member.isAdmin && (
+                    <button
+                      onClick={() => {
+                        setProfileMenuOpen(false);
+                        setView("admin");
+                      }}
+                      role="menuitem"
+                      className="flex w-full items-start gap-3 border-t border-white/[0.05] px-4 py-3 text-left transition hover:bg-gold/10 active:bg-gold/[0.16]"
+                    >
+                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-gold/25 bg-gold/[0.08] text-gold-pale">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z" />
+                        </svg>
+                      </span>
+                      <span>
+                        <span className="block text-[13px] font-medium text-ivory/95">{t.profileMenu.admin}</span>
+                        <span className="mt-0.5 block text-[11px] text-ash">{t.profileMenu.adminSub}</span>
+                      </span>
+                    </button>
+                  )}
                   <button
                     onClick={logout}
                     className="flex w-full items-start gap-3 border-t border-white/[0.05] px-4 py-3 text-left transition hover:bg-red-500/10"
@@ -347,6 +416,21 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
           {view === "profile" && <ProfileView member={d.member} />}
           {view === "cloud" && <CloudView complianceClaimsEnabled={complianceClaimsEnabled} />}
           {view === "settings" && <SettingsView member={d.member} onToast={d.showToast} />}
+          {view === "admin" && d.member.isAdmin && (
+            <AdminView
+              team={d.team}
+              firmName={d.member.firmName}
+              onInvite={d.inviteMember}
+              onResendInvitation={d.resendInvitation}
+              onCancelInvitation={d.cancelInvitation}
+              onUpdateMember={d.updateMember}
+              onRemind={d.remindMember}
+              onSuspend={d.suspendMember}
+              onReactivate={d.reactivateMember}
+              onToast={d.showToast}
+              complianceClaimsEnabled={complianceClaimsEnabled}
+            />
+          )}
         </main>
       </div>
 
@@ -356,6 +440,12 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
         summary={d.summary}
         dossiers={d.dossiers}
         insights={d.insights}
+        activity={d.activity}
+        cabinet={
+          view === "admin" && d.member.isAdmin
+            ? { team: d.team, currentMemberId: d.member.id, onRemind: d.remindMember, onSeeDossiers: () => setView("dossiers") }
+            : null
+        }
         onToast={d.showToast}
       />
 
@@ -374,7 +464,7 @@ export function Shell({ initial, complianceClaimsEnabled }: { initial: Dashboard
 
       <Toast message={d.toastMessage} />
 
-      {companionModalOpen && (
+      {companionUiEnabled && companionModalOpen && (
         <CompanionModal onClose={() => setCompanionModalOpen(false)} onDownloadStart={startCompanionDownload} />
       )}
     </div>

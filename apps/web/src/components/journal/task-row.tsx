@@ -62,7 +62,7 @@ export function TaskRow({
           {menuOpen && (
             <div className="dossier-menu fade-up absolute right-0 top-[calc(100%+6px)] z-30 w-[230px] overflow-hidden rounded-xl border border-white/[0.1] bg-carbon/95 shadow-[0_14px_40px_-8px_rgba(0,0,0,0.8)] backdrop-blur-xl">
               <p className="border-b border-white/[0.06] px-3.5 py-2 text-[10px] uppercase tracking-[0.16em] text-ash">{t.journal.associateToDossier}</p>
-              {dossiers.map((d) => (
+              {dossiers.filter((d) => d.status !== "archived").map((d) => (
                 <button
                   key={d.id}
                   onClick={() => {

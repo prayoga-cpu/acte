@@ -9,3 +9,5 @@ export * from "./device";
 export * from "./activation-key";
 export * from "./client-invoice";
 export * from "./audit-log";
+export * from "./notification";
+export * from "./invitation";

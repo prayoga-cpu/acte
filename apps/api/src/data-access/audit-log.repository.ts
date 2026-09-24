@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, like, or } from "drizzle-orm";
 import { DB } from "../db/db.module.js";
 import type { Database } from "../db/client.js";
 import { auditLogs } from "../db/schema/index.js";
@@ -26,5 +26,29 @@ export class AuditLogRepository {
 
   async listForFirm(firmId: string, limit = 50) {
     return this.db.select().from(auditLogs).where(eq(auditLogs.firmId, firmId)).orderBy(desc(auditLogs.createdAt)).limit(limit);
+  }
+
+  /**
+   * Activity feed rows the caller may see, filtered in SQL before the LIMIT:
+   * their own actions, plus — for admins — firm-level admin, dossier and
+   * invitation actions. Never another member's task actions (PRIVACY_MODEL
+   * rule 4). Only `actions` (the ones the feed can render) are returned, so
+   * unrenderable rows don't use up the window.
+   */
+  async listActivity(ctx: FirmContext, actions: string[], limit = 20) {
+    const visibility = ctx.isAdmin
+      ? or(
+          eq(auditLogs.actorMemberId, ctx.memberId),
+          like(auditLogs.action, "admin.%"),
+          like(auditLogs.action, "dossier.%"),
+          like(auditLogs.action, "invitation.%"),
+        )
+      : eq(auditLogs.actorMemberId, ctx.memberId);
+    return this.db
+      .select()
+      .from(auditLogs)
+      .where(and(eq(auditLogs.firmId, ctx.firmId), inArray(auditLogs.action, actions), visibility))
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(limit);
   }
 }

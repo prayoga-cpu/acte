@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import type { BrainInsight, DossierUsage, HomeSummary } from "@acte/contracts";
+import type { ActivityEntry, BrainInsight, DossierUsage, HomeSummary, TeamMemberSummary } from "@acte/contracts";
 import { fmtEurFromCents, fmtMin } from "@/lib/format";
 import { useI18n } from "@/i18n/locale-context";
+import { isRecentReminder } from "@/lib/reminders";
 
 interface ChatMessage {
   id: string;
@@ -35,12 +36,103 @@ function botReply(question: string, summary: HomeSummary, dossiers: DossierUsage
   return fallback;
 }
 
+/**
+ * "Insights Cabinet" (prototype `feed-cabinet`, shown only while the admin
+ * console is open) — PRODUCT_SPEC.md "Firm insight: lowest validation rate,
+ * totals". From live team/dossier data; the prototype's "moyenne des
+ * cabinets équipés d'ACTE : 84 %" benchmark is dropped — no such data exists.
+ */
+function CabinetInsights({
+  team,
+  currentMemberId,
+  dossiers,
+  onRemind,
+  onSeeDossiers,
+}: {
+  team: TeamMemberSummary[];
+  currentMemberId: string;
+  dossiers: DossierUsage[];
+  onRemind: (memberId: string) => Promise<void>;
+  onSeeDossiers: () => void;
+}) {
+  const { t } = useI18n();
+  const [sending, setSending] = useState(false);
+  const measured = team.filter((m) => m.status !== "invited" && m.status !== "suspended" && m.capturedMin > 0);
+  if (measured.length === 0) return null;
+
+  const totalCaptured = measured.reduce((s, m) => s + m.capturedMin, 0);
+  const firmRate = Math.round(measured.reduce((s, m) => s + m.validationRate * m.capturedMin, 0) / totalCaptured);
+  const top = [...measured].sort((a, b) => b.validationRate - a.validationRate)[0]!;
+  // Nudge someone else — never suggest the admin remind themselves.
+  const lowest = [...measured].filter((m) => m.id !== currentMemberId).sort((a, b) => a.validationRate - b.validationRate)[0];
+  const nearLimit = dossiers
+    .filter((d) => d.status !== "archived" && d.budgetMinutes)
+    .map((d) => ({ d, pct: Math.round((d.usedMinutes / d.budgetMinutes!) * 100) }))
+    .filter((x) => x.pct >= 70)
+    .sort((a, b) => b.pct - a.pct)[0];
+
+  return (
+    <div className="space-y-3">
+      <div className="glass-soft fade-up rounded-2xl border-gold/[0.2] p-3.5">
+        <p className="eyebrow !text-gold-pale/80">{t.brain.cabinet.analysisTitle}</p>
+        <p className="mt-1.5 text-[12.5px] leading-relaxed text-ivory/90">{t.brain.cabinet.analysisBody(firmRate, top.displayName, top.validationRate)}</p>
+      </div>
+      {nearLimit && (
+        <div className="glass-soft fade-up rounded-2xl p-3.5">
+          <p className="eyebrow !text-amber-400/90">{t.brain.cabinet.attentionTitle}</p>
+          <p className="mt-1.5 text-[12.5px] leading-relaxed text-ivory/90">{t.brain.cabinet.attentionBody(nearLimit.d.name, nearLimit.pct)}</p>
+          <button
+            type="button"
+            onClick={onSeeDossiers}
+            className="mt-3 cursor-pointer rounded-full border border-amber-500/35 px-3.5 py-1.5 text-[11.5px] text-amber-300 transition hover:bg-amber-500/10"
+          >
+            {t.brain.cabinet.seeDossier}
+          </button>
+        </div>
+      )}
+      {lowest && lowest.id !== top.id && (
+        <div className="glass-soft fade-up rounded-2xl p-3.5">
+          <p className="eyebrow !text-gold-pale/80">{t.brain.cabinet.suggestionTitle}</p>
+          <p className="mt-1.5 text-[12.5px] leading-relaxed text-ivory/90">{t.brain.cabinet.suggestionBody(lowest.displayName, lowest.validationRate)}</p>
+          {isRecentReminder(lowest.remindedAt) ? (
+            // Prototype's refreshCabinetCards: the button becomes a non-interactive confirmation.
+            <p className="mt-2.5 flex items-center gap-1.5 text-[11.5px] text-emerald-300">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              {t.brain.cabinet.remindedTo(lowest.displayName)}
+            </p>
+          ) : (
+            <button
+              type="button"
+              disabled={sending}
+              onClick={async () => {
+                setSending(true);
+                try {
+                  await onRemind(lowest.id);
+                } finally {
+                  setSending(false);
+                }
+              }}
+              className="mt-3 cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-3.5 py-1.5 text-[11.5px] font-semibold text-noir transition hover:brightness-110 disabled:opacity-60"
+            >
+              {t.brain.cabinet.sendReminder}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function BrainPanel({
   open,
   onClose,
   summary,
   dossiers,
   insights,
+  activity,
+  cabinet,
   onToast,
 }: {
   open: boolean;
@@ -48,6 +140,8 @@ export function BrainPanel({
   summary: HomeSummary;
   dossiers: DossierUsage[];
   insights: BrainInsight[];
+  activity: ActivityEntry[];
+  cabinet: { team: TeamMemberSummary[]; currentMemberId: string; onRemind: (memberId: string) => Promise<void>; onSeeDossiers: () => void } | null;
   onToast: (message: string) => void;
 }) {
   const { t } = useI18n();
@@ -125,6 +219,35 @@ export function BrainPanel({
               ))}
             </div>
           </div>
+
+          {cabinet && (
+            <CabinetInsights
+              team={cabinet.team}
+              currentMemberId={cabinet.currentMemberId}
+              dossiers={dossiers}
+              onRemind={cabinet.onRemind}
+              onSeeDossiers={cabinet.onSeeDossiers}
+            />
+          )}
+
+          {activity.length > 0 && (
+            <div className="glass-soft rounded-2xl p-3.5">
+              <p className="eyebrow">{t.brain.activityTitle}</p>
+              <ul className="mt-2 space-y-2">
+                {activity.slice(0, 8).map((a) => (
+                  <li key={a.id} className="flex gap-2 text-[12px] leading-snug text-ivory/85">
+                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-gold/70" />
+                    <span className="min-w-0">
+                      {a.message}
+                      <span className="ml-1.5 font-mono text-[10.5px] text-ash">
+                        {new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(new Date(a.createdAt))}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {messages.map((m) => (
             <div key={m.id} className={`fade-up flex ${m.who === "user" ? "justify-end" : "justify-start"}`}>

@@ -1,28 +1,43 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { APIError } from "better-auth/api";
 import { magicLink } from "better-auth/plugins";
-import { db } from "../db/client.js";
+import { db, type Database } from "../db/client.js";
 import { account, session, user, verification } from "../db/schema/index.js";
 import { FirmsRepository } from "../data-access/firms.repository.js";
 import { MembersRepository } from "../data-access/members.repository.js";
 import { sendMagicLinkEmail } from "../email/brevo.service.js";
+import { invitationAcceptance } from "./invitation-context.js";
 
 /**
- * Firm creation on first signup (STATUS.md stage 1): the auth user that
- * signs up with no invitation becomes the founding partner of a brand new
- * firm. Joining an *existing* firm happens through an invitation (stage 2)
- * and is not wired here.
+ * Firm creation on first signup (STATUS.md stage 1): an auth user created
+ * by a plain signup (password or magic link) always becomes the founding
+ * partner of a brand-new firm. It never joins an existing firm, whatever
+ * its email — joining happens only through POST /v1/invitations/:token/accept,
+ * which binds by token (see invitation-context.ts and D-014).
+ *
+ * better-auth runs this after the user row is already committed, so the
+ * firm + founder inserts are one transaction, and if they fail the user is
+ * deleted again (sessions/accounts cascade) — otherwise a failure here would
+ * leave an account that can sign in but never resolve to a firm.
  */
-async function createFirmForNewUser(user: { id: string; email: string; name: string }) {
-  const firmsRepo = new FirmsRepository(db, masterKeyFromEnv());
-  const membersRepo = new MembersRepository(db);
-  const firm = await firmsRepo.create(firmNameFromEmail(user.email));
-  await membersRepo.createFounder({
-    authUserId: user.id,
-    email: user.email,
-    displayName: user.name || user.email,
-    firmId: firm.id,
-  });
+async function createFirmForNewUser(created: { id: string; email: string; name: string }) {
+  if (invitationAcceptance.getStore()) return;
+  try {
+    await db.transaction(async (tx) => {
+      const txDb = tx as unknown as Database;
+      const firm = await new FirmsRepository(txDb, masterKeyFromEnv()).create(firmNameFromEmail(created.email));
+      await new MembersRepository(txDb).createFounder({
+        authUserId: created.id,
+        email: created.email,
+        displayName: created.name || created.email,
+        firmId: firm.id,
+      });
+    });
+  } catch (err) {
+    await new MembersRepository(db).deleteAuthUser(created.id);
+    throw err;
+  }
 }
 
 function firmNameFromEmail(email: string): string {
@@ -62,6 +77,19 @@ export const auth = betterAuth({
       create: {
         after: async (createdUser) => {
           await createFirmForNewUser(createdUser);
+        },
+      },
+    },
+    session: {
+      create: {
+        // A suspended member gets no session at all (password or magic link),
+        // not a session that then 401s everywhere. No member row yet (a signup
+        // mid-flight) is fine — that's not a suspension.
+        before: async (newSession) => {
+          const member = await new MembersRepository(db).findByAuthUserId(newSession.userId);
+          if (member?.status === "suspended") {
+            throw new APIError("FORBIDDEN", { message: "Member account suspended", code: "MEMBER_SUSPENDED" });
+          }
         },
       },
     },
