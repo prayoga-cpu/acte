@@ -66,7 +66,8 @@ jobs:
       - run: pnpm --filter @acte/api db:seed
       - run: pnpm --filter @acte/api start &
       - run: pnpm --filter @acte/web build
-      - run: pnpm --filter @acte/web start &
+      # The job-level PORT (4000) is the API's; next start reads PORT too.
+      - run: PORT=3000 pnpm --filter @acte/web start &
       - name: Wait for API and web to accept connections
         run: |
           timeout 30 bash -c 'until curl -sf -o /dev/null -w "%{http_code}" http://localhost:4000/v1/me/profile | grep -q 401; do sleep 1; done'
