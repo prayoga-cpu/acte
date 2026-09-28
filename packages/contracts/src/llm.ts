@@ -20,7 +20,12 @@ export const ChatRequest = z.object({
   history: z.array(ChatTurn).max(8).default([]),
 }).strict();
 
-export const ChatReply = z.object({ reply: z.string().min(1) });
+/**
+ * `reply` is what the member sees, with dossier names restored. `history` is
+ * the same reply as the model wrote it — refs, no names — which the panel
+ * sends back as the assistant turn, so restored names never go round again.
+ */
+export const ChatReply = z.object({ reply: z.string().min(1), history: z.string().min(1) });
 
 /** A duration already split for display, so the model never has to divide by 60. */
 const Duration = z.object({ h: z.number().int().nonnegative(), min: z.number().int().min(0).max(59) }).strict();

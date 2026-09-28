@@ -81,7 +81,12 @@ afterEach(() => vi.restoreAllMocks());
 
 describe("ChatService (D-015)", () => {
   it("sends no known name, task title, filename, e-mail, link or phone to the provider, from the message or either history role", async () => {
-    const logged = [vi.spyOn(console, "error"), vi.spyOn(console, "log"), vi.spyOn(console, "warn")];
+    // Console methods, and stdout/stderr directly (NestJS's Logger writes there, not through console).
+    const logged = [
+      ...(["error", "log", "warn", "info", "debug"] as const).map((m) => vi.spyOn(console, m)),
+      vi.spyOn(process.stdout, "write"),
+      vi.spyOn(process.stderr, "write"),
+    ];
     const provider = fakeProvider(ok("[D1] : 20 h 33 validées."));
     const service = makeService(new LlmClient(config, provider.fetchImpl));
 
@@ -102,7 +107,7 @@ describe("ChatService (D-015)", () => {
     for (const turn of turns) {
       for (const token of ["[D1]", "[D2]", "[e-mail]", "[fichier]", "[tâche]", "[lien]", "[téléphone]", "[numéro]"]) expect(turn.content).toContain(token);
     }
-    const logs = logged.flatMap((spy) => spy.mock.calls.flat()).join(" ");
+    const logs = logged.flatMap((spy) => (spy.mock.calls as unknown[][]).flat()).map(String).join(" ");
     for (const canary of CANARIES) expect(logs).not.toContain(canary);
     expect(provider.calls[0]!.url).toBe("https://llm.test/v1/chat/completions");
     expect(provider.calls[0]!.auth).toBe("Bearer test-key");
@@ -162,10 +167,28 @@ describe("ChatService (D-015)", () => {
     expect(sentMessages(provider.calls[0]!).at(-1)!.content).toBe("Et la D906 ?");
   });
 
-  it("swaps dossier refs back to names in the reply", async () => {
-    const provider = fakeProvider(ok("[D1] : 20 h 33 validées."));
+  it("swaps dossier refs back to names in the reply, and returns the ref form for history", async () => {
+    const provider = fakeProvider(ok("**[D1]** : 20 h 33 validées."));
     const res = await makeService(new LlmClient(config, provider.fetchImpl)).reply(ctx, { message: "Et ce dossier ?", history: [] });
     expect(res.reply).toBe(`${CANARY_DOSSIER} : 20 h 33 validées.`);
+    expect(res.history).toBe("[D1] : 20 h 33 validées.");
+  });
+
+  it("keeps the refs of the model's own earlier reply, and unbrackets a ref the member typed", async () => {
+    const provider = fakeProvider(ok("ok"));
+    await makeService(new LlmClient(config, provider.fetchImpl)).reply(ctx, {
+      message: "Et la cote [D12] ?",
+      history: [{ role: "user", content: "Le plus proche ?" }, { role: "assistant", content: "[D1] : 59 %." }],
+    });
+    const turns = sentMessages(provider.calls[0]!).slice(1).map((m) => m.content);
+    expect(turns).toEqual(["Le plus proche ?", "[D1] : 59 %.", "Et la cote D12 ?"]);
+  });
+
+  it("does not count the system prompt's own example as a shown ref", async () => {
+    const provider = fakeProvider(ok("[D2] est à 90 %."));
+    const onlyOneActive = [dossier({ name: "Zorglub c/ Durand", budgetMinutes: 100, usedMinutes: 50 }), dossier({ name: "Kovačević c/ Banque Nord", status: "archived" })];
+    const res = await makeService(new LlmClient(config, provider.fetchImpl), onlyOneActive).reply(ctx, { message: "Que dit la pièce D2 ?", history: [] });
+    expect(res.reply).toBe("[D2] est à 90 %.");
   });
 
   it("answers llm_unavailable when the reply is only Markdown", async () => {
@@ -216,7 +239,7 @@ describe("ChatService (D-015)", () => {
     await expect(blocked).rejects.toBeInstanceOf(HttpException);
     await expect(blocked).rejects.toMatchObject({ response: { error: { code: "rate_limited" } } });
     // Another member is unaffected.
-    await expect(service.reply({ ...ctx, memberId: "other" }, { message: "Bonjour", history: [] })).resolves.toEqual({ reply: "ok" });
+    await expect(service.reply({ ...ctx, memberId: "other" }, { message: "Bonjour", history: [] })).resolves.toEqual({ reply: "ok", history: "ok" });
   });
 
   it("answers one question at a time per member", async () => {
@@ -230,7 +253,7 @@ describe("ChatService (D-015)", () => {
     await new Promise((resolve) => setTimeout(resolve, 10));
     await expect(service.reply(ctx, { message: "Encore", history: [] })).rejects.toMatchObject({ response: { error: { code: "rate_limited" } } });
     release();
-    await expect(first).resolves.toEqual({ reply: "ok" });
+    await expect(first).resolves.toEqual({ reply: "ok", history: "ok" });
   });
 
   it("caps the whole instance at 300 questions in 10 minutes", async () => {

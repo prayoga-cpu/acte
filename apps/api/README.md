@@ -71,10 +71,12 @@ With the flag off or the key missing, `POST /v1/me/chat` answers 503
 `llm_disabled` and the panel keeps its deterministic replies. The provider
 receives aggregates with opaque dossier refs **plus the member's chat turns**,
 pseudonymized best-effort: known dossier names and client labels (and their
-words, apostrophe forms and reference numbers), the member's last 500 task
-titles typed in full, and links, e-mails, whitespace-free filenames and paths
-with a common extension, phone numbers in common French and international
-formats, and 6+ digit runs. It fails closed (no provider call) for a firm with
+words, punctuation-joined forms such as H&M or N'Diaye, and reference numbers),
+the member's last 500 task titles typed in full, and links, e-mails,
+whitespace-free filenames and paths with a common extension, phone numbers in
+common French and international formats, and 6+ digit runs. Replies go back to
+the panel twice — with names for display, with refs for history — so restored
+names are never sent again. It fails closed (no provider call) for a firm with
 more names than it can mask. Anything else typed — an opposing party's name, a
 filename with spaces, pasted content — goes out as typed; the
 full list is D-015's residual risk in `DECISIONS.md`, which you should read

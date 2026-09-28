@@ -120306,7 +120306,7 @@ var ChatRequest = external_exports.object({
   message: external_exports.string().trim().min(1).max(500),
   history: external_exports.array(ChatTurn).max(8).default([])
 }).strict();
-var ChatReply = external_exports.object({ reply: external_exports.string().min(1) });
+var ChatReply = external_exports.object({ reply: external_exports.string().min(1), history: external_exports.string().min(1) });
 var Duration = external_exports.object({ h: external_exports.number().int().nonnegative(), min: external_exports.number().int().min(0).max(59) }).strict();
 var LlmChatContext = external_exports.object({
   todayDate: external_exports.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -121758,6 +121758,7 @@ var LlmClient = class _LlmClient {
 };
 
 // src/brain/pseudonymizer.ts
+var import_node_crypto5 = require("node:crypto");
 var dossierRef = (index) => `D${index + 1}`;
 var STOP_WORDS = new Set(
   `de du des la le les l d en et au aux un une or ou a c s y qu que qui quoi dont par pour sur sous avec sans chez contre entre vers
@@ -121786,7 +121787,11 @@ var STOP_WORDS = new Set(
   heure heures temps minute minutes jour jours journee semaine semaines mois annee annees budget budgets tache taches
   facture factures facturation honoraires validation valide validee validees valides valider saisi saisies capture
   capturee capturees attente journal total reste restant client clients rapport point resume plus mail mails lien liens
-  france paris europe international banque credit mutuelle garage transports batiment industrie industries`.split(/\s+/).filter(Boolean)
+  france paris europe international banque credit mutuelle garage transports batiment industrie industries
+  com net org io www http https gmail hotmail yahoo outlook orange free wanadoo sfr laposte icloud live msn protonmail
+  formation deplacement deplacements telephone rendez vous rdv relance relances divers plaidoirie preparation suivi
+  courriel courriels courrier courriers administratif administrative synthese entretien facturable facturables passe
+  depasse depassement`.split(/\s+/).filter(Boolean)
 );
 var SPECIAL_LETTERS = {
   \u00E6: "ae",
@@ -121829,13 +121834,35 @@ var SPECIAL_LETTERS = {
   \u0292: "z",
   \u0263: "g",
   \u028B: "v",
-  \u0269: "i"
+  \u0269: "i",
+  \u019A: "l",
+  "\u2C66": "t",
+  "\u2C65": "a",
+  "\u023C": "c",
+  "\u0247": "e",
+  "\u0249": "j",
+  "\u024D": "r",
+  "\u024F": "y",
+  \u0275: "o",
+  "\uA741": "k",
+  "\uA7A9": "s",
+  "\u2C6A": "k",
+  \u04B1: "\u0443",
+  \u049B: "\u043A",
+  \u0493: "\u0433",
+  \u04E9: "\u043E",
+  \u04AF: "\u0443",
+  \u04B3: "\u0445",
+  \u04B7: "\u0447",
+  \u04A3: "\u043D",
+  \u0499: "\u0437",
+  \u04AB: "\u0441"
 };
 var WORD = /^[\p{L}\p{N}]$/u;
 var IGNORABLE = /^[\p{M}\p{Cf}\p{Default_Ignorable_Code_Point}]$/u;
 var APOSTROPHE_LETTERS = /^[\u02B9-\u02BF\u02C8]$/u;
 var VANISHING = /^[\u00BA\u00AA\u0640]$/u;
-var INNER_APOSTROPHE = /(?<![\p{L}\p{M}\p{N}])[\p{L}\p{M}\p{N}]+(?:['’‘`´ʹʺʻʼʽʾʿˈ][\p{L}\p{M}\p{N}]+)+/gu;
+var JOINED_TOKEN = /(?<![\p{L}\p{M}\p{N}])[\p{L}\p{M}\p{N}]+(?:[&.'’‘`´ʹʺʻʼʽʾʿˈ+·\/-][\p{L}\p{M}\p{N}]+)+/gu;
 var SEPARATOR = " ";
 var foldCache = /* @__PURE__ */ new Map();
 function foldChar(ch) {
@@ -121849,12 +121876,13 @@ function foldChar(ch) {
   if (cached2 !== void 0) return cached2;
   let folded;
   if (IGNORABLE.test(ch) || VANISHING.test(ch)) folded = "";
-  else if (!WORD.test(ch) || APOSTROPHE_LETTERS.test(ch)) folded = SEPARATOR;
+  else if (!WORD.test(ch) || APOSTROPHE_LETTERS.test(ch) || new RegExp("^\\p{No}$", "u").test(ch)) folded = SEPARATOR;
+  else if (SPECIAL_LETTERS[ch.toLowerCase()]) folded = SPECIAL_LETTERS[ch.toLowerCase()];
   else {
     const base = [...ch.normalize("NFKD").replace(new RegExp("\\p{M}", "gu"), "").toLowerCase()].map((c) => SPECIAL_LETTERS[c] ?? c).join("");
     folded = base && [...base].length <= 3 && /^[\p{L}\p{N}]+$/u.test(base) ? base : ch.toLowerCase();
   }
-  if (foldCache.size >= 1e5) foldCache.clear();
+  if (foldCache.size >= 2e5) foldCache.clear();
   foldCache.set(ch, folded);
   return folded;
 }
@@ -121867,10 +121895,10 @@ var TLDS = "fr|com|net|org|eu|be|ch|lu|de|es|it|uk|io|info|pro|legal|law|avocat"
 var MASKS = [
   { re: /\[(?:dossier|t[âa]che|lien|e-?mail|fichier|t[ée]l[ée]phone|num[ée]ro)\]/giu, token: null, needs: /\[/ },
   { re: /\b(?:https?|s?ftp|smb|file):\/\/\S+|\bwww\.\S+/giu, token: "[lien]", needs: /:\/\/|www\./i },
-  { re: /(?<![\p{L}\p{M}\p{N}._%+'’-])[\p{L}\p{M}\p{N}._%+'’-]{1,64}@[\p{L}\p{M}\p{N}-]{1,63}(?:\.[\p{L}\p{M}\p{N}-]{1,63}){1,6}/gu, token: "[e-mail]", needs: /@/ },
+  { re: /(?<![\p{L}\p{M}\p{N}.'’-])[\p{L}\p{M}\p{N}._%+'’-]{1,128}@[\p{L}\p{M}\p{N}-]{1,63}(?:\.[\p{L}\p{M}\p{N}-]{1,63}){1,6}/gu, token: "[e-mail]", needs: /@/ },
   {
-    // A whole whitespace-free run ending in an extension: apostrophes, &, commas, dots and folder paths included.
-    re: new RegExp(`(?<![^\\s"\xAB\xBB\u201C\u201D<>\\[\\](){}])[^\\s"\xAB\xBB\u201C\u201D<>\\[\\](){}]{0,254}\\.(?:${EXTENSIONS})(?![\\p{L}\\p{N}])`, "giu"),
+    // A whole whitespace-free run ending in an extension: apostrophes, &, commas, brackets, dots and folder paths included.
+    re: new RegExp(`(?<![^\\s"\xAB\xBB\u201C\u201D<>\\[\\](){}])[^\\s"\xAB\xBB\u201C\u201D<>\\[\\](){}][^\\s"\xAB\xBB\u201C\u201D<>]{0,1023}\\.(?:${EXTENSIONS})(?![\\p{L}\\p{N}])`, "giu"),
     token: "[fichier]",
     needs: /\./
   },
@@ -121887,9 +121915,10 @@ var MASKS = [
   },
   { re: /\d{6,}/g, token: "[num\xE9ro]", needs: /\d/ }
 ];
+var cleanText = (text2) => text2.normalize("NFC").replace(/[\uE000-\uF8FF\p{Cf}\p{Default_Ignorable_Code_Point}]/gu, "");
 function maskText(text2) {
   const tokens = [];
-  let masked = text2.normalize("NFC").replace(/[\uE000-\uF8FF\p{Cf}\p{Default_Ignorable_Code_Point}]/gu, "");
+  let masked = cleanText(text2);
   MASKS.forEach(({ re, token, needs }, type) => {
     if (!needs.test(masked)) return;
     masked = masked.replace(re, (match) => {
@@ -121944,10 +121973,13 @@ function toWords(text2) {
   return { words, start, end };
 }
 var isPlaceholderWord = (w) => w.charCodeAt(0) === TAG;
+var meaningful = (w) => !isPlaceholderWord(w) && (w.length >= 2 || /[^\p{Script=Latin}\p{Script=Greek}\p{Script=Cyrillic}\p{N}]/u.test(w));
 var H1 = 2147483629;
 var H2 = 2097143;
-var nextH1 = (h, id3) => (h * 1000003 + id3 + 1) % H1;
-var nextH2 = (h, id3) => (h * 65599 + id3 + 7) % H2;
+var M1 = (0, import_node_crypto5.randomInt)(1 << 19, 1 << 20);
+var M2 = (0, import_node_crypto5.randomInt)(1 << 15, 1 << 16);
+var nextH1 = (h, id3) => (h * M1 + id3 + 1) % H1;
+var nextH2 = (h, id3) => (h * M2 + id3 + 7) % H2;
 var hashKey = (h1, h2) => h1 * 2097152 + h2;
 var MAX_PHRASE_WORDS = 60;
 var MAX_REGISTERED_WORDS = 3e5;
@@ -121986,28 +122018,27 @@ var Pseudonymizer = class {
     }
   }
   addPhraseAndWords(phrase, ref) {
-    const { masked } = maskText(phrase);
-    const { words, start, end } = toWords(masked);
-    if (words.length === 0) return;
-    if (words.some((w) => !STOP_WORDS.has(w))) this.addPhrase(words, ref);
-    for (const token of masked.match(INNER_APOSTROPHE) ?? []) {
+    const { words } = toWords(maskText(phrase).masked);
+    if (words.some((w) => !isPlaceholderWord(w)) && !(words.length === 1 && STOP_WORDS.has(words[0]))) this.addPhrase(words, ref);
+    const raw = cleanText(phrase);
+    for (const token of raw.match(JOINED_TOKEN) ?? []) {
       const split = toWords(token).words;
       const joined = split.join("");
-      if (joined.length < 3 || STOP_WORDS.has(joined) || split.every((w) => STOP_WORDS.has(w))) continue;
+      if (split.length < 2 || joined.length < 2 || STOP_WORDS.has(joined) || split.every((w) => STOP_WORDS.has(w))) continue;
       this.addPhrase(split, ref);
       this.addPhrase([joined], ref);
     }
+    const { words: rawWords, start, end } = toWords(raw);
     const isNumber2 = (w) => new RegExp("^\\p{N}+$", "u").test(w);
-    for (let k = 0; k < words.length; k++) {
-      if (!isNumber2(words[k])) continue;
+    for (let k = 0; k < rawWords.length; k++) {
+      if (!isNumber2(rawWords[k])) continue;
       let last = k;
-      while (last + 1 < words.length && isNumber2(words[last + 1])) last++;
-      if (last > k) this.addPhrase(words.slice(k, last + 1), ref);
-      for (let g = k; g <= last; g++) if (words[g].length >= 5) this.addPhrase([words[g]], ref);
+      while (last + 1 < rawWords.length && isNumber2(rawWords[last + 1])) last++;
+      if (last > k) this.addPhrase(rawWords.slice(k, last + 1), ref);
+      for (let g = k; g <= last; g++) if (rawWords[g].length >= 5) this.addPhrase([rawWords[g]], ref);
       k = last;
     }
-    const originals = words.map((_, k) => masked.slice(start[k], end[k]));
-    const candidates = words.map((w, k) => ({ w, original: originals[k] })).filter(({ w }) => !isPlaceholderWord(w) && w.length >= 2 && !STOP_WORDS.has(w) && !new RegExp("^\\p{N}+$", "u").test(w));
+    const candidates = rawWords.map((w, k) => ({ w, original: raw.slice(start[k], end[k]) })).filter(({ w }) => meaningful(w) && !STOP_WORDS.has(w) && !isNumber2(w));
     const hasProperCasing = candidates.some(({ original }) => new RegExp("\\p{Lu}", "u").test(original) && new RegExp("\\p{Ll}", "u").test(original));
     for (const { w, original } of candidates) {
       const nameLike = !hasProperCasing || new RegExp("\\p{Lu}", "u").test(original) || !new RegExp("\\p{Ll}", "u").test(original) || new RegExp("\\p{N}", "u").test(original);
@@ -122016,7 +122047,7 @@ var Pseudonymizer = class {
   }
   addTitle(title) {
     const { words } = toWords(maskText(title).masked);
-    if (words.some((w) => isPlaceholderWord(w) || w.length >= 2 && !STOP_WORDS.has(w))) this.addPhrase(words, "[t\xE2che]");
+    if (words.some((w) => !isPlaceholderWord(w) && meaningful(w) && !STOP_WORDS.has(w))) this.addPhrase(words, "[t\xE2che]");
   }
   addPhrase(allWords, replacement) {
     const words = allWords.slice(0, MAX_PHRASE_WORDS);
@@ -122061,9 +122092,15 @@ var Pseudonymizer = class {
     }
     return best;
   }
-  redact(text2) {
+  /**
+   * `keepRefs` for the model's own earlier replies, sent back in their
+   * pseudonymized form: their `[Dn]` refs stay refs. Anywhere else a "[D12]"
+   * (a cote, a road) loses its brackets, so the model can't take it for a ref.
+   */
+  redact(text2, { keepRefs = false } = {}) {
     if (!this.complete) throw new TooManyNames();
-    const { masked, tokens } = maskText(text2.replace(/\[(D\d{1,5})\]/g, "$1"));
+    const clean3 = cleanText(text2);
+    const { masked, tokens } = maskText(keepRefs ? clean3 : clean3.replace(/\[(D\d{1,5})\]/g, "$1"));
     const { words, start, end } = toWords(masked);
     const ids = words.map((w) => this.wordIds.get(w) ?? -1);
     let out = "";
@@ -122100,7 +122137,7 @@ var Pseudonymizer = class {
    * history.
    */
   restore(text2, allowedRefs) {
-    const glues = (ch) => ch !== void 0 && foldChar(ch) !== SEPARATOR;
+    const glues = (ch) => ch !== void 0 && (foldChar(ch) !== SEPARATOR || /[\uE000-\uF8FF]/u.test(ch));
     return text2.replace(/\](?=\[D\d+\])/g, "] ").replace(/\[(D\d+)\]/g, (match, ref, offset, whole) => {
       const name = allowedRefs && !allowedRefs.has(ref) ? void 0 : this.nameByRef.get(ref);
       if (name === void 0) return match;
@@ -122153,6 +122190,11 @@ Champs : today = aujourd'hui (captur\xE9, valid\xE9, en attente) ; thisWeekValid
 Donn\xE9es :
 `;
 var unavailable2 = () => new import_common72.ServiceUnavailableException({ error: { code: "llm_unavailable", message: "Assistant unavailable" } });
+var cut = (s, max) => {
+  if (s.length <= max) return s;
+  const code = s.charCodeAt(max - 1);
+  return s.slice(0, code >= 55296 && code <= 56319 ? max - 1 : max);
+};
 var duration2 = (minutes) => ({ h: Math.floor(minutes / 60), min: minutes % 60 });
 var budgetUse = (d) => d.budgetMinutes ? d.usedMinutes / d.budgetMinutes : -1;
 function orderForContext(dossiers2) {
@@ -122206,15 +122248,16 @@ var ChatService = class {
       tasks2.slice(-MAX_TASK_TITLES).map((t) => t.title)
     );
     if (!pseudo.complete) throw unavailable2();
-    const messages2 = [
-      { role: "system", content: SYSTEM_PROMPT + JSON.stringify(context) },
-      ...body.history.map((turn) => ({ role: turn.role, content: pseudo.redact(turn.content).slice(0, MAX_TURN_CHARS) })),
+    const conversation = [
+      // The model's own earlier replies come back in their pseudonymized form: keep their refs.
+      ...body.history.map((turn) => ({ role: turn.role, content: cut(pseudo.redact(turn.content, { keepRefs: turn.role === "assistant" }), MAX_TURN_CHARS) })),
       { role: "user", content: pseudo.redact(body.message) }
     ];
+    const messages2 = [{ role: "system", content: SYSTEM_PROMPT + JSON.stringify(context) }, ...conversation];
     const text2 = toPlainText(await this.llm.complete(messages2));
     if (!text2) throw unavailable2();
-    const shown = new Set(messages2.flatMap((m) => [...m.content.matchAll(/\[(D\d+)\]|"ref":"(D\d+)"/g)].map((r) => r[1] ?? r[2])));
-    return ChatReply.parse({ reply: pseudo.restore(text2, shown) });
+    const shown = /* @__PURE__ */ new Set([...context.dossiers.map((d) => d.ref), ...conversation.flatMap((m) => [...m.content.matchAll(/\[(D\d+)\]/g)].map((r) => r[1]))]);
+    return ChatReply.parse({ reply: pseudo.restore(text2, shown), history: text2 });
   }
   /**
    * In memory and per instance only — enough to stop a stuck client, a stolen
@@ -122338,14 +122381,14 @@ CryptoModule = __decorateClass([
 var import_common79 = __toESM(require_common(), 1);
 
 // src/data-access/activation-keys.repository.ts
-var import_node_crypto5 = require("node:crypto");
+var import_node_crypto6 = require("node:crypto");
 var import_common76 = __toESM(require_common(), 1);
 function generatePlainKey(initials) {
-  const groups = Array.from({ length: 4 }, () => (0, import_node_crypto5.randomBytes)(2).toString("hex").toUpperCase());
+  const groups = Array.from({ length: 4 }, () => (0, import_node_crypto6.randomBytes)(2).toString("hex").toUpperCase());
   return `ACTE-${initials.toUpperCase()}-${groups.join("-")}`;
 }
 function hashKey2(plainKey) {
-  return (0, import_node_crypto5.createHash)("sha256").update(plainKey).digest("hex");
+  return (0, import_node_crypto6.createHash)("sha256").update(plainKey).digest("hex");
 }
 var ActivationKeysRepository = class {
   constructor(db2) {

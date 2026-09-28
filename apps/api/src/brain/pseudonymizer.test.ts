@@ -318,8 +318,10 @@ describe("Pseudonymizer (D-015)", () => {
       expect(redactMs).toBeLessThan(500);
     });
 
-    it("fails closed past the registration budget instead of masking some names only", () => {
-      const huge = Array.from({ length: 6000 }, (_, i) => ({ name: `N${i} ${"mot ".repeat(39)}`, clientLabel: `L${i} ${"mot ".repeat(39)}` }));
+    it("fails closed past the word budget, within the character budget", () => {
+      // ~1.1M characters (under the 1.2M character budget) but over 300,000 registered words.
+      const huge = Array.from({ length: 3700 }, (_, i) => ({ name: `N${i} ${"ab ".repeat(52)}`, clientLabel: `L${i} ${"cd ".repeat(52)}` }));
+      expect(huge.reduce((n, d) => n + d.name.length + d.clientLabel.length, 0)).toBeLessThan(1_200_000);
       const p = new Pseudonymizer(huge);
       expect(p.complete).toBe(false);
       expect(() => p.redact("bonjour")).toThrow();
@@ -410,9 +412,10 @@ describe("Pseudonymizer (D-015)", () => {
       expect(p.redact("en 2024, 21 heures")).toBe("en 2024, 21 heures");
     });
 
-    it("does not register a name made only of stop words", () => {
-      const p = one("Aménagement du territoire", "Grand Est");
-      expect(p.redact("Le plus grand est lequel ?")).toBe("Le plus grand est lequel ?");
+    it("masks a multi-word name made only of stop words (privacy over wording)", () => {
+      const p = one("Petit — Divorce", "Grand Est");
+      expect(p.redact("Où en est Petit — Divorce ?")).toBe("Où en est [D1] ?");
+      expect(p.redact("et Grand Est ?")).toBe("et [D1] ?");
     });
 
     it("keeps existing tokens in any case or accent form", () => {
@@ -423,9 +426,9 @@ describe("Pseudonymizer (D-015)", () => {
       expect(p.redact("[Numéro] [numero] [Téléphone] [telephone]")).toBe("[Numéro] [numero] [Téléphone] [telephone]");
     });
 
-    it("masks a title typed with a filename glued to a parenthesis", () => {
+    it("masks a title with a parenthesised filename typed as stored", () => {
       const p = new Pseudonymizer([], ["Relecture (Protocole_Wyvern.pdf) avec Me Ybarra"]);
-      expect(p.redact("Relecture(Protocole_Wyvern.pdf) avec Me Ybarra ?")).toBe("[tâche] ?");
+      expect(p.redact("Relecture (Protocole_Wyvern.pdf) avec Me Ybarra ?")).toBe("[tâche] ?");
     });
 
     it("stays fast at the input budget with one long non-Latin word per name (anchored apostrophe scan)", () => {
@@ -441,6 +444,74 @@ describe("Pseudonymizer (D-015)", () => {
       const { value: p, ms } = timed(() => new Pseudonymizer(huge));
       expect(p.complete).toBe(false);
       expect(ms).toBeLessThan(100);
+    });
+  });
+
+  describe("round 3 lens findings", () => {
+    it("registers words from inside a link, e-mail or domain in a name, without capturing other links", () => {
+      const p = new Pseudonymizer([
+        { name: "Durand c/ Cdiscount.com", clientLabel: "Doctolib.fr" },
+        { name: "Succession — divorce", clientLabel: "jean.kerbrat@gmail.com" },
+      ]);
+      expect(p.redact("Où en est Cdiscount ?")).toBe("Où en est [D1] ?");
+      expect(p.redact("et Doctolib ?")).toBe("et [D1] ?");
+      expect(p.redact("Et le dossier Kerbrat ?")).toBe("Et le dossier [D2] ?");
+      expect(p.redact("Peux-tu regarder exemple.fr et écrire à a@b.fr ?")).toBe("Peux-tu regarder [lien] et écrire à [e-mail] ?");
+    });
+
+    it("does not let a label that is only an e-mail, or a title that is only a phone, capture every such token", () => {
+      const p = new Pseudonymizer([{ name: "Delcourt", clientLabel: "service.client@amazon.fr" }], ["06 12 34 56 78"]);
+      expect(p.redact("écrire à greffe@tj-paris.justice.fr pour Delcourt")).toBe("écrire à [e-mail] pour [D1]");
+      expect(p.redact("J'ai appelé le 01 23 45 67 89 hier")).toBe("J'ai appelé le [téléphone] hier");
+    });
+
+    it("masks names made of letters joined by punctuation, with or without it", () => {
+      const p = new Pseudonymizer([
+        { name: "H&M c/ Durand", clientLabel: "H&M France" },
+        { name: "Kerbrat c/ S.N.C.F.", clientLabel: "" },
+      ]);
+      expect(p.redact("Où en est H&M ?")).toBe("Où en est [D1] ?");
+      expect(p.redact("Et le dossier S.N.C.F. ?")).toBe("Et le dossier [D2]. ?");
+      expect(p.redact("Et contre la SNCF ?")).toBe("Et contre la [D2] ?");
+    });
+
+    it("treats superscript and circled digits as separators", () => {
+      const p = one("Zorglub² c/ Durand");
+      for (const typed of ["Zorglub", "Zorglub²", "Zorglub₂", "Zorglub①"]) expect(p.redact(`et ${typed} ?`)).toMatch(/^et \[D1\]/);
+    });
+
+    it("registers a one-character name in scripts where that is a name", () => {
+      expect(one("দে c/ Banque Nord", "M. দে").redact("et দে ?")).toBe("et [D1] ?");
+      expect(one("王 c/ Durand").redact("et 王 ?")).toBe("et [D1] ?");
+    });
+
+    it("folds ŀ and more stroke letters", () => {
+      expect(one("Coŀlet c/ Durand").redact("et Collet ?")).toBe("et [D1] ?");
+      expect(one("Ɵmar Ƚaso c/ Durand").redact("et Omar Laso ?")).toBe("et [D1] [D1] ?");
+      expect(one("Қасымов c/ Durand").redact("et Касымов ?")).toBe("et [D1] ?");
+    });
+
+    it("masks a second address glued to the first, and long local parts", () => {
+      expect(pseudo.redact("contact@cabinet.fr+jean.dupont@client.fr")).toBe("[e-mail]+[e-mail]");
+      expect(pseudo.redact(`${"x".repeat(100)}@client.fr`)).toBe("[e-mail]");
+    });
+
+    it("masks filenames with brackets and long paths", () => {
+      expect(pseudo.redact("relire Conclusions_Kerbrat(v2).docx demain")).toBe("relire [fichier] demain");
+      expect(pseudo.redact("voir Kerbrat_Assignation{signée}.pdf")).toBe("voir [fichier]");
+      expect(pseudo.redact("voir Bordereau[Dubois].pdf")).toBe("voir [fichier]");
+      const longPath = `S:\\Clients\\${"Contentieux_Commercial_2024\\".repeat(10)}Conclusions_Kerbrat_v3.docx`;
+      expect(pseudo.redact(`voir ${longPath}`)).toBe("voir [fichier]");
+    });
+
+    it("unbrackets a typed ref even with an invisible character inside, but keeps refs in the model's own replies", () => {
+      expect(pseudo.redact("la cote [D\u00AD12]")).toBe("la cote D12");
+      expect(pseudo.redact("[D2] avance", { keepRefs: true })).toBe("[D2] avance");
+    });
+
+    it("pads a restored name next to a private-use character", () => {
+      const p = one("Kovačević c/ Zorglub");
+      expect(p.redact(p.restore("a\uE123[D1]\uE124b"))).not.toMatch(/Kova|Zorglub/u);
     });
   });
 });

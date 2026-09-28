@@ -13,6 +13,8 @@ interface ChatMessage {
   text: string;
   /** An AI bubble still showing the typing dots; its text is filled in place (prototype sendChat). */
   pending?: boolean;
+  /** For an LLM reply: the same reply with refs instead of names, which is what goes back as history (D-015). */
+  history?: string;
 }
 
 /**
@@ -163,11 +165,11 @@ export function BrainPanel({
     if (feed && messages.length > 0) feed.scrollTop = feed.scrollHeight;
   }, [messages]);
 
-  const answer = async (text: string, history: ChatTurn[]): Promise<string> => {
-    const local = () => botReply(text, summary, dossiers, t.brain.fallbackReply);
+  const answer = async (text: string, history: ChatTurn[]): Promise<{ reply: string; history?: string }> => {
+    const local = () => ({ reply: botReply(text, summary, dossiers, t.brain.fallbackReply) });
     if (!llmDisabled.current) {
       try {
-        return (await api.post<ChatReply>("/v1/me/chat", { message: text, history })).reply;
+        return await api.post<ChatReply>("/v1/me/chat", { message: text, history });
       } catch (e) {
         if (e instanceof ApiError && e.code === "llm_disabled") llmDisabled.current = true;
         else return local();
@@ -182,16 +184,20 @@ export function BrainPanel({
   const send = async (text: string) => {
     if (!text.trim() || thinking || sending.current) return;
     sending.current = true;
-    // Whole turns: the API pseudonymizes before it truncates (D-015).
+    // Only LLM exchanges, with the reply as the model wrote it (refs, no names): restored names never go back (D-015).
     const history: ChatTurn[] = messages
-      .filter((m) => !m.pending && m.text && m.text.length <= 4000)
-      .slice(-8)
-      .map((m) => ({ role: m.who === "user" ? "user" : "assistant", content: m.text }));
+      .flatMap((m, k) => {
+        const question = messages[k - 1];
+        return m.who === "ai" && m.history && question?.who === "user" && question.text.length <= 4000 && m.history.length <= 4000
+          ? [{ role: "user" as const, content: question.text }, { role: "assistant" as const, content: m.history }]
+          : [];
+      })
+      .slice(-8);
     const replyId = crypto.randomUUID();
     setMessages((m) => [...m, { id: crypto.randomUUID(), who: "user", text }, { id: replyId, who: "ai", text: "", pending: true }]);
     setInput("");
-    const reply = await answer(text.slice(0, 500), history);
-    setMessages((m) => m.map((msg) => (msg.id === replyId ? { ...msg, text: reply, pending: false } : msg)));
+    const { reply, history: replyHistory } = await answer(text.slice(0, 500), history);
+    setMessages((m) => m.map((msg) => (msg.id === replyId ? { ...msg, text: reply, history: replyHistory, pending: false } : msg)));
     sending.current = false;
   };
   // The dictation timeout below must use the latest send and input, not the ones from the render that started it.

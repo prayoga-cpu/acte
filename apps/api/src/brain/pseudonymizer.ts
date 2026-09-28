@@ -1,3 +1,5 @@
+import { randomInt } from "node:crypto";
+
 /** Opaque reference for the dossier at `index` — the same one LlmChatContext uses. */
 export const dossierRef = (index: number) => `D${index + 1}`;
 
@@ -36,7 +38,11 @@ const STOP_WORDS = new Set(
   heure heures temps minute minutes jour jours journee semaine semaines mois annee annees budget budgets tache taches
   facture factures facturation honoraires validation valide validee validees valides valider saisi saisies capture
   capturee capturees attente journal total reste restant client clients rapport point resume plus mail mails lien liens
-  france paris europe international banque credit mutuelle garage transports batiment industrie industries`.split(/\s+/).filter(Boolean),
+  france paris europe international banque credit mutuelle garage transports batiment industrie industries
+  com net org io www http https gmail hotmail yahoo outlook orange free wanadoo sfr laposte icloud live msn protonmail
+  formation deplacement deplacements telephone rendez vous rdv relance relances divers plaidoirie preparation suivi
+  courriel courriels courrier courriers administratif administrative synthese entretien facturable facturables passe
+  depasse depassement`.split(/\s+/).filter(Boolean),
 );
 
 /** Letters NFKD leaves alone (ligatures, stroke and hook letters), folded by hand. Keys are lowercase. */
@@ -44,6 +50,8 @@ const SPECIAL_LETTERS: Record<string, string> = {
   æ: "ae", œ: "oe", ß: "ss", ø: "o", ł: "l", đ: "d", ð: "d", þ: "th", ı: "i", ŀ: "l", ĳ: "ij", ς: "σ",
   ħ: "h", ŧ: "t", ƀ: "b", ƶ: "z", ȥ: "z", ɓ: "b", ɗ: "d", ɖ: "d", ƙ: "k", ƴ: "y", ɨ: "i", ʉ: "u", ǥ: "g", ƒ: "f",
   ƈ: "c", ƥ: "p", ƭ: "t", ʈ: "t", ɠ: "g", ɦ: "h", ɲ: "n", ŋ: "n", ɛ: "e", ɔ: "o", ə: "e", ʒ: "z", ɣ: "g", ʋ: "v", ɩ: "i",
+  ƚ: "l", ⱦ: "t", ⱥ: "a", ȼ: "c", ɇ: "e", ɉ: "j", ɍ: "r", ɏ: "y", ɵ: "o", ꝁ: "k", ꞩ: "s", ⱪ: "k",
+  ұ: "у", қ: "к", ғ: "г", ө: "о", ү: "у", ҳ: "х", ҷ: "ч", ң: "н", ҙ: "з", ҫ: "с",
 };
 
 const WORD = /^[\p{L}\p{N}]$/u;
@@ -52,8 +60,12 @@ const IGNORABLE = /^[\p{M}\p{Cf}\p{Default_Ignorable_Code_Point}]$/u;
 const APOSTROPHE_LETTERS = /^[\u02B9-\u02BF\u02C8]$/u;
 /** Letters that decorate rather than spell: ordinal indicators (nº, ª) and the Arabic tatweel. They vanish. */
 const VANISHING = /^[\u00BA\u00AA\u0640]$/u;
-/** Apostrophe-like characters inside a name: registered both joined (N'Diaye → ndiaye) and split (n diaye). */
-const INNER_APOSTROPHE = /(?<![\p{L}\p{M}\p{N}])[\p{L}\p{M}\p{N}]+(?:['’‘`´ʹʺʻʼʽʾʿˈ][\p{L}\p{M}\p{N}]+)+/gu;
+/**
+ * A token whose letters are joined by punctuation — N'Diaye, H&M, S.N.C.F.,
+ * Dupont-Moretti, 21/04567 — is registered both split ("h m") and joined
+ * ("hm"), so it matches typed with or without the punctuation.
+ */
+const JOINED_TOKEN = /(?<![\p{L}\p{M}\p{N}])[\p{L}\p{M}\p{N}]+(?:[&.'’‘`´ʹʺʻʼʽʾʿˈ+·\/-][\p{L}\p{M}\p{N}]+)+/gu;
 /** Result of folding one code point: letters/digits, SEPARATOR, or "" (invisible: stays inside the current word). */
 const SEPARATOR = " ";
 const foldCache = new Map<string, string>();
@@ -75,14 +87,16 @@ function foldChar(ch: string): string {
   if (cached !== undefined) return cached;
   let folded: string;
   if (IGNORABLE.test(ch) || VANISHING.test(ch)) folded = "";
-  else if (!WORD.test(ch) || APOSTROPHE_LETTERS.test(ch)) folded = SEPARATOR;
+  // Superscripts, subscripts and circled digits (Zorglub², footnote¹) separate words instead of joining them.
+  else if (!WORD.test(ch) || APOSTROPHE_LETTERS.test(ch) || /^\p{No}$/u.test(ch)) folded = SEPARATOR;
+  else if (SPECIAL_LETTERS[ch.toLowerCase()]) folded = SPECIAL_LETTERS[ch.toLowerCase()]!;
   else {
     const base = [...ch.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase()].map((c) => SPECIAL_LETTERS[c] ?? c).join("");
     // Keep expansion bounded (U+FDFA decomposes to 18 letters) and letters-only.
     folded = base && [...base].length <= 3 && /^[\p{L}\p{N}]+$/u.test(base) ? base : ch.toLowerCase();
   }
   // Bounded, and never stuck full: one firm's rare characters can't slow everyone else down for good.
-  if (foldCache.size >= 100_000) foldCache.clear();
+  if (foldCache.size >= 200_000) foldCache.clear();
   foldCache.set(ch, folded);
   return folded;
 }
@@ -107,10 +121,10 @@ const TLDS = "fr|com|net|org|eu|be|ch|lu|de|es|it|uk|io|info|pro|legal|law|avoca
 const MASKS: { re: RegExp; token: string | null; needs: RegExp }[] = [
   { re: /\[(?:dossier|t[âa]che|lien|e-?mail|fichier|t[ée]l[ée]phone|num[ée]ro)\]/giu, token: null, needs: /\[/ },
   { re: /\b(?:https?|s?ftp|smb|file):\/\/\S+|\bwww\.\S+/giu, token: "[lien]", needs: /:\/\/|www\./i },
-  { re: /(?<![\p{L}\p{M}\p{N}._%+'’-])[\p{L}\p{M}\p{N}._%+'’-]{1,64}@[\p{L}\p{M}\p{N}-]{1,63}(?:\.[\p{L}\p{M}\p{N}-]{1,63}){1,6}/gu, token: "[e-mail]", needs: /@/ },
+  { re: /(?<![\p{L}\p{M}\p{N}.'’-])[\p{L}\p{M}\p{N}._%+'’-]{1,128}@[\p{L}\p{M}\p{N}-]{1,63}(?:\.[\p{L}\p{M}\p{N}-]{1,63}){1,6}/gu, token: "[e-mail]", needs: /@/ },
   {
-    // A whole whitespace-free run ending in an extension: apostrophes, &, commas, dots and folder paths included.
-    re: new RegExp(`(?<![^\\s"«»“”<>\\[\\](){}])[^\\s"«»“”<>\\[\\](){}]{0,254}\\.(?:${EXTENSIONS})(?![\\p{L}\\p{N}])`, "giu"),
+    // A whole whitespace-free run ending in an extension: apostrophes, &, commas, brackets, dots and folder paths included.
+    re: new RegExp(`(?<![^\\s"«»“”<>\\[\\](){}])[^\\s"«»“”<>\\[\\](){}][^\\s"«»“”<>]{0,1023}\\.(?:${EXTENSIONS})(?![\\p{L}\\p{N}])`, "giu"),
     token: "[fichier]",
     needs: /\./,
   },
@@ -128,10 +142,12 @@ const MASKS: { re: RegExp; token: string | null; needs: RegExp }[] = [
   { re: /\d{6,}/g, token: "[numéro]", needs: /\d/ },
 ];
 
+/** NFC, with invisible characters and private-use characters dropped: they can't split an address, a number or a name. */
+const cleanText = (text: string) => text.normalize("NFC").replace(/[\uE000-\uF8FF\p{Cf}\p{Default_Ignorable_Code_Point}]/gu, "");
+
 function maskText(text: string): { masked: string; tokens: string[] } {
   const tokens: string[] = [];
-  // NFC so masks see precomposed letters; invisible characters dropped so they can't split an address or a number.
-  let masked = text.normalize("NFC").replace(/[\uE000-\uF8FF\p{Cf}\p{Default_Ignorable_Code_Point}]/gu, "");
+  let masked = cleanText(text);
   MASKS.forEach(({ re, token, needs }, type) => {
     if (!needs.test(masked)) return;
     masked = masked.replace(re, (match) => {
@@ -205,6 +221,9 @@ function toWords(text: string): Words {
 
 const isPlaceholderWord = (w: string) => w.charCodeAt(0) === TAG;
 
+/** Two letters or more, or a single character from a script where one can be a name (王, দে once its vowel sign is folded). */
+const meaningful = (w: string) => !isPlaceholderWord(w) && (w.length >= 2 || /[^\p{Script=Latin}\p{Script=Greek}\p{Script=Cyrillic}\p{N}]/u.test(w));
+
 /**
  * Phrases are looked up by an incremental double hash over interned word ids,
  * so extending a candidate by one word is O(1) and a scan stops at the first
@@ -213,8 +232,11 @@ const isPlaceholderWord = (w: string) => w.charCodeAt(0) === TAG;
  */
 const H1 = 2_147_483_629;
 const H2 = 2_097_143;
-const nextH1 = (h: number, id: number) => (h * 1_000_003 + id + 1) % H1;
-const nextH2 = (h: number, id: number) => (h * 65_599 + id + 7) % H2;
+/** Drawn per process, so nobody can precompute names whose hashes collide. */
+const M1 = randomInt(1 << 19, 1 << 20);
+const M2 = randomInt(1 << 15, 1 << 16);
+const nextH1 = (h: number, id: number) => (h * M1 + id + 1) % H1;
+const nextH2 = (h: number, id: number) => (h * M2 + id + 7) % H2;
 const hashKey = (h1: number, h2: number) => h1 * 2_097_152 + h2;
 
 /** A phrase key is at most this many words; a longer phrase is keyed by its first words. */
@@ -283,34 +305,36 @@ export class Pseudonymizer {
   }
 
   private addPhraseAndWords(phrase: string, ref: string) {
-    const { masked } = maskText(phrase);
-    const { words, start, end } = toWords(masked);
-    if (words.length === 0) return;
-    // A name made only of stop words ("Petit", "Grand Est") would garble every question.
-    if (words.some((w) => !STOP_WORDS.has(w))) this.addPhrase(words, ref);
-    // A word with an inner apostrophe, typed with or without it: N'Diaye → "n diaye" and "ndiaye".
-    for (const token of masked.match(INNER_APOSTROPHE) ?? []) {
+    const { words } = toWords(maskText(phrase).masked);
+    // The whole name — unless it is one stop word ("Petit"), or only a link,
+    // e-mail, phone or file, which the masks already cover and which would
+    // otherwise capture every such token typed.
+    if (words.some((w) => !isPlaceholderWord(w)) && !(words.length === 1 && STOP_WORDS.has(words[0]!))) this.addPhrase(words, ref);
+
+    // Words come from the raw name, so "Cdiscount" registers from "Cdiscount.com" and "Kerbrat" from an e-mail label.
+    const raw = cleanText(phrase);
+    for (const token of raw.match(JOINED_TOKEN) ?? []) {
       const split = toWords(token).words;
       const joined = split.join("");
-      if (joined.length < 3 || STOP_WORDS.has(joined) || split.every((w) => STOP_WORDS.has(w))) continue;
+      if (split.length < 2 || joined.length < 2 || STOP_WORDS.has(joined) || split.every((w) => STOP_WORDS.has(w))) continue;
       this.addPhrase(split, ref);
       this.addPhrase([joined], ref);
     }
+    const { words: rawWords, start, end } = toWords(raw);
     // Reference numbers: two or more adjacent number groups (RG 21/04567, 2024-0187), or one of 5+ digits.
     const isNumber = (w: string) => /^\p{N}+$/u.test(w);
-    for (let k = 0; k < words.length; k++) {
-      if (!isNumber(words[k]!)) continue;
+    for (let k = 0; k < rawWords.length; k++) {
+      if (!isNumber(rawWords[k]!)) continue;
       let last = k;
-      while (last + 1 < words.length && isNumber(words[last + 1]!)) last++;
-      if (last > k) this.addPhrase(words.slice(k, last + 1), ref);
-      for (let g = k; g <= last; g++) if (words[g]!.length >= 5) this.addPhrase([words[g]!], ref);
+      while (last + 1 < rawWords.length && isNumber(rawWords[last + 1]!)) last++;
+      if (last > k) this.addPhrase(rawWords.slice(k, last + 1), ref);
+      for (let g = k; g <= last; g++) if (rawWords[g]!.length >= 5) this.addPhrase([rawWords[g]!], ref);
       k = last;
     }
 
-    const originals = words.map((_, k) => masked.slice(start[k], end[k]));
-    const candidates = words
-      .map((w, k) => ({ w, original: originals[k]! }))
-      .filter(({ w }) => !isPlaceholderWord(w) && w.length >= 2 && !STOP_WORDS.has(w) && !/^\p{N}+$/u.test(w));
+    const candidates = rawWords
+      .map((w, k) => ({ w, original: raw.slice(start[k], end[k]) }))
+      .filter(({ w }) => meaningful(w) && !STOP_WORDS.has(w) && !isNumber(w));
     const hasProperCasing = candidates.some(({ original }) => /\p{Lu}/u.test(original) && /\p{Ll}/u.test(original));
     for (const { w, original } of candidates) {
       // Name-like: any capital (Delcourt, bioMérieux, BNP), no lowercase at all (caseless scripts), or a digit.
@@ -321,8 +345,8 @@ export class Pseudonymizer {
 
   private addTitle(title: string) {
     const { words } = toWords(maskText(title).masked);
-    // A title made only of common words ("Budget", "Réunion") would garble every question.
-    if (words.some((w) => isPlaceholderWord(w) || (w.length >= 2 && !STOP_WORDS.has(w)))) this.addPhrase(words, "[tâche]");
+    // A title made only of common words ("Budget", "Réunion") or only of a link/phone/file would garble every question.
+    if (words.some((w) => !isPlaceholderWord(w) && meaningful(w) && !STOP_WORDS.has(w))) this.addPhrase(words, "[tâche]");
   }
 
   private addPhrase(allWords: readonly string[], replacement: string) {
@@ -370,11 +394,15 @@ export class Pseudonymizer {
     return best;
   }
 
-  redact(text: string): string {
+  /**
+   * `keepRefs` for the model's own earlier replies, sent back in their
+   * pseudonymized form: their `[Dn]` refs stay refs. Anywhere else a "[D12]"
+   * (a cote, a road) loses its brackets, so the model can't take it for a ref.
+   */
+  redact(text: string, { keepRefs = false }: { keepRefs?: boolean } = {}): string {
     if (!this.complete) throw new TooManyNames();
-    // A "[D12]" in typed text (a cote, a road, or a ref restore() left alone)
-    // must not reach the model looking like a dossier ref.
-    const { masked, tokens } = maskText(text.replace(/\[(D\d{1,5})\]/g, "$1"));
+    const clean = cleanText(text);
+    const { masked, tokens } = maskText(keepRefs ? clean : clean.replace(/\[(D\d{1,5})\]/g, "$1"));
     const { words, start, end } = toWords(masked);
     const ids = words.map((w) => this.wordIds.get(w) ?? -1);
     let out = "";
@@ -414,7 +442,8 @@ export class Pseudonymizer {
    * history.
    */
   restore(text: string, allowedRefs?: ReadonlySet<string>): string {
-    const glues = (ch: string | undefined) => ch !== undefined && foldChar(ch) !== SEPARATOR;
+    // Private-use characters count as glue too: redact() strips them, which would join the neighbours.
+    const glues = (ch: string | undefined) => ch !== undefined && (foldChar(ch) !== SEPARATOR || /[\uE000-\uF8FF]/u.test(ch));
     return text
       .replace(/\](?=\[D\d+\])/g, "] ")
       .replace(/\[(D\d+)\]/g, (match, ref: string, offset: number, whole: string) => {

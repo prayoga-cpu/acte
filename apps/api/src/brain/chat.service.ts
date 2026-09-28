@@ -42,6 +42,13 @@ Données :
 
 const unavailable = () => new ServiceUnavailableException({ error: { code: "llm_unavailable", message: "Assistant unavailable" } });
 
+/** First `max` UTF-16 units, never ending on half a surrogate pair. */
+const cut = (s: string, max: number) => {
+  if (s.length <= max) return s;
+  const code = s.charCodeAt(max - 1);
+  return s.slice(0, code >= 0xd800 && code <= 0xdbff ? max - 1 : max);
+};
+
 const duration = (minutes: number) => ({ h: Math.floor(minutes / 60), min: minutes % 60 });
 
 const budgetUse = (d: DossierUsage) => (d.budgetMinutes ? d.usedMinutes / d.budgetMinutes : -1);
@@ -129,17 +136,18 @@ export class ChatService {
     );
     // Fail closed: more names than can be masked means no call at all.
     if (!pseudo.complete) throw unavailable();
-    const messages: LlmMessage[] = [
-      { role: "system", content: SYSTEM_PROMPT + JSON.stringify(context) },
-      ...body.history.map((turn) => ({ role: turn.role, content: pseudo.redact(turn.content).slice(0, MAX_TURN_CHARS) })),
-      { role: "user", content: pseudo.redact(body.message) },
+    const conversation: LlmMessage[] = [
+      // The model's own earlier replies come back in their pseudonymized form: keep their refs.
+      ...body.history.map((turn) => ({ role: turn.role, content: cut(pseudo.redact(turn.content, { keepRefs: turn.role === "assistant" }), MAX_TURN_CHARS) })),
+      { role: "user" as const, content: pseudo.redact(body.message) },
     ];
+    const messages: LlmMessage[] = [{ role: "system", content: SYSTEM_PROMPT + JSON.stringify(context) }, ...conversation];
 
     const text = toPlainText(await this.llm.complete(messages));
     if (!text) throw unavailable();
-    // Only refs the model was actually shown get their name back.
-    const shown = new Set(messages.flatMap((m) => [...m.content.matchAll(/\[(D\d+)\]|"ref":"(D\d+)"/g)].map((r) => (r[1] ?? r[2])!)));
-    return ChatReply.parse({ reply: pseudo.restore(text, shown) });
+    // Only refs the model was actually shown — in the figures or the conversation, not the prompt's example — get their name back.
+    const shown = new Set([...context.dossiers.map((d) => d.ref), ...conversation.flatMap((m) => [...m.content.matchAll(/\[(D\d+)\]/g)].map((r) => r[1]!))]);
+    return ChatReply.parse({ reply: pseudo.restore(text, shown), history: text });
   }
 
   /**
