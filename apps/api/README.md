@@ -52,6 +52,37 @@ by default so a real firm never sees what could read as a working
 download; flip it on only for an internal demo that will explicitly call
 out the simulation.
 
+**LLM chat (D-015), off by default.** The Cerveau d'ACTE chat calls an
+OpenAI-compatible LLM API from `apps/api` only (never the browser). To try it
+locally, add to the repo-root `.env`:
+
+```
+LLM_CHAT_ENABLED=true
+LLM_API_KEY=<your Mistral API key>
+LLM_MODEL=mistral-small-latest   # default on Mistral; use a model your Mistral plan allows
+```
+
+To use Scaleway Generative APIs instead, set all three: `LLM_BASE_URL=https://api.scaleway.ai/v1`,
+a Scaleway secret key in `LLM_API_KEY`, and a Scaleway model id in `LLM_MODEL`
+(e.g. `mistral-small-3.2-24b-instruct-2506`; Mistral's `-latest` aliases don't
+exist there). `LLM_MODEL` is only optional on Mistral.
+
+With the flag off or the key missing, `POST /v1/me/chat` answers 503
+`llm_disabled` and the panel keeps its deterministic replies. The provider
+receives aggregates with opaque dossier refs **plus the member's chat turns**,
+pseudonymized best-effort: known dossier names and client labels (and their
+words, apostrophe forms and reference numbers), the member's last 500 task
+titles typed in full, and links, e-mails, whitespace-free filenames and paths
+with a common extension, phone numbers in common French and international
+formats, and 6+ digit runs. It fails closed (no provider call) for a firm with
+more names than it can mask. Anything else typed — an opposing party's name, a
+filename with spaces, pasted content — goes out as typed; the
+full list is D-015's residual risk in `DECISIONS.md`, which you should read
+before pointing a real firm at it. Rate limits are in memory, per instance (one request in flight per member).
+Mistral's free tier can allow some models and not others (a model capped at
+zero answers 429 on every call); if replies fall back to the deterministic
+ones, try `LLM_MODEL=ministral-14b-latest`.
+
 Then, with Postgres 16 reachable at `DATABASE_URL` (docker-compose, or a
 native install — no Docker was available when this was scaffolded, so it
 was verified against a native `postgresql@17` service; either works):

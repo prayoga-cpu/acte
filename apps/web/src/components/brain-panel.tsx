@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import type { ActivityEntry, BrainInsight, DossierUsage, HomeSummary, TeamMemberSummary } from "@acte/contracts";
+import { useEffect, useRef, useState } from "react";
+import type { ActivityEntry, BrainInsight, ChatReply, ChatTurn, DossierUsage, HomeSummary, TeamMemberSummary } from "@acte/contracts";
+import { api, ApiError } from "@/lib/api-client";
 import { fmtEurFromCents, fmtMin } from "@/lib/format";
 import { useI18n } from "@/i18n/locale-context";
 import { isRecentReminder } from "@/lib/reminders";
@@ -10,11 +11,14 @@ interface ChatMessage {
   id: string;
   who: "user" | "ai";
   text: string;
+  /** An AI bubble still showing the typing dots; its text is filled in place (prototype sendChat). */
+  pending?: boolean;
 }
 
 /**
- * Deterministic, templated replies from real data — no LLM before stage 5
- * (docs/02-architecture/AI_MATCHING.md, PROTOTYPE_MAP.md "botReply").
+ * Deterministic, templated replies from real data (PROTOTYPE_MAP.md
+ * "botReply"). The fallback whenever the API's LLM chat (D-015) is disabled
+ * or fails.
  *
  * The three data-templated sentences below have no dictionary entry (they're
  * composed from live numbers, not static copy) and stay French-only, same as
@@ -148,16 +152,55 @@ export function BrainPanel({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
+  const thinking = messages.some((m) => m.pending);
+  // Set once the API says the LLM chat is off (D-015), so we stop asking.
+  const llmDisabled = useRef(false);
+  const feedRef = useRef<HTMLDivElement>(null);
 
-  const send = (text: string) => {
-    if (!text.trim()) return;
-    const userMsg: ChatMessage = { id: crypto.randomUUID(), who: "user", text };
-    setMessages((m) => [...m, userMsg]);
-    setInput("");
-    window.setTimeout(() => {
-      setMessages((m) => [...m, { id: crypto.randomUUID(), who: "ai", text: botReply(text, summary, dossiers, t.brain.fallbackReply) }]);
-    }, 400);
+  // Prototype addBubble: keep the newest bubble in view.
+  useEffect(() => {
+    const feed = feedRef.current;
+    if (feed && messages.length > 0) feed.scrollTop = feed.scrollHeight;
+  }, [messages]);
+
+  const answer = async (text: string, history: ChatTurn[]): Promise<string> => {
+    const local = () => botReply(text, summary, dossiers, t.brain.fallbackReply);
+    if (!llmDisabled.current) {
+      try {
+        return (await api.post<ChatReply>("/v1/me/chat", { message: text, history })).reply;
+      } catch (e) {
+        if (e instanceof ApiError && e.code === "llm_disabled") llmDisabled.current = true;
+        else return local();
+      }
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 400));
+    return local();
   };
+
+  // Set synchronously, so a click landing before React re-renders can't start a second send.
+  const sending = useRef(false);
+  const send = async (text: string) => {
+    if (!text.trim() || thinking || sending.current) return;
+    sending.current = true;
+    // Whole turns: the API pseudonymizes before it truncates (D-015).
+    const history: ChatTurn[] = messages
+      .filter((m) => !m.pending && m.text && m.text.length <= 4000)
+      .slice(-8)
+      .map((m) => ({ role: m.who === "user" ? "user" : "assistant", content: m.text }));
+    const replyId = crypto.randomUUID();
+    setMessages((m) => [...m, { id: crypto.randomUUID(), who: "user", text }, { id: replyId, who: "ai", text: "", pending: true }]);
+    setInput("");
+    const reply = await answer(text.slice(0, 500), history);
+    setMessages((m) => m.map((msg) => (msg.id === replyId ? { ...msg, text: reply, pending: false } : msg)));
+    sending.current = false;
+  };
+  // The dictation timeout below must use the latest send and input, not the ones from the render that started it.
+  const sendRef = useRef(send);
+  const inputRef = useRef(input);
+  useEffect(() => {
+    sendRef.current = send;
+    inputRef.current = input;
+  });
 
   /**
    * Simulated voice dictation — exactly like the prototype's mic-btn
@@ -167,14 +210,15 @@ export function BrainPanel({
    * DECISIONS.md D-011.
    */
   const startListening = () => {
-    if (listening) return;
+    if (listening || thinking) return;
     setListening(true);
     setInput("");
     onToast(t.brain.voiceSimulated);
     window.setTimeout(() => setInput(t.brain.chipSummary), 1300);
     window.setTimeout(() => {
       setListening(false);
-      send(t.brain.chipSummary);
+      // Like the prototype, send what is in the input now: empty if the member already sent it by hand.
+      void sendRef.current(inputRef.current);
     }, 2100);
   };
 
@@ -210,7 +254,7 @@ export function BrainPanel({
           </button>
         </div>
 
-        <div className="scroll-thin flex-1 space-y-3 overflow-y-auto px-4 py-4">
+        <div ref={feedRef} className="scroll-thin flex-1 space-y-3 overflow-y-auto px-4 py-4">
           <div className="glass-soft rounded-2xl border-l-2 border-l-gold/60 p-3.5">
             <p className="eyebrow !text-gold-pale/80">{t.brain.aiAnalysis}</p>
             <div className="mt-1.5 space-y-2 text-[12.5px] leading-relaxed text-ivory/90">
@@ -256,16 +300,29 @@ export function BrainPanel({
                   {m.text}
                 </div>
               ) : (
-                <div className="glass-soft max-w-[90%] rounded-2xl rounded-bl-md px-3.5 py-2.5 text-[12.5px] leading-relaxed text-ivory/90">{m.text}</div>
+                <div className="glass-soft max-w-[90%] rounded-2xl rounded-bl-md px-3.5 py-2.5 text-[12.5px] leading-relaxed text-ivory/90">
+                  {m.pending ? (
+                    // Prototype sendChat's typing dots; the reply replaces them in this same bubble.
+                    <span className="inline-flex gap-1">
+                      <span className="typing-dot inline-block h-1.5 w-1.5 rounded-full bg-ash" />
+                      <span className="typing-dot inline-block h-1.5 w-1.5 rounded-full bg-ash" />
+                      <span className="typing-dot inline-block h-1.5 w-1.5 rounded-full bg-ash" />
+                    </span>
+                  ) : (
+                    m.text
+                  )}
+                </div>
               )}
             </div>
           ))}
+
         </div>
 
         <div className="border-t border-white/[0.06] p-3.5">
           <div className="mb-2.5 flex flex-wrap gap-1.5">
             <button
-              onClick={() => send(t.brain.chipSummary)}
+              onClick={() => void send(t.brain.chipSummary)}
+              disabled={listening || thinking}
               className="rounded-full border border-white/[0.09] bg-white/[0.03] px-3 py-1 text-[11.5px] text-ash transition hover:border-gold/30 hover:text-gold-pale"
             >
               {t.brain.chipSummary}
@@ -274,7 +331,7 @@ export function BrainPanel({
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              send(input);
+              void send(input);
             }}
             className="flex items-center gap-2"
           >
@@ -282,6 +339,7 @@ export function BrainPanel({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               type="text"
+              maxLength={500}
               placeholder={listening ? t.brain.listeningPlaceholder : t.brain.placeholder}
               autoComplete="off"
               disabled={listening}
@@ -290,6 +348,7 @@ export function BrainPanel({
             <button
               type="button"
               onClick={startListening}
+              disabled={thinking}
               aria-label={t.brain.voiceAria}
               title={t.brain.voiceAria}
               className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border text-ash transition hover:border-gold/35 hover:text-gold-pale active:scale-95 ${

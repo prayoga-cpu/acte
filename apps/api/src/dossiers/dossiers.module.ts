@@ -7,5 +7,6 @@ import { DossiersService } from "./dossiers.service.js";
   imports: [AuthModule],
   controllers: [DossiersController],
   providers: [DossiersService],
+  exports: [DossiersService],
 })
 export class DossiersModule {}
