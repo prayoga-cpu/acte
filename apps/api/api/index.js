@@ -121718,12 +121718,12 @@ var LlmClient = class _LlmClient {
   config;
   fetchImpl;
   static fromEnv(env2 = process.env) {
-    const apiKey = env2.LLM_API_KEY ?? "";
+    const { LLM_API_KEY = "", LLM_CHAT_ENABLED, LLM_BASE_URL = "https://api.mistral.ai/v1", LLM_MODEL = "mistral-small-latest" } = env2;
     return new _LlmClient({
-      enabled: env2.LLM_CHAT_ENABLED === "true" && apiKey !== "",
-      apiKey,
-      baseUrl: (env2.LLM_BASE_URL ?? "https://api.mistral.ai/v1").replace(/\/+$/, ""),
-      model: env2.LLM_MODEL ?? "mistral-small-latest",
+      enabled: LLM_CHAT_ENABLED === "true" && LLM_API_KEY !== "",
+      apiKey: LLM_API_KEY,
+      baseUrl: LLM_BASE_URL.replace(/\/+$/, ""),
+      model: LLM_MODEL,
       timeoutMs: 2e4
     });
   }

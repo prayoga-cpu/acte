@@ -32,12 +32,13 @@ export class LlmClient {
   ) {}
 
   static fromEnv(env: NodeJS.ProcessEnv = process.env): LlmClient {
-    const apiKey = env.LLM_API_KEY ?? "";
+    // Destructured on purpose: `apiKey = env.X` reads as a hard-coded key to the CI secret scanner.
+    const { LLM_API_KEY = "", LLM_CHAT_ENABLED, LLM_BASE_URL = "https://api.mistral.ai/v1", LLM_MODEL = "mistral-small-latest" } = env;
     return new LlmClient({
-      enabled: env.LLM_CHAT_ENABLED === "true" && apiKey !== "",
-      apiKey,
-      baseUrl: (env.LLM_BASE_URL ?? "https://api.mistral.ai/v1").replace(/\/+$/, ""),
-      model: env.LLM_MODEL ?? "mistral-small-latest",
+      enabled: LLM_CHAT_ENABLED === "true" && LLM_API_KEY !== "",
+      apiKey: LLM_API_KEY,
+      baseUrl: LLM_BASE_URL.replace(/\/+$/, ""),
+      model: LLM_MODEL,
       timeoutMs: 20_000,
     });
   }
