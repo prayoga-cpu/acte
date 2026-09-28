@@ -4,12 +4,12 @@
 #   2. Neon migrations run BEFORE the new code (new code on an old schema fails every sign-in)
 #   3. API, then web
 #   4. smoke test
-# Locally it uses your logged-in `vercel` CLI; in GitHub Actions it uses VERCEL_TOKEN and DATABASE_URL.
+# Locally it uses your logged-in `vercel` CLI; in GitHub Actions, VERCEL_TOKEN (it reads the database URL from Vercel).
 set -euo pipefail
 
-ORG_ID=team_eRmgtIyZ0SuLuZHzkmgkzZMl
-API_PROJECT_ID=prj_p9POsf9F7k1PAYc9zUDOheqSyHHi
-WEB_PROJECT_ID=prj_boXAgGXXcWjBPUHKNTdHz2tjhYOb
+TEAM=team_eRmgtIyZ0SuLuZHzkmgkzZMl
+BACKEND_PROJECT=prj_p9POsf9F7k1PAYc9zUDOheqSyHHi
+FRONTEND_PROJECT=prj_boXAgGXXcWjBPUHKNTdHz2tjhYOb
 API_URL=https://acte-api.vercel.app
 WEB_URL=https://acte-web.vercel.app
 VERCEL=(vercel)
@@ -36,15 +36,15 @@ if [ -n "${DATABASE_URL:-}" ]; then
 else
   env_file=$(mktemp)
   trap 'rm -f "$env_file"' EXIT
-  VERCEL_ORG_ID=$ORG_ID VERCEL_PROJECT_ID=$API_PROJECT_ID "${VERCEL[@]}" env pull "$env_file" --environment=production -y >/dev/null
+  VERCEL_ORG_ID=$TEAM VERCEL_PROJECT_ID=$BACKEND_PROJECT "${VERCEL[@]}" env pull "$env_file" --environment=production -y >/dev/null
   (cd apps/api && node --env-file="$env_file" --import tsx src/db/migrate.ts)
   rm -f "$env_file"
 fi
 
 # Both projects have their Root Directory set (apps/api, apps/web), so deploys run from the repo root.
 echo "→ 3/4 Deploying the API, then the web app"
-VERCEL_ORG_ID=$ORG_ID VERCEL_PROJECT_ID=$API_PROJECT_ID "${VERCEL[@]}" deploy --prod --yes >/dev/null
-VERCEL_ORG_ID=$ORG_ID VERCEL_PROJECT_ID=$WEB_PROJECT_ID "${VERCEL[@]}" deploy --prod --yes >/dev/null
+VERCEL_ORG_ID=$TEAM VERCEL_PROJECT_ID=$BACKEND_PROJECT "${VERCEL[@]}" deploy --prod --yes >/dev/null
+VERCEL_ORG_ID=$TEAM VERCEL_PROJECT_ID=$FRONTEND_PROJECT "${VERCEL[@]}" deploy --prod --yes >/dev/null
 
 echo "→ 4/4 Smoke test"
 check() {
