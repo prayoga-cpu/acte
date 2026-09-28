@@ -1,0 +1,3 @@
+# Verified false positive: `const apiKey = env2.LLM_API_KEY ?? ""` in the esbuild bundle is an
+# environment lookup, not a key (fixed in the next commit by destructuring). See STATUS.md, 2026-09-28.
+fd49b7897058f94074fb86f4c8044236fdb3ef78:apps/api/api/index.js:generic-api-key:121721
