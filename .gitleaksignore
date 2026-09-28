@@ -1,3 +1,6 @@
-# Verified false positive: `const apiKey = env2.LLM_API_KEY ?? ""` in the esbuild bundle is an
-# environment lookup, not a key (fixed in the next commit by destructuring). See STATUS.md, 2026-09-28.
+# Verified false positives (rule generic-api-key), pinned to exact commit/file/line.
+# fd49b78: an environment-variable lookup in the esbuild bundle, rewritten in 1d719ab.
+# 38ef978: two notes that quoted that same line verbatim, reworded in the next commit.
 fd49b7897058f94074fb86f4c8044236fdb3ef78:apps/api/api/index.js:generic-api-key:121721
+38ef978f89df599d10f8748688050e2b1e446a9a:.gitleaksignore:generic-api-key:1
+38ef978f89df599d10f8748688050e2b1e446a9a:STATUS.md:generic-api-key:204
