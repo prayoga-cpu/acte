@@ -124,21 +124,29 @@ database", grant it once: `psql -d postgres -c "ALTER ROLE acte CREATEDB;"`
 Seeded members log in with `<initials>@charpentier-associes.fr` (e.g.
 `vc@charpentier-associes.fr`) and the password printed by `db:seed`.
 
-## Deploying the Vercel beta (D-013)
+## Deploying the Vercel beta (D-013, D-016)
 
-Neither Vercel project is linked to GitHub — pushing to `main` deploys
-nothing. A deploy is manual, and the API is served from the **committed**
-esbuild bundle `api/index.js`, not from `src/`. Order matters:
+**Automatic:** every push to `main` that passes CI is deployed by the
+`deploy-beta` GitHub workflow, once the repository has a `VERCEL_TOKEN`
+secret (create a token at vercel.com/account/tokens with access to the team,
+then `gh secret set VERCEL_TOKEN`). Until then the workflow skips with a
+notice. **By hand:** `pnpm deploy:beta` from a clean, committed tree, with the
+`vercel` CLI logged in.
 
-1. **Migrate Neon first**, with `DATABASE_URL` pointed at Neon for that one
-   run: `pnpm --filter @acte/api db:migrate`. Migrations here are additive, so
-   the currently deployed bundle keeps working against the migrated schema;
-   the reverse order (new bundle, old schema) fails every authenticated
-   request.
-2. **Rebuild and commit the bundle**: `node scripts/build-vercel.mjs` in
-   `apps/api`, commit `api/index.js` with the source it came from. The build
-   is deterministic; if `src/` changed and `api/index.js` didn't, the bundle
-   is stale.
-3. **Set `BREVO_API_KEY`** on the `acte-api` project if it isn't — without it,
-   magic links and invitations now fail on purpose (see above).
-4. `vercel deploy --prod` from `apps/api`, then from `apps/web`.
+Both run `scripts/deploy-beta.sh`, which does the steps in the only safe order:
+
+1. **Checks the committed bundle.** The API is served from the committed
+   esbuild bundle `api/index.js`, not from `src/`; the script rebuilds it and
+   stops if it differs. Fix: `node scripts/build-vercel.mjs` in `apps/api`,
+   commit `api/index.js` with the source it came from.
+2. **Migrates Neon first.** Migrations here are additive, so the running
+   deployment keeps working on the migrated schema; the reverse order (new
+   code, old schema) fails every successful sign-in — that happened on
+   2026-09-28. A migration that is *not* additive (drop, rename) needs two
+   deploys: stop using the column first, drop it in the next one.
+3. **Deploys the API, then the web app**, from the repo root (both projects
+   have their Root Directory set to `apps/api` / `apps/web`).
+4. **Smoke-tests** the API, `/login`, and a refused sign-in.
+
+`BREVO_API_KEY` must be set on the `acte-api` project for magic links and
+invitations to work (they fail on purpose without it, see above).
