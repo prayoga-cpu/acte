@@ -20,15 +20,15 @@ Owners: **D** = Darwin (engineering) · **Y** = Yann (client, product) · **E** 
 | B2 | Brief v2 makes the desktop tracker the core product; the agreement excludes it (clause 1). Needs a scope amendment or a paid Diagnostic. | D, E, Y | Stages 3–5 |
 | B3 | Prototype shows "ISO 27001 en préparation" and "audits de sécurité annuels" to firms. Neither is true. | Y | Any demo to a firm |
 | B4 | `/terms` and `/privacy` (new marketing site, see below) ship with placeholder legal identifiers (SIRET, registered address, legal representative, DPO contact) — no company registration exists yet (Stage 0 human side). Needs real info and a lawyer's review before any real firm sees them. | Y | Any demo to a firm |
-| B5 | ~~No email verification on plain signup.~~ **Closed in code 2026-10-01 (D-017, uncommitted):** signup now requires a confirmed address, and the squatting and password-wipe paths are gone. What remains is operational: email delivery wherever it runs (see B7). | D | — |
+| B5 | ~~No email verification on plain signup.~~ **Closed in code 2026-10-01 (D-017, `c243486`):** signup now requires a confirmed address, and the squatting and password-wipe paths are gone. What remains is operational: email delivery wherever it runs (see B7). | D | — |
 | B6 | Prototype copy that isn't true is still shown: Cloud and the admin console say data is "chiffrée de bout en bout" and hosted in Paris (it is server-side field encryption, and the beta runs on Vercel and Neon), and the admin console says "capture passive en fonctionnement" with no Companion. Same family as B3; needs Yann to reword or to put it behind the compliance flag (BUG-11). | Y | Any demo to a firm |
-| B7 | The beta's API has no `BREVO_API_KEY` (and no `CRON_SECRET`). Once the 2026-10-01 work is deployed, new signups, magic links, password resets and invitations all need email, so they fail there until the key is set; the alert digest also needs the secret. | D | Testing signup and invites on the beta |
+| B7 | The beta's API has no `BREVO_API_KEY` (and no `CRON_SECRET`). Since `c243486`, new signups, magic links, password resets and invitations all need email, so they don't work there until the key is set; the alert digest also needs the secret. | D | Testing signup and invites on the beta |
 
 ---
 
 ## Feature status
 
-**Last verified:** 2026-10-01 on the working tree (uncommitted changes on top of `df19157`; **the beta still runs `df19157`**) · ✅ 32 working · 🟡 14 partial, simulated or off · ❌ 14 not built · 🐞 3 open bugs
+**Last verified:** 2026-10-01 locally on `c243486` (pushed to `main`; the beta redeploys from `main` after each green CI run, D-016 — the Log says what was confirmed there) · ✅ 32 working · 🟡 14 partial, simulated or off · ❌ 14 not built · 🐞 3 open bugs
 
 The checked, current state of the product. The stage checklists further down record how it got here; where they disagree, this section wins and the checklist should be corrected.
 
@@ -43,7 +43,7 @@ The checked, current state of the product. The stage checklists further down rec
 
 | | Beta | Local |
 |---|---|---|
-| URL | https://acte-web.vercel.app — **does not have the 2026-10-01 changes until they are committed and deployed** | `pnpm --filter @acte/api db:reset`, then `pnpm dev` → http://localhost:3000 |
+| URL | https://acte-web.vercel.app — redeployed from `main` after each green CI run (D-016) | `pnpm --filter @acte/api db:reset`, then `pnpm dev` → http://localhost:3000 |
 | Accounts | `vc@charpentier-associes.fr` / `acte-dev-2026` (admin). `pb@`, `so@`, `hd@`, `cl@` use the same password and aren't admins | Same |
 | Today's Journal | Empty: the demo tasks are dated 2026-09-23, the day the beta was seeded, so add manual entries | The prototype's day (6 h 20 / 3 h 10 / 3 h 10) right after `db:reset` |
 | Emails (signup confirmation, magic link, password reset, invites, reminders, alert digest) | ❌ Not delivered: `acte-api` has no `BREVO_API_KEY`. **New signups won't work on the beta until it is set** (D-017); magic-link and reset requests say "sent" but nothing arrives; invites and reminders show an error. The demo accounts still sign in | ✅ Saved as JSON files in the dev outbox (`$EMAIL_DEV_OUTBOX`, default `<os tmpdir>/acte-dev-outbox`): open the file and follow its `link` |
@@ -130,15 +130,15 @@ Each row was exercised by the checks above. "route" = Supertest route tests, "e2
 
 | ID | Bug | Where | Status |
 |---|---|---|---|
-| BUG-1 | Manual entries started at 22:00 or later were saved on the next day | `packages/contracts/src/time.ts` (shared helper, 6 tests) | Fixed 2026-10-01 (uncommitted) |
-| BUG-2 | « Tout intégrer » validated every pending task of the member, including earlier days the Journal didn't show | `POST /v1/tasks/validate-all` takes the listed task ids; earlier days are now listed | Fixed 2026-10-01 (uncommitted) |
-| BUG-3 | The first magic-link login deleted an unverified account's password | Email verification required (D-017); password reset added | Fixed 2026-10-01 (uncommitted) |
-| BUG-4 | The `/login` magic link landed on the API's 404 | `apps/api/src/auth/auth.config.ts` sets where emailed links return | Fixed 2026-10-01 (uncommitted) |
-| BUG-5 | Invoice drafts billed all validated time ever, and twice through the API | `task.invoice_id`, D-020 | Fixed 2026-10-01 (uncommitted) |
-| BUG-6 | `GET` and `DELETE /v1/me/keys` returned `keyHash` and `memberId` | `apps/api/src/data-access/key-summary.ts` | Fixed 2026-10-01 (uncommitted) |
-| BUG-7 | A new founder's hourly rate was 0 | `members.repository.ts` `createFounder` | Fixed 2026-10-01 (uncommitted) |
-| BUG-8 | A failed invite resend killed the invitee's current link | `invitations.repository.ts` `restore` | Fixed 2026-10-01 (uncommitted) |
-| BUG-9 | Flaky e2e test: a text matcher also hit the activity feed | `apps/web/e2e/admin-console.spec.ts` | Fixed 2026-10-01 (uncommitted) |
+| BUG-1 | Manual entries started at 22:00 or later were saved on the next day | `packages/contracts/src/time.ts` (shared helper, 6 tests) | Fixed (`c243486`) |
+| BUG-2 | « Tout intégrer » validated every pending task of the member, including earlier days the Journal didn't show | `POST /v1/tasks/validate-all` takes the listed task ids; earlier days are now listed | Fixed (`c243486`) |
+| BUG-3 | The first magic-link login deleted an unverified account's password | Email verification required (D-017); password reset added | Fixed (`c243486`) |
+| BUG-4 | The `/login` magic link landed on the API's 404 | `apps/api/src/auth/auth.config.ts` sets where emailed links return | Fixed (`c243486`) |
+| BUG-5 | Invoice drafts billed all validated time ever, and twice through the API | `task.invoice_id`, D-020 | Fixed (`c243486`) |
+| BUG-6 | `GET` and `DELETE /v1/me/keys` returned `keyHash` and `memberId` | `apps/api/src/data-access/key-summary.ts` | Fixed (`c243486`) |
+| BUG-7 | A new founder's hourly rate was 0 | `members.repository.ts` `createFounder` | Fixed (`c243486`) |
+| BUG-8 | A failed invite resend killed the invitee's current link | `invitations.repository.ts` `restore` | Fixed (`c243486`) |
+| BUG-9 | Flaky e2e test: a text matcher also hit the activity feed | `apps/web/e2e/admin-console.spec.ts` | Fixed (`c243486`) |
 | BUG-10 | The Home week label had no date (fixed). At 390 px the header still overflows sideways — the prototype's does too (482 px), the port's more (574 px) because of the bell and the FR/EN button | `apps/web/src/components/shell.tsx` | Open: the overflow (Yann: accept, or drop a control on phones) |
 | BUG-11 | Copy that isn't true. Fixed: the Settings rate note and Home « Capture passive ». Left: Cloud and the admin console say data is encrypted end to end and hosted in Paris, and the admin console says « capture passive en fonctionnement » — prototype copy, not true of server-side encryption on the Vercel beta with no Companion | `apps/web/src/i18n/fr.ts` (`cloud.professionalSecrecyBody`, `admin.encryptionTitle`, `admin.captureRunning`) | Open: B6 (Yann) |
 | BUG-12 | The weekly chart (Home) and the monthly chart (Stats) draw bars with no height: a percentage height inside a column with no height of its own. The prototype renders 0 px too (measured), so the port is faithful to a prototype bug | `home-view.tsx`, `stats-view.tsx`; prototype `renderChart` | Open (Yann: fix in the port, departing from the prototype?) |
@@ -266,7 +266,7 @@ Not a `ROADMAP.md` stage — a reprioritization Darwin made 2026-09-23 after rev
 - [ ] Still no repo-level way to *detect* a stale/mismatched `ENCRYPTION_MASTER_KEY` before it 500s every task/dossier read with an opaque GCM auth-tag error — `db:reset` fixes recovery, not diagnosis; a clearer error message at the crypto layer would help whoever hits this next notice the real cause faster than reading the server log
 - [ ] Production hosting decision (D-013, OPEN) — the Vercel beta works but isn't a real production answer; blocks anything beyond informal testers
 - [ ] Legal identity for `/terms`/`/privacy` (B4, OPEN) — placeholder SIRET/address/DPO contact; blocks any real firm seeing the site
-- [x] Fixed BUG-1 to BUG-9, and the fixable halves of BUG-10 and BUG-11 (2026-10-01, uncommitted) — see **Known bugs**. Left for Yann: the phone-width header (BUG-10), the untrue prototype copy (BUG-11, B6) and the zero-height chart bars the prototype also has (BUG-12)
+- [x] Fixed BUG-1 to BUG-9, and the fixable halves of BUG-10 and BUG-11 (2026-10-01, `c243486`) — see **Known bugs**. Left for Yann: the phone-width header (BUG-10), the untrue prototype copy (BUG-11, B6) and the zero-height chart bars the prototype also has (BUG-12)
 - [x] Audit follow-ups built the same day (D-017 to D-020): required email verification, password reset and change; task edit / delete / undo, earlier days in the Journal and day navigation; rate stamped at validation and invoices that bill time once; real "this month" figures; dossier and firm rename; theme saved per member; the prototype details the port had dropped (« Corrigé ✓ », validation animations, per-view insight, per-dossier card, stats growth badge and captured-time card, profile highlights); data export; and, as Darwin's overrides, the Feedback tab, admin-rights transfer and the email alert digest. Route tests added (`pnpm --filter @acte/api test:routes`, 32) and wired into CI
 
 ### Human side
@@ -276,7 +276,7 @@ Not a `ROADMAP.md` stage — a reprioritization Darwin made 2026-09-23 after rev
 - [ ] Rotate the Mistral API key that was pasted into an agent chat on 2026-09-28, once testing is done; put the new one only in the root `.env` (**D**)
 - [ ] Same D-013/B4 items tracked in Stage 1 and the Marketing site section above (**Y**)
 
-- [ ] Commit and deploy the 2026-10-01 work: nothing from that day is committed, and the beta still runs `df19157` (**D**)
+- [x] Commit and deploy the 2026-10-01 work: committed and pushed as `c243486`; `deploy-beta` runs after CI (D-016)
 - [ ] Set `BREVO_API_KEY` (and a verified sender) and `CRON_SECRET` on `acte-api` before or with that deploy, or signup, magic links, password resets and invitations fail on the beta (B7, D-017, D-019) (**D**)
 - [ ] Review the controls added outside the prototype (D-018) and the three overrides (D-019: Feedback tab, admin-rights transfer, alert emails), and decide D-004 / D-005 for real (**Y**)
 - [ ] Decide what to do with the untrue prototype copy (B6, BUG-11), the phone-width header (BUG-10) and the chart bars the prototype draws with no height (BUG-12) (**Y**)
