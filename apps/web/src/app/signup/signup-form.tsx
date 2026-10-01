@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useI18n } from "@/i18n/locale-context";
 import { Logo } from "@/components/marketing/logo";
 
 export function SignupForm() {
-  const router = useRouter();
   const { t } = useI18n();
   const auth = t.auth;
   const [name, setName] = useState("");
@@ -15,6 +13,8 @@ export function SignupForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // D-017: the account is unusable until the emailed link is followed, so this is where signup ends.
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,18 +24,36 @@ export function SignupForm() {
       const res = await fetch("/v1/auth/sign-up/email", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, callbackURL: `${window.location.origin}/dashboard` }),
       });
       if (!res.ok) {
         setError(auth.signUpError);
         return;
       }
-      router.push("/dashboard");
-      router.refresh();
+      setSentTo(email);
     } finally {
       setBusy(false);
     }
   };
+
+  if (sentTo) {
+    return (
+      <div className="glass fade-up w-full max-w-[380px] p-6">
+        <Link href="/">
+          <Logo />
+        </Link>
+        <p className="mt-4 font-display text-[18px] font-semibold text-ivory">{auth.verifyTitle}</p>
+        <p className="mt-2 text-[12.5px] leading-relaxed text-ash">{auth.verifyBody(sentTo)}</p>
+        <p className="mt-2 text-[11.5px] leading-relaxed text-ash/80">{auth.verifyHint}</p>
+        <Link
+          href="/login"
+          className="mt-5 block w-full rounded-full border border-white/[0.12] px-4 py-2 text-center text-[12.5px] text-ivory/80 transition hover:border-gold/35 hover:text-gold-pale"
+        >
+          {auth.backToLogin}
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="glass fade-up w-full max-w-[380px] p-6">

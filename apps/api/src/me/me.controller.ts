@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Inject, Patch, UseGuards } from "@nestjs/common";
-import { SourceSettings } from "@acte/contracts";
+import { SourceSettings, UpdatePreferencesBody } from "@acte/contracts";
 import type { z } from "zod";
 import { CurrentFirm } from "../auth/current-firm.decorator.js";
 import { SessionGuard } from "../auth/session.guard.js";
@@ -15,6 +15,14 @@ export class MeController {
   @Get("profile")
   profile(@CurrentFirm() ctx: FirmContext) {
     return this.meService.profile(ctx);
+  }
+
+  @Patch("preferences")
+  updatePreferences(
+    @CurrentFirm() ctx: FirmContext,
+    @Body(new ZodValidationPipe(UpdatePreferencesBody)) body: z.infer<typeof UpdatePreferencesBody>,
+  ) {
+    return this.meService.updatePreferences(ctx, body);
   }
 
   @Get("summary")

@@ -11,7 +11,9 @@ export class ZodValidationPipe implements PipeTransform {
       throw new BadRequestException({
         error: {
           code: "invalid_body",
-          message: result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
+          // Zod's enum and literal messages end with "received '<value>'": drop that part, so a
+          // rejected body is never echoed back (API_CONTRACT.md, PRIVACY_MODEL.md).
+          message: result.error.issues.map((i) => `${i.path.join(".")}: ${i.message.replace(/, received .*$/s, "")}`).join("; "),
         },
       });
     }

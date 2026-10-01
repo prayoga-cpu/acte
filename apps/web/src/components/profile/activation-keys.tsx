@@ -45,7 +45,7 @@ export function ActivationKeys() {
   const active = keys.filter((k) => !k.revokedAt);
 
   return (
-    <section className="glass fade-up p-5 md:col-span-3">
+    <section className="glass fade-up p-5 md:col-span-3" data-tour="profile-keys">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="eyebrow">{t.profile.activationKeysTitle}</p>
         <span className="flex items-center gap-1.5 text-[11px] text-ash">

@@ -1,6 +1,8 @@
 import { createHash, randomBytes } from "node:crypto";
 import { Inject, Injectable } from "@nestjs/common";
 import { and, eq, isNull } from "drizzle-orm";
+import type { ActivationKeySummary } from "@acte/contracts";
+import { toKeySummary } from "./key-summary.js";
 import { DB } from "../db/db.module.js";
 import type { Database } from "../db/client.js";
 import { activationKeys } from "../db/schema/index.js";
@@ -33,16 +35,17 @@ export class ActivationKeysRepository {
     return { id: row!.id, prefix: row!.prefix, plainKey };
   }
 
-  async list(ctx: FirmContext) {
-    return this.db.select().from(activationKeys).where(eq(activationKeys.memberId, ctx.memberId));
+  async list(ctx: FirmContext): Promise<ActivationKeySummary[]> {
+    const rows = await this.db.select().from(activationKeys).where(eq(activationKeys.memberId, ctx.memberId));
+    return rows.map(toKeySummary);
   }
 
-  async revoke(ctx: FirmContext, id: string) {
+  async revoke(ctx: FirmContext, id: string): Promise<ActivationKeySummary | null> {
     const [row] = await this.db
       .update(activationKeys)
       .set({ revokedAt: new Date() })
       .where(and(eq(activationKeys.memberId, ctx.memberId), eq(activationKeys.id, id), isNull(activationKeys.revokedAt)))
       .returning();
-    return row ?? null;
+    return row ? toKeySummary(row) : null;
   }
 }

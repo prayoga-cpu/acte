@@ -13,13 +13,15 @@
  */
 import { demoDossiers, demoTasks, demoTeam } from "@acte/contracts";
 import { eq } from "drizzle-orm";
+import { parisDateTimeToIso } from "@acte/contracts";
 import { auth } from "../auth/auth.config.js";
+import { silentSignup } from "../auth/invitation-context.js";
 import { DossiersRepository } from "../data-access/dossiers.repository.js";
 import { FirmKeyService, masterKeyProvider } from "../crypto/firm-key.service.js";
 import type { FirmContext } from "../data-access/firm-context.js";
 import { db, queryClient } from "./client.js";
 import { encryptField } from "../crypto/field-encryption.js";
-import { firms, members, tasks } from "./schema/index.js";
+import { firms, members, tasks, user } from "./schema/index.js";
 import { parisDateKey } from "../lib/time.js";
 
 const DEV_PASSWORD = "acte-dev-2026";
@@ -31,19 +33,7 @@ function emailFor(initials: string): string {
 
 /** "09h15" -> a Date for today (Europe/Paris) at that local time, as a UTC instant. */
 function todayAtParisTime(hhmm: string): Date {
-  const [h, m] = hhmm.replace("h", ":").split(":").map(Number) as [number, number];
-  const todayKey = parisDateKey(new Date());
-  // Paris is UTC+1 (winter) or UTC+2 (summer); approximate with the offset
-  // implied by comparing local formatting, good enough for seed data.
-  const naiveUtc = new Date(`${todayKey}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00Z`);
-  const parisLabel = new Intl.DateTimeFormat("en-GB", {
-    timeZone: "Europe/Paris",
-    hour: "2-digit",
-    hour12: false,
-  }).format(naiveUtc);
-  const offsetHours = h - Number(parisLabel);
-  naiveUtc.setUTCHours(naiveUtc.getUTCHours() + offsetHours);
-  return naiveUtc;
+  return new Date(parisDateTimeToIso(parisDateKey(new Date()), hhmm.replace("h", ":")));
 }
 
 function daysAgo(n: number): Date {
@@ -61,10 +51,14 @@ async function main() {
 
   for (const person of demoTeam) {
     const email = emailFor(person.initials);
-    const signUp = await auth.api.signUpEmail({
-      body: { email, password: DEV_PASSWORD, name: person.displayName },
-    });
+    // Demo accounts are preset as verified (D-017) and get no "confirm your address" email.
+    const signUp = await silentSignup.run(true, () =>
+      auth.api.signUpEmail({
+        body: { email, password: DEV_PASSWORD, name: person.displayName },
+      }),
+    );
     const authUserId = signUp.user.id;
+    await db.update(user).set({ emailVerified: true }).where(eq(user.id, authUserId));
 
     const [memberRow] = await db.select().from(members).where(eq(members.authUserId, authUserId));
     if (!memberRow) throw new Error(`Signup hook did not create a member row for ${email}`);
@@ -86,6 +80,8 @@ async function main() {
         isAdmin: person.initials === "VC",
         status: person.status,
         hourlyRateCents: person.rateEur * 100,
+        // An established firm: its members are not greeted by the first-run welcome (D-021).
+        onboardedAt: new Date(),
       })
       .where(eq(members.id, memberRow.id));
 
@@ -127,6 +123,7 @@ async function main() {
         confidence: 90,
         status: "validated",
         validatedAt: endedAt,
+        rateCents: assignedTo.rateEur * 100,
       });
       await dossierRepo.touchActivity(ctx, dossier.id, endedAt);
     }
@@ -148,6 +145,7 @@ async function main() {
       confidence: 96,
       status: "validated",
       validatedAt: new Date(startedAt.getTime() + 190 * 60_000),
+      rateCents: demoTeam.find((p) => p.initials === "VC")!.rateEur * 100,
     });
     const delcourtId = dossierIdByKey.get("Delcourt");
     if (delcourtId) await dossierRepo.touchActivity(ctx, delcourtId, new Date(startedAt.getTime() + 190 * 60_000));

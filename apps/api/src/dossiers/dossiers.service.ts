@@ -21,6 +21,8 @@ export class DossiersService {
       ...d,
       usedMinutes: usageByDossier.get(d.id)?.validatedMin ?? 0,
       pendingMinutes: usageByDossier.get(d.id)?.pendingMin ?? 0,
+      monthMinutes: usageByDossier.get(d.id)?.monthMin ?? 0,
+      uninvoicedMinutes: usageByDossier.get(d.id)?.uninvoicedMin ?? 0,
     }));
   }
 

@@ -15,4 +15,11 @@ export class ExportsController {
   validatedCsv(@CurrentFirm() ctx: FirmContext) {
     return this.exportsService.validatedCsv(ctx);
   }
+
+  @Get("my-data.json")
+  @Header("Content-Type", "application/json; charset=utf-8")
+  @Header("Content-Disposition", 'attachment; filename="acte-export.json"')
+  myData(@CurrentFirm() ctx: FirmContext) {
+    return this.exportsService.myData(ctx);
+  }
 }

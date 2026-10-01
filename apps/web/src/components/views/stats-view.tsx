@@ -1,7 +1,7 @@
 "use client";
 
 import type { StatsSummary, TaskSource } from "@acte/contracts";
-import { fmtEurFromCents } from "@/lib/format";
+import { fmtEurFromCents, fmtMin } from "@/lib/format";
 import { SourceBadge } from "@/components/journal/source-badge";
 import { useI18n } from "@/i18n/locale-context";
 
@@ -24,6 +24,12 @@ export function StatsView({
   const maxRevenue = Math.max(1, ...stats.months.map((m) => m.revenueCents));
   const totalSourceMin = stats.sourceBreakdown.reduce((s, b) => s + b.minutes, 0) || 1;
   const currentMonth = stats.months[stats.months.length - 1];
+  const previousMonth = stats.months[stats.months.length - 2];
+  // Prototype "+18 % vs juin": shown only when last month has something to compare against.
+  const growthPct =
+    currentMonth && previousMonth && previousMonth.revenueCents > 0
+      ? Math.round(((currentMonth.revenueCents - previousMonth.revenueCents) / previousMonth.revenueCents) * 100)
+      : null;
 
   return (
     <div className="mx-auto max-w-[1080px]">
@@ -33,8 +39,16 @@ export function StatsView({
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <section className="glass fade-up p-5 md:col-span-2 md:row-span-2">
-          <p className="eyebrow">{t.stats.revenueByMonth}</p>
+        <section className="glass fade-up p-5 md:col-span-2 md:row-span-2" data-tour="stats-revenue">
+          <div className="flex items-baseline justify-between">
+            <p className="eyebrow">{t.stats.revenueByMonth}</p>
+            {growthPct !== null && previousMonth && (
+              <p className={`font-mono text-[12px] ${growthPct >= 0 ? "text-emerald-300" : "text-amber-300"}`}>
+                {growthPct >= 0 ? "+" : "−"}
+                {Math.abs(growthPct)} % {t.stats.versus} {previousMonth.label}
+              </p>
+            )}
+          </div>
           <div className="mt-5 flex h-[210px] items-end justify-between gap-3 px-1">
             {stats.months.map((m, i) => {
               const isNow = i === stats.months.length - 1;
@@ -53,21 +67,24 @@ export function StatsView({
           </div>
         </section>
 
-        <section className="glass fade-up p-5">
+        <section className="glass fade-up p-5" data-tour="stats-kpis">
           <p className="eyebrow">{t.stats.hourlyRate}</p>
           <p className="mt-2 font-display text-[25px] font-bold leading-none tracking-tight text-gold-grad">{fmtEurFromCents(averageRateCents)}</p>
           <p className="mt-[22px] text-[12px] text-ash">{t.stats.appliedToValidated}</p>
         </section>
 
-        <section className="glass fade-up p-5">
-          <p className="eyebrow">{t.stats.securedThisMonth}</p>
-          <p className="mt-2 font-display text-[25px] font-bold leading-none tracking-tight text-ivory">
-            {currentMonth ? fmtEurFromCents(currentMonth.revenueCents) : "—"}
+        <section className="glass fade-up p-5" data-tour="stats-kpis" style={{ animationDelay: "0.12s" }}>
+          <p className="eyebrow">{t.stats.capturedThisMonth}</p>
+          <p className="mt-2 font-display text-[25px] font-bold leading-none tracking-tight text-ivory">{fmtMin(stats.capturedMonthMin)}</p>
+          <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/[0.07]">
+            <div className="hbar h-full rounded-full bg-gradient-to-r from-gold-pale to-gold-deep" style={{ width: `${stats.billableMonthPct}%` }} />
+          </div>
+          <p className="mt-1.5 text-[12px] text-ash">
+            <span className="font-mono text-gold-pale">{stats.billableMonthPct} %</span> {t.stats.billableShare}
           </p>
-          <p className="mt-[22px] text-[12px] text-ash">{t.stats.validatedOnly}</p>
         </section>
 
-        <section className="glass fade-up p-5 md:col-span-3">
+        <section className="glass fade-up p-5 md:col-span-3" data-tour="stats-sources">
           <p className="eyebrow">{t.stats.bySource}</p>
           <div className="mt-4 space-y-3.5">
             {stats.sourceBreakdown.length === 0 && <p className="text-[12.5px] text-ash">{t.stats.noValidatedYet}</p>}
@@ -87,7 +104,7 @@ export function StatsView({
           </div>
         </section>
 
-        <section className="glass fade-up p-5 md:col-span-3">
+        <section className="glass fade-up p-5 md:col-span-3" data-tour="stats-invisible">
           <p className="eyebrow">{t.stats.invisibleTimeTitle}</p>
           <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
             <div className="min-w-[260px] flex-1">

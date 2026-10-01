@@ -85,6 +85,41 @@ export async function sendMagicLinkEmail(email: string, url: string): Promise<vo
   });
 }
 
+/** Sent at signup (and again on a sign-in attempt before verifying): the account can't be used until this link is followed. */
+export async function sendVerificationEmail(email: string, url: string): Promise<void> {
+  const u = escapeHtml(url);
+  await sendEmail({
+    to: email,
+    subject: "Confirmez votre adresse e-mail ACTE",
+    html: `<p>Bienvenue sur ACTE. Confirmez votre adresse e-mail pour activer votre compte : <a href="${u}">${u}</a></p><p>Ce lien expire dans 1 heure.</p>`,
+  });
+}
+
+export async function sendPasswordResetEmail(email: string, url: string): Promise<void> {
+  const u = escapeHtml(url);
+  await sendEmail({
+    to: email,
+    subject: "Réinitialisation de votre mot de passe ACTE",
+    html: `<p>Pour choisir un nouveau mot de passe ACTE : <a href="${u}">${u}</a></p><p>Ce lien expire dans 1 heure. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.</p>`,
+  });
+}
+
+/**
+ * D-005 interim (D-019): the daily alert digest. Counts by kind only — the
+ * alert text itself names dossiers and colleagues, which stays inside the
+ * app (PRIVACY_MODEL: sensitive fields don't go to a sub-processor).
+ */
+export async function sendAlertDigestEmail(email: string, displayName: string, lines: string[], url: string): Promise<void> {
+  const u = escapeHtml(url);
+  await sendEmail({
+    to: email,
+    subject: "ACTE — alertes en attente",
+    html: `<p>Bonjour ${escapeHtml(displayName)},</p><p>Des alertes vous attendent dans ACTE :</p><ul>${lines
+      .map((l) => `<li>${escapeHtml(l)}</li>`)
+      .join("")}</ul><p><a href="${u}">${u}</a></p><p>Vous pouvez désactiver ces e-mails dans Paramètres.</p>`,
+  });
+}
+
 const ROLE_LABEL_FR: Record<string, string> = {
   associe: "Associé",
   associee: "Associée",

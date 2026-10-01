@@ -29,7 +29,8 @@ export function LoginForm() {
       });
       if (!res.ok) {
         const code = ((await res.json().catch(() => null)) as { code?: string } | null)?.code;
-        setError(code === "MEMBER_SUSPENDED" ? auth.suspended : auth.error);
+        // An unverified address gets a fresh verification link on every sign-in attempt (D-017).
+        setError(code === "MEMBER_SUSPENDED" ? auth.suspended : code === "EMAIL_NOT_VERIFIED" ? auth.notVerified : auth.error);
         return;
       }
       router.push("/dashboard");
@@ -47,10 +48,12 @@ export function LoginForm() {
       const res = await fetch("/v1/auth/sign-in/magic-link", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email }),
+        // The link must come back to the app, not to the API's own origin (BUG-4). The API also enforces this.
+        body: JSON.stringify({ email, callbackURL: `${window.location.origin}/dashboard` }),
       });
       if (!res.ok) {
-        setError(auth.error);
+        // Not a wrong password: the link could not be sent.
+        setError(auth.emailUnavailable);
         return;
       }
       setNotice(auth.magicLinkSent);
@@ -97,6 +100,14 @@ export function LoginForm() {
               className="mt-1.5 w-full rounded-xl border border-white/[0.09] bg-white/[0.04] px-3.5 py-2.5 text-[13px] text-ivory outline-none transition focus:border-gold/40"
             />
           </div>
+        )}
+
+        {mode === "password" && (
+          <p className="-mt-1 text-right">
+            <Link href="/forgot-password" className="text-[11.5px] text-ash transition hover:text-gold-pale">
+              {auth.forgotPassword}
+            </Link>
+          </p>
         )}
 
         {error && <p className="text-[12px] text-red-400">{error}</p>}

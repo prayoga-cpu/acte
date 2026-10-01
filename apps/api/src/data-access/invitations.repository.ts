@@ -61,15 +61,38 @@ export class InvitationsRepository {
     return { invitation: row!, plainToken };
   }
 
-  /** New token + fresh expiry (the old link stops working). Optionally updates the role. */
+  /**
+   * New token + fresh expiry (the old link stops working). Optionally updates
+   * the role. `previous` is what restore() needs to undo it if the email
+   * carrying the new link can't be sent.
+   */
   async reissue(ctx: FirmContext, id: string, role?: MemberRole) {
-    const { plainToken, tokenHash, expiresAt } = newToken();
-    const [row] = await this.db
+    const pending = and(eq(invitations.firmId, ctx.firmId), eq(invitations.id, id), isNull(invitations.acceptedAt));
+    return this.db.transaction(async (tx) => {
+      const [before] = await tx.select().from(invitations).where(pending);
+      if (!before) return null;
+      const { plainToken, tokenHash, expiresAt } = newToken();
+      const [row] = await tx
+        .update(invitations)
+        .set({ tokenHash, expiresAt, ...(role ? { role } : {}) })
+        .where(pending)
+        .returning();
+      if (!row) return null;
+      const previous = { tokenHash: before.tokenHash, expiresAt: before.expiresAt, role: before.role, updatedAt: before.updatedAt };
+      return { invitation: row, plainToken, previous };
+    });
+  }
+
+  /**
+   * Undoes a reissue whose email could not be sent: the link the invitee
+   * already holds keeps working, and `updatedAt` (the "last sent" clock of
+   * the stale-invitation alert) is not moved by a send that never happened.
+   */
+  async restore(ctx: FirmContext, id: string, previous: { tokenHash: string; expiresAt: Date; role: MemberRole; updatedAt: Date }) {
+    await this.db
       .update(invitations)
-      .set({ tokenHash, expiresAt, ...(role ? { role } : {}) })
-      .where(and(eq(invitations.firmId, ctx.firmId), eq(invitations.id, id), isNull(invitations.acceptedAt)))
-      .returning();
-    return row ? { invitation: row, plainToken } : null;
+      .set({ tokenHash: previous.tokenHash, expiresAt: previous.expiresAt, role: previous.role, updatedAt: previous.updatedAt })
+      .where(and(eq(invitations.firmId, ctx.firmId), eq(invitations.id, id), isNull(invitations.acceptedAt)));
   }
 
   async cancel(ctx: FirmContext, id: string) {

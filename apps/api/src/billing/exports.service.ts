@@ -1,4 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
+import { MyDataExport } from "@acte/contracts";
 import { DossiersRepository } from "../data-access/dossiers.repository.js";
 import { MembersRepository } from "../data-access/members.repository.js";
 import { TasksRepository } from "../data-access/tasks.repository.js";
@@ -25,11 +26,13 @@ export class ExportsService {
       this.members.findById(ctx.firmId, ctx.memberId),
     ]);
     const dossierNames = new Map(dossierList.map((d) => [d.id, d.name]));
-    const rateEur = (member?.hourlyRateCents ?? 0) / 100;
+    const memberRateCents = member?.hourlyRateCents ?? 0;
 
     const header = "Date;Dossier;Intitulé;Durée (min);Taux (€/h);Montant (€);Source";
     const rows = validatedTasks.map((t) => {
       const dossierName = t.dossierId ? (dossierNames.get(t.dossierId) ?? "") : "";
+      // The rate the task was validated at (D-020), not today's.
+      const rateEur = (t.rateCents ?? memberRateCents) / 100;
       const amount = Math.round((t.durationMin / 60) * rateEur * 100) / 100;
       return [
         parisDateKey(new Date(t.startedAt)),
@@ -45,5 +48,39 @@ export class ExportsService {
     });
 
     return [header, ...rows].join("\n");
+  }
+
+  /**
+   * "Exporter mes données (.json)" (Cloud & Sync view; PRIVACY_MODEL rule 5,
+   * portability): the member's own tasks, with the dossiers they point to.
+   * Own data only — never another member's tasks.
+   */
+  async myData(ctx: FirmContext): Promise<MyDataExport> {
+    const [tasks, dossierList, member] = await Promise.all([
+      this.tasks.listForMember(ctx),
+      this.dossiers.list(ctx),
+      this.members.findById(ctx.firmId, ctx.memberId),
+    ]);
+    const dossierById = new Map(dossierList.map((d) => [d.id, d]));
+    const usedDossierIds = new Set(tasks.map((t) => t.dossierId).filter((id): id is string => id !== null));
+    // Parsed on the way out (strict schema): a field added here by mistake fails loudly instead of shipping.
+    return MyDataExport.parse({
+      exportedAt: new Date().toISOString(),
+      member: member ? { displayName: member.displayName, email: member.email, role: member.role, hourlyRateCents: member.hourlyRateCents } : null,
+      tasks: tasks.map((t) => ({
+        title: t.title,
+        dossier: t.dossierId ? (dossierById.get(t.dossierId)?.name ?? null) : null,
+        source: t.source,
+        startedAt: t.startedAt,
+        endedAt: t.endedAt,
+        durationMin: t.durationMin,
+        status: t.status,
+        validatedAt: t.validatedAt,
+        rateCents: t.rateCents,
+      })),
+      dossiers: dossierList
+        .filter((d) => usedDossierIds.has(d.id))
+        .map((d) => ({ name: d.name, clientLabel: d.clientLabel, status: d.status, budgetMinutes: d.budgetMinutes })),
+    });
   }
 }

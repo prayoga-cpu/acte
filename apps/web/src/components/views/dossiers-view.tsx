@@ -7,6 +7,7 @@ import { useI18n, type Dictionary } from "@/i18n/locale-context";
 import { DossierMenu } from "@/components/dossiers/dossier-menu";
 import { BudgetModal } from "@/components/dossiers/budget-modal";
 import { NewDossierModal } from "@/components/dossiers/new-dossier-modal";
+import { RenameDossierModal } from "@/components/dossiers/rename-dossier-modal";
 
 function fmtActivity(iso: string | null, t: Dictionary): string {
   if (!iso) return t.dossiers.noActivity;
@@ -27,21 +28,26 @@ function StatusBadge({ status, t }: { status: DossierStatus; t: Dictionary }) {
 export function DossiersView({
   dossiers,
   onCreate,
+  onRename,
   onUpdateBudget,
   onSetStatus,
   onGoToPending,
 }: {
   dossiers: DossierUsage[];
   onCreate: (input: { name: string; clientLabel: string; budgetMinutes: number | null }) => Promise<void>;
+  onRename: (id: string, input: { name: string; clientLabel: string }) => Promise<void>;
   onUpdateBudget: (id: string, budgetMinutes: number) => Promise<void>;
   onSetStatus: (id: string, status: DossierStatus) => Promise<void>;
-  onGoToPending: () => void;
+  /** Opens the Journal and flashes this dossier's pending rows (prototype flashRow). */
+  onGoToPending: (dossierId: string) => void;
 }) {
   const { t } = useI18n();
   const [newDossierOpen, setNewDossierOpen] = useState(false);
   const [budgetTarget, setBudgetTarget] = useState<DossierUsage | null>(null);
+  const [renameTarget, setRenameTarget] = useState<DossierUsage | null>(null);
 
-  const totalMin = dossiers.filter((d) => d.status !== "archived").reduce((s, d) => s + d.usedMinutes, 0);
+  // "ce mois" is this month's validated time; the budget bar below measures all validated time against the budget.
+  const totalMin = dossiers.filter((d) => d.status !== "archived").reduce((s, d) => s + d.monthMinutes, 0);
 
   return (
     <div className="mx-auto max-w-[1080px]">
@@ -55,6 +61,7 @@ export function DossiersView({
           <button
             type="button"
             onClick={() => setNewDossierOpen(true)}
+            data-tour="dossiers-new"
             className="rounded-full bg-gradient-to-r from-gold to-gold-deep px-3.5 py-1.5 text-[12px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]"
           >
             + {t.dossiers.newDossier}
@@ -69,7 +76,7 @@ export function DossiersView({
           const pct = budget > 0 ? Math.min(100, Math.round((time / budget) * 100)) : 0;
           const archived = d.status === "archived";
           return (
-            <section key={d.id} className={`glass fade-up p-5 transition hover:-translate-y-0.5 hover:border-gold/25 ${archived ? "opacity-55" : ""}`}>
+            <section key={d.id} data-tour="dossier-card" className={`glass fade-up p-5 transition hover:-translate-y-0.5 hover:border-gold/25 ${archived ? "opacity-55" : ""}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h3 className="truncate font-display text-[19px] font-semibold text-ivory">{d.name}</h3>
@@ -79,13 +86,14 @@ export function DossiersView({
                   <StatusBadge status={d.status} t={t} />
                   <DossierMenu
                     dossier={d}
+                    onRename={() => setRenameTarget(d)}
                     onEditBudget={() => setBudgetTarget(d)}
                     onSetStatus={(status) => onSetStatus(d.id, status)}
                   />
                 </div>
               </div>
               <p className="mt-4 eyebrow">{t.dossiers.aiCapturedThisMonth}</p>
-              <p className="mt-1 font-mono text-[22px] text-ivory">{fmtMin(time)}</p>
+              <p className="mt-1 font-mono text-[22px] text-ivory">{fmtMin(d.monthMinutes)}</p>
               {budget > 0 ? (
                 <>
                   <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/[0.07]">
@@ -106,7 +114,7 @@ export function DossiersView({
                 {archived ? (
                   <span className="text-[11.5px] text-ash">{t.dossiers.captureSuspended}</span>
                 ) : d.pendingMinutes > 0 ? (
-                  <button onClick={onGoToPending} className="text-[11.5px] font-medium text-amber-300 transition hover:text-amber-200">
+                  <button onClick={() => onGoToPending(d.id)} className="text-[11.5px] font-medium text-amber-300 transition hover:text-amber-200">
                     ● {fmtMin(d.pendingMinutes)} {t.dossiers.toValidateArrow}
                   </button>
                 ) : (
@@ -124,6 +132,7 @@ export function DossiersView({
       </div>
 
       {newDossierOpen && <NewDossierModal onClose={() => setNewDossierOpen(false)} onCreate={onCreate} />}
+      {renameTarget && <RenameDossierModal dossier={renameTarget} onClose={() => setRenameTarget(null)} onSave={(input) => onRename(renameTarget.id, input)} />}
       {budgetTarget && (
         <BudgetModal
           dossier={budgetTarget}

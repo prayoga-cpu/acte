@@ -12,7 +12,9 @@ import { useI18n } from "@/i18n/locale-context";
  * prototype's own disclaimer ("document de démonstration, sans back-end").
  */
 function downloadInvoiceDemo(invoice: ClientInvoiceSummary, member: Member) {
-  const issuedOn = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeZone: "Europe/Paris" }).format(new Date());
+  const issuedOn = new Intl.DateTimeFormat("fr-FR", { dateStyle: "long", timeZone: "Europe/Paris" }).format(new Date(invoice.createdAt));
+  // The draft's own average: each task is billed at the rate it was validated at, which may differ from today's.
+  const averageRateCents = invoice.minutes > 0 ? Math.round(invoice.amountCents / (invoice.minutes / 60)) : member.hourlyRateCents;
   const text = [
     `ACTE — Facture ${invoice.number}`,
     `Émise par ${member.displayName}`,
@@ -21,7 +23,7 @@ function downloadInvoiceDemo(invoice: ClientInvoiceSummary, member: Member) {
     `Dossier   : ${invoice.dossierName}`,
     `Période   : ${invoice.periodLabel}`,
     `Temps     : ${fmtMin(invoice.minutes)} (capturé et validé au journal)`,
-    `Taux      : ${fmtEurFromCents(member.hourlyRateCents)} / heure`,
+    `Taux      : ${fmtEurFromCents(averageRateCents)} / heure`,
     ``,
     `TOTAL HT  : ${fmtEurFromCents(invoice.amountCents)}`,
     ``,
@@ -58,7 +60,10 @@ export function BillingView({
   onToast: (message: string) => void;
 }) {
   const { t } = useI18n();
-  const billable = dossiers.filter((d) => d.isBillable && d.status !== "archived" && d.usedMinutes > 0);
+  // A dossier shows up while it has validated time left to invoice, pending time that will become invoiceable, or past drafts.
+  const billable = dossiers.filter(
+    (d) => d.isBillable && d.status !== "archived" && (d.uninvoicedMinutes > 0 || d.pendingMinutes > 0 || invoices.some((inv) => inv.dossierId === d.id)),
+  );
   const readySum = invoices.filter((i) => i.status === "draft").reduce((s, i) => s + i.amountCents, 0);
 
   return (
@@ -68,71 +73,83 @@ export function BillingView({
           <p className="eyebrow">{t.billing.title}</p>
           <h2 className="mt-1 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">{t.billing.subtitle}</h2>
         </div>
-        <div className="text-right">
+        <div className="text-right" data-tour="billing-total">
           <p className="eyebrow">{t.billing.draftsPending}</p>
           <p className="mt-0.5 font-display text-[20px] font-bold leading-none tracking-tight text-gold-grad">{fmtEurFromCents(readySum)}</p>
         </div>
       </div>
 
-      <div className="glass fade-up overflow-hidden">
+      <div className="glass fade-up overflow-hidden" data-tour="billing-drafts">
         {billable.length === 0 && <p className="px-5 py-6 text-[13px] text-ash">{t.billing.noneToInvoice}</p>}
         {billable.map((d, i) => {
-          const invoice = invoices.find((inv) => inv.dossierId === d.id);
-          const ready = d.pendingMinutes === 0;
+          const drafts = invoices.filter((inv) => inv.dossierId === d.id);
+          // Prototype rule: a dossier is ready to invoice once nothing on it is waiting in the Journal.
+          const ready = d.pendingMinutes === 0 && d.uninvoicedMinutes > 0;
           return (
             <div key={d.id} className={i > 0 ? "border-t border-white/[0.05]" : ""}>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gold/25 bg-gold/[0.08] text-gold-pale">{DOC_ICON}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13.5px] font-medium text-ivory/95">
-                    {d.name} {invoice && <span className="ml-1.5 font-mono text-[10.5px] text-ash">{invoice.number}</span>}
-                  </p>
+                  <p className="truncate text-[13.5px] font-medium text-ivory/95">{d.name}</p>
                   <p className="mt-0.5 text-[11.5px] text-ash">
-                    <span className="font-mono text-ivory/70">{fmtMin(d.usedMinutes)}</span> {t.billing.validatedSuffix}
+                    {d.uninvoicedMinutes > 0 ? (
+                      <>
+                        <span className="font-mono text-ivory/70">{fmtMin(d.uninvoicedMinutes)}</span> {t.billing.toInvoiceSuffix}
+                      </>
+                    ) : (
+                      t.billing.allInvoiced
+                    )}
                   </p>
                 </div>
-                <p className={`shrink-0 font-display text-[21px] font-semibold ${invoice || ready ? "text-gold-grad" : "text-ivory/50"}`}>
-                  {invoice ? fmtEurFromCents(invoice.amountCents) : ""}
-                </p>
                 <div className="shrink-0">
-                  {invoice ? (
-                    <div className="flex items-center gap-2">
-                      <span className="flex items-center gap-1.5 text-[12px] text-emerald-300">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M20 6 9 17l-5-5" />
-                        </svg>
-                        {t.billing.generated}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          downloadInvoiceDemo(invoice, member);
-                          onToast(t.billing.invoiceDownloaded(invoice.number));
-                        }}
-                        className="rounded-full border border-white/[0.12] px-3.5 py-1.5 text-[12px] text-ivory/85 transition hover:border-gold/35 hover:text-gold-pale"
-                      >
-                        {t.billing.download}
-                      </button>
-                    </div>
-                  ) : ready ? (
+                  {ready ? (
                     <button
                       onClick={() => onGenerate(d.id)}
                       className="rounded-full bg-gradient-to-r from-gold to-gold-deep px-4 py-1.5 text-[12.5px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]"
                     >
                       {t.billing.generate}
                     </button>
-                  ) : (
+                  ) : d.pendingMinutes > 0 ? (
                     <span className="text-[11px] text-amber-300">● {fmtMin(d.pendingMinutes)} {t.billing.toValidateInJournal}</span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-[12px] text-emerald-300">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6 9 17l-5-5" />
+                      </svg>
+                      {t.billing.generated}
+                    </span>
                   )}
                 </div>
               </div>
+              {drafts.map((invoice) => (
+                <div key={invoice.id} className="flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-white/[0.04] bg-white/[0.015] py-2.5 pl-[72px] pr-5">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[12.5px] text-ivory/90">
+                      <span className="font-mono text-[11.5px] text-gold-pale">{invoice.number}</span> · {invoice.periodLabel}
+                    </p>
+                    <p className="mt-0.5 font-mono text-[11px] text-ash">{fmtMin(invoice.minutes)}</p>
+                  </div>
+                  <p className="shrink-0 font-display text-[17px] font-semibold text-gold-grad">{fmtEurFromCents(invoice.amountCents)}</p>
+                  <button
+                    type="button"
+                    aria-label={`${t.billing.download} ${invoice.number}`}
+                    onClick={() => {
+                      downloadInvoiceDemo(invoice, member);
+                      onToast(t.billing.invoiceDownloaded(invoice.number));
+                    }}
+                    className="shrink-0 rounded-full border border-white/[0.12] px-3.5 py-1.5 text-[12px] text-ivory/85 transition hover:border-gold/35 hover:text-gold-pale"
+                  >
+                    {t.billing.download}
+                  </button>
+                </div>
+              ))}
             </div>
           );
         })}
       </div>
       <p className="mt-3 px-1 text-[11.5px] leading-relaxed text-ash">{t.billing.demoDisclaimer}</p>
 
-      <section className="glass fade-up mt-6 p-5">
+      <section className="glass fade-up mt-6 p-5" data-tour="billing-export">
         <p className="eyebrow">{t.billing.exportsTitle}</p>
         <div className="mt-3.5 space-y-2.5">
           <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3.5 py-3">

@@ -53,6 +53,8 @@ jobs:
       - run: pnpm lint
       # Unit tests (contracts, api) need no running services.
       - run: pnpm --filter @acte/contracts --filter @acte/api test
+      # Route tests: Supertest against the real app and their own database (<name>_routes), created and migrated by the suite.
+      - run: pnpm --filter @acte/api test:routes
 
       - name: Generate CI-only secrets
         run: |

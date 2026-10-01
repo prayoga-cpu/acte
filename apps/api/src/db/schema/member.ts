@@ -29,5 +29,12 @@ export const members = pgTable("member", {
   // "Rappeler la validation" (admin nudges a member with pending Journal
   // tasks) — last-sent timestamp, shown as "rappel envoyé ✓" in the prototype.
   remindedAt: timestamp("reminded_at", { withTimezone: true }),
+  // Dark is the default; light is `html.light` (apps/web/CLAUDE.md: persisted per user).
+  theme: text("theme").$type<"dark" | "light">().notNull().default("dark"),
+  // D-005 interim (D-019): daily email digest of open alerts. Opt-out per member.
+  alertEmails: boolean("alert_emails").notNull().default(true),
+  // First-run welcome (D-021): null until the member has seen it. Stamped
+  // once and never cleared — replaying the welcome is a client-side action.
+  onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
   ...timestamps,
 });

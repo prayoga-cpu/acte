@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { DossierStatus } from "@acte/contracts";
+import type { DossierStatus, OnboardingState } from "@acte/contracts";
 import { useI18n, type Dictionary } from "@/i18n/locale-context";
-import { isLightMode, setThemeLight } from "@/lib/theme";
+import { setThemeLight } from "@/lib/theme";
+import { todayKeyParis } from "@/lib/time";
 import { useOutsideClick } from "@/lib/use-outside-click";
 import { useDashboard, type DashboardInitialData } from "@/lib/use-dashboard";
 import { HomeView } from "@/components/views/home-view";
@@ -20,8 +21,15 @@ import { BrainPanel } from "@/components/brain-panel";
 import { CompanionModal } from "@/components/companion-modal";
 import { NotificationBell } from "@/components/notification-bell";
 import { Toast } from "@/components/toast";
+import type { JournalActions } from "@/components/journal/journal-card";
+import { GuideTour } from "@/components/help/guide-tour";
+import { HelpCenter } from "@/components/help/help-center";
+import { WelcomeModal } from "@/components/help/welcome-modal";
+import { findGuide, type Guide, type GuideId } from "@/components/help/guides";
+import { useHelpCopy } from "@/i18n/help";
+import { useOnboarding } from "@/lib/use-onboarding";
 
-type View = "home" | "journal" | "dossiers" | "stats" | "billing" | "profile" | "cloud" | "settings" | "admin";
+export type View = "home" | "journal" | "dossiers" | "stats" | "billing" | "profile" | "cloud" | "settings" | "admin";
 
 function railItems(t: Dictionary): { view: View; label: string; icon: React.ReactNode }[] {
   return [
@@ -69,10 +77,13 @@ function railItems(t: Dictionary): { view: View; label: string; icon: React.Reac
 
 export function Shell({
   initial,
+  onboarding: initialOnboarding,
   complianceClaimsEnabled,
   companionUiEnabled,
 }: {
   initial: DashboardInitialData;
+  /** Null when the API could not provide it: no welcome, no checklist, the guides still work. */
+  onboarding: OnboardingState | null;
   complianceClaimsEnabled: boolean;
   companionUiEnabled: boolean;
 }) {
@@ -80,22 +91,39 @@ export function Shell({
   const { t, locale, setLocale } = useI18n();
   const d = useDashboard(initial);
   const [view, setView] = useState<View>("home");
-  const [isLight, setIsLight] = useState(false);
+  // The theme is the member's saved preference (apps/web/CLAUDE.md: "persisted per user"), not this browser's.
+  const [isLight, setIsLight] = useState(initial.member.theme === "light");
+  // Flash the pending rows of one dossier in the Journal (prototype flashRow); `seq` replays it.
+  const [flash, setFlash] = useState<{ dossierId: string; seq: number } | null>(null);
+  const flashSeq = useRef(0);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [brainOpen, setBrainOpen] = useState(false);
   const [companionModalOpen, setCompanionModalOpen] = useState(false);
+  // Help (D-021): the first-run welcome, the help centre, and the guide being followed, if any.
+  const help = useHelpCopy();
+  const onboarding = useOnboarding(initialOnboarding);
+  const [welcomeOpen, setWelcomeOpen] = useState(initialOnboarding !== null && initialOnboarding.completedAt === null);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [tour, setTour] = useState<{ guide: Guide; index: number } | null>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   useOutsideClick(profileMenuRef, () => setProfileMenuOpen(false), profileMenuOpen);
 
   useEffect(() => {
-    setIsLight(isLightMode());
-  }, []);
+    setThemeLight(initial.member.theme === "light");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (view === "dossiers") d.refreshDossiers();
-    if (view === "stats") d.refreshStats();
-    if (view === "billing") d.refreshInvoices();
-    if (view === "admin" && d.member.isAdmin) void d.refreshTeam().catch(() => undefined);
+    if (view === "stats" || view === "profile") d.refreshStats();
+    if (view === "billing") {
+      d.refreshInvoices();
+      d.refreshDossiers();
+    }
+    if (view === "admin" && d.member.isAdmin) {
+      void d.refreshTeam().catch(() => undefined);
+      void d.refreshFeedback();
+    }
+
   }, [view]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetched once on mount, independent of the current view — the bell shows
@@ -126,11 +154,48 @@ export function Shell({
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // A guide step can live in another view, or inside the Cerveau panel (a closed drawer below 1280 px).
+  useEffect(() => {
+    if (!tour) return;
+    const step = tour.guide.steps[tour.index]!;
+    const stepView = step.view ?? tour.guide.view;
+    if (stepView) setView(stepView);
+    setBrainOpen(Boolean(step.brain));
+  }, [tour]);
+
+  const openHelp = () => {
+    setHelpOpen(true);
+    void onboarding.refresh();
+  };
+
+  const startGuide = (id: GuideId) => {
+    setHelpOpen(false);
+    setWelcomeOpen(false);
+    setProfileMenuOpen(false);
+    setTour({ guide: findGuide(id), index: 0 });
+  };
+
+  // Seen is seen, whichever button closed it: the welcome is not shown again on the next visit.
+  const closeWelcome = () => {
+    setWelcomeOpen(false);
+    void onboarding.complete();
+  };
+
+  const closeTour = (finished: boolean) => {
+    const wasOverview = tour?.guide.id === "overview";
+    setTour(null);
+    setBrainOpen(false);
+    // The overview ends on the help button: open what it points at, first steps included.
+    if (finished && wasOverview) openHelp();
+  };
+
   const toggleTheme = () => {
     const next = !isLight;
     setIsLight(next);
     setThemeLight(next);
     d.showToast(next ? t.shell.lightModeOn : t.shell.darkModeOn);
+    // Best effort: the theme is already applied; a failed save only means it won't follow to another browser.
+    void d.updatePreferences({ theme: next ? "light" : "dark" }).catch(() => undefined);
   };
 
   const toggleLocale = () => setLocale(locale === "fr" ? "en" : "fr");
@@ -146,7 +211,27 @@ export function Shell({
     router.refresh();
   };
 
-  const goToPendingJournal = () => setView("journal");
+  /** Opens the Journal on today; with a dossier, flashes its pending rows (prototype "Voir les tâches"). */
+  const goToPendingJournal = (dossierId?: string) => {
+    if (d.journalDate !== todayKeyParis()) void d.setJournalDate(todayKeyParis()).catch(() => undefined);
+    setView("journal");
+    if (!dossierId) return;
+    // One flash per request: cleared afterwards, or rows mounted later (another view, another day) would flash again.
+    const seq = ++flashSeq.current;
+    setFlash({ dossierId, seq });
+    window.setTimeout(() => setFlash((f) => (f?.seq === seq ? null : f)), 2000);
+  };
+
+  const journalActions: JournalActions = {
+    onValidate: d.validateTask,
+    onValidateAll: d.validateAll,
+    onReassign: d.reassignTask,
+    onCreateManualTask: d.createManualTask,
+    onUpdateTask: d.updateTask,
+    onDeleteTask: d.deleteTask,
+    onUnvalidate: d.unvalidateTask,
+    onSetDate: d.setJournalDate,
+  };
 
   return (
     <div className="relative z-10 grid h-[100dvh] max-h-[100dvh] grid-cols-[56px_minmax(0,1fr)] sm:grid-cols-[60px_minmax(0,1fr)] xl:grid-cols-[60px_minmax(0,1fr)_350px]">
@@ -158,7 +243,7 @@ export function Shell({
           <span className="font-display text-lg font-semibold text-gold-pale">A</span>
         </div>
 
-        <nav className="flex flex-col gap-1.5" aria-label="Navigation principale">
+        <nav className="flex flex-col gap-1.5" aria-label="Navigation principale" data-tour="rail">
           {railItems(t).map((item) => (
             <button
               key={item.view}
@@ -190,6 +275,20 @@ export function Shell({
               </svg>
             </button>
           )}
+          <button
+            type="button"
+            onClick={openHelp}
+            data-tour="help"
+            title={help.button}
+            aria-label={help.button}
+            className="flex h-10 w-10 items-center justify-center rounded-xl text-ash transition hover:bg-white/[0.05] hover:text-gold-pale"
+          >
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <path d="M12 17h.01" />
+            </svg>
+          </button>
           <button
             onClick={() => setView("settings")}
             title={t.nav.settings}
@@ -223,7 +322,7 @@ export function Shell({
             <span className="hidden text-[9px] font-medium uppercase tracking-[0.32em] text-ash sm:block">{t.header.timeTracking}</span>
           </div>
 
-          <nav className="flex items-center gap-1 rounded-full border border-white/[0.07] bg-white/[0.03] p-1" aria-label="Onglets">
+          <nav className="flex items-center gap-1 rounded-full border border-white/[0.07] bg-white/[0.03] p-1" aria-label="Onglets" data-tour="tabs">
             {(["home", "journal", "billing"] as const).map((v) => (
               <button
                 key={v}
@@ -246,6 +345,7 @@ export function Shell({
             <button
               type="button"
               onClick={toggleLocale}
+              data-tour="prefs"
               aria-label={t.common.languageToggle}
               title={t.common.languageToggle}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] font-mono text-[11px] font-semibold text-ash transition hover:border-gold/30 hover:text-gold-pale"
@@ -256,6 +356,7 @@ export function Shell({
             <button
               type="button"
               onClick={toggleTheme}
+              data-tour="prefs"
               aria-label={isLight ? t.header.toDark : t.header.toLight}
               title={t.header.toggleTheme}
               className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-white/[0.03] text-ash transition hover:border-gold/30 hover:text-gold-pale"
@@ -279,7 +380,7 @@ export function Shell({
               )}
             </button>
 
-            <div ref={profileMenuRef} className="relative">
+            <div ref={profileMenuRef} className="relative" data-tour="profile">
               <button
                 id="profile-btn"
                 onClick={() => setProfileMenuOpen((v) => !v)}
@@ -382,40 +483,44 @@ export function Shell({
               summary={d.summary}
               week={d.week}
               tasks={d.tasks}
+              backlog={d.backlog}
+              dateKey={todayKeyParis()}
               dossiers={d.dossiers}
+              sources={d.sources}
               averageRateCents={d.member.hourlyRateCents}
-              onValidate={d.validateTask}
-              onValidateAll={d.validateAll}
-              onReassign={d.reassignTask}
-              onCreateManualTask={d.createManualTask}
+              gain={d.gain}
+              flash={flash}
+              actions={journalActions}
             />
           )}
           {view === "journal" && (
-            <JournalView
-              tasks={d.tasks}
-              dossiers={d.dossiers}
-              onValidate={d.validateTask}
-              onValidateAll={d.validateAll}
-              onReassign={d.reassignTask}
-              onCreateManualTask={d.createManualTask}
-            />
+            <JournalView tasks={d.journalTasks} backlog={d.backlog} dateKey={d.journalDate} dossiers={d.dossiers} flash={flash} actions={journalActions} />
           )}
           {view === "dossiers" && (
             <DossiersView
               dossiers={d.dossiers}
               onCreate={d.createDossier}
+              onRename={d.renameDossier}
               onUpdateBudget={d.updateDossierBudget}
               onSetStatus={(id, status: DossierStatus) => d.setDossierStatus(id, status)}
               onGoToPending={goToPendingJournal}
             />
           )}
-          {view === "stats" && <StatsView stats={d.stats} averageRateCents={d.member.hourlyRateCents} onGoToJournal={goToPendingJournal} />}
+          {view === "stats" && <StatsView stats={d.stats} averageRateCents={d.member.hourlyRateCents} onGoToJournal={() => goToPendingJournal()} />}
           {view === "billing" && (
             <BillingView invoices={d.invoices} dossiers={d.dossiers} member={d.member} onGenerate={d.generateInvoice} onToast={d.showToast} />
           )}
-          {view === "profile" && <ProfileView member={d.member} />}
-          {view === "cloud" && <CloudView complianceClaimsEnabled={complianceClaimsEnabled} />}
-          {view === "settings" && <SettingsView member={d.member} onToast={d.showToast} />}
+          {view === "profile" && <ProfileView member={d.member} stats={d.stats} />}
+          {view === "cloud" && <CloudView complianceClaimsEnabled={complianceClaimsEnabled} onToast={d.showToast} />}
+          {view === "settings" && (
+            <SettingsView
+              member={d.member}
+              sources={d.sources}
+              onUpdateSources={d.updateSources}
+              onUpdatePreferences={d.updatePreferences}
+              onToast={d.showToast}
+            />
+          )}
           {view === "admin" && d.member.isAdmin && (
             <AdminView
               team={d.team}
@@ -427,6 +532,10 @@ export function Shell({
               onRemind={d.remindMember}
               onSuspend={d.suspendMember}
               onReactivate={d.reactivateMember}
+              onSetAdmin={d.setMemberAdmin}
+              onRenameFirm={d.renameFirm}
+              feedback={d.feedback}
+              onSendFeedback={d.sendFeedback}
               onToast={d.showToast}
               complianceClaimsEnabled={complianceClaimsEnabled}
             />
@@ -437,10 +546,18 @@ export function Shell({
       <BrainPanel
         open={brainOpen}
         onClose={() => setBrainOpen(false)}
+        view={view}
         summary={d.summary}
+        tasks={d.tasks}
+        backlog={d.backlog}
         dossiers={d.dossiers}
+        invoices={d.invoices}
+        stats={d.stats}
+        hourlyRateCents={d.member.hourlyRateCents}
         insights={d.insights}
         activity={d.activity}
+        onValidateDossier={(ids) => d.validateAll(ids)}
+        onSeeDossierTasks={(dossierId) => goToPendingJournal(dossierId)}
         cabinet={
           view === "admin" && d.member.isAdmin
             ? { team: d.team, currentMemberId: d.member.id, onRemind: d.remindMember, onSeeDossiers: () => setView("dossiers") }
@@ -466,6 +583,42 @@ export function Shell({
 
       {companionUiEnabled && companionModalOpen && (
         <CompanionModal onClose={() => setCompanionModalOpen(false)} onDownloadStart={startCompanionDownload} />
+      )}
+
+      {welcomeOpen && (
+        <WelcomeModal
+          onLater={closeWelcome}
+          onStartTour={() => {
+            closeWelcome();
+            startGuide("overview");
+          }}
+        />
+      )}
+      {helpOpen && (
+        <HelpCenter
+          onboarding={onboarding.state}
+          isAdmin={d.member.isAdmin}
+          currentView={view}
+          onClose={() => setHelpOpen(false)}
+          onStartGuide={startGuide}
+          onGoTo={(target) => {
+            setHelpOpen(false);
+            setView(target);
+          }}
+          onReplayWelcome={() => {
+            setHelpOpen(false);
+            setWelcomeOpen(true);
+          }}
+        />
+      )}
+      {tour && (
+        <GuideTour
+          guide={tour.guide}
+          index={tour.index}
+          isAdmin={d.member.isAdmin}
+          onIndex={(index) => setTour({ guide: tour.guide, index })}
+          onClose={closeTour}
+        />
       )}
     </div>
   );

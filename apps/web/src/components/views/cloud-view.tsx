@@ -5,7 +5,7 @@ import type { Device } from "@acte/contracts";
 import { api } from "@/lib/api-client";
 import { useI18n } from "@/i18n/locale-context";
 
-export function CloudView({ complianceClaimsEnabled }: { complianceClaimsEnabled: boolean }) {
+export function CloudView({ complianceClaimsEnabled, onToast }: { complianceClaimsEnabled: boolean; onToast: (message: string) => void }) {
   const { t } = useI18n();
   const [devices, setDevices] = useState<Device[] | null>(null);
 
@@ -21,7 +21,7 @@ export function CloudView({ complianceClaimsEnabled }: { complianceClaimsEnabled
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <section className="glass fade-up md:col-span-2 md:row-span-2">
+        <section className="glass fade-up md:col-span-2 md:row-span-2" data-tour="cloud-devices">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-3.5">
             <p className="eyebrow !mb-0">{t.cloud.linkedDevices}</p>
           </div>
@@ -60,7 +60,7 @@ export function CloudView({ complianceClaimsEnabled }: { complianceClaimsEnabled
           )}
         </section>
 
-        <section className="glass fade-up flex flex-wrap items-start gap-3.5 p-5 md:col-span-3">
+        <section className="glass fade-up flex flex-wrap items-start gap-3.5 p-5 md:col-span-3" data-tour="cloud-secrecy">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-400/25 bg-emerald-400/[0.08] text-emerald-300">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
@@ -73,6 +73,18 @@ export function CloudView({ complianceClaimsEnabled }: { complianceClaimsEnabled
               {t.cloud.professionalSecrecyBody}
               {complianceClaimsEnabled && <> {t.cloud.isoCertification}</>}
             </p>
+            {/* Prototype cloud-export, wired to a real export of the member's own data. The prototype's backup,
+                force-sync and wipe controls are simulations of things that don't exist yet (stage 4) and stay out. */}
+            <div className="mt-3 flex flex-wrap gap-2">
+              <a
+                href="/v1/exports/my-data.json"
+                onClick={() => onToast(t.cloud.exportStarted)}
+                data-tour="cloud-export"
+                className="cursor-pointer rounded-full border border-white/[0.12] px-3.5 py-1.5 text-[11.5px] text-ivory/85 transition hover:border-gold/35 hover:text-gold-pale"
+              >
+                {t.cloud.exportMyData}
+              </a>
+            </div>
           </div>
         </section>
       </div>

@@ -33,6 +33,8 @@ export const notifications = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     readAt: timestamp("read_at", { withTimezone: true }),
     resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    // Set once the episode has gone out in an email digest (D-019), so it is emailed at most once.
+    emailedAt: timestamp("emailed_at", { withTimezone: true }),
   },
   (t) => [uniqueIndex("notification_open_episode_uniq").on(t.memberId, t.type, t.refId).where(sql`resolved_at is null`)],
 );

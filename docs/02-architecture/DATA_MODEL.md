@@ -24,6 +24,7 @@ Conventions: UUID v7 primary keys, `created_at` / `updated_at` on every table, m
 | is_admin | bool | D-004 |
 | hourly_rate_cents | int | |
 | status | enum | active, in_court, suspended, invited |
+| onboarded_at | timestamptz null | D-021: when the member first saw the welcome; null = show it. Stamped once |
 
 ## dossier
 | column | type | notes |

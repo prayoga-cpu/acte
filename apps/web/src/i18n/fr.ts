@@ -28,6 +28,8 @@ export const fr = {
     logout: "Se déconnecter",
   },
   home: {
+    paused: "En pause",
+    awaitingCompanion: "En attente du Compagnon",
     capturedToday: "Temps capturé aujourd'hui",
     securedRevenue: "CA sécurisé ce mois-ci",
     roi: "ROI ACTE · aujourd'hui",
@@ -41,6 +43,39 @@ export const fr = {
     activeStatus: "Actif",
   },
   journal: {
+    corrected: "Corrigé ✓",
+    invoiced: "Facturée",
+    unvalidate: "Annuler",
+    editTask: "Modifier",
+    deleteTask: "Supprimer",
+    editEntry: "Modifier la saisie",
+    editEntrySubmit: "Enregistrer",
+    manualEntryDate: "Date",
+    previousDay: "Jour précédent",
+    nextDay: "Jour suivant",
+    taskActionsAria: (title: string) => `Actions pour ${title}`,
+    backlogTitle: (n: number) => `Jours précédents · ${n} en attente`,
+    validatedTitle: (n: number, duration: string) => `Validées · ${n} · ${duration}`,
+    deleteConfirmTitle: "Supprimer cette tâche ?",
+    deleteConfirmBody: (title: string, duration: string, day: string) =>
+      `« ${title} » (${duration}, ${day}) sera retirée du journal et ne sera pas facturée. Cette action ne peut pas être annulée.`,
+    toasts: {
+      validated: (duration: string, dossier: string, eur: string) => `✓ ${duration} · ${dossier} — +${eur} € sécurisés`,
+      validatedAll: (n: number, duration: string, eur: string) =>
+        `✓ ${n} tâche${n > 1 ? "s" : ""} intégrée${n > 1 ? "s" : ""} · ${duration} — +${eur} € sécurisés`,
+      reassigned: (dossier: string) => `Dossier mis à jour${dossier ? " · " + dossier : ""}`,
+      added: "Tâche ajoutée au journal",
+      updated: "Tâche modifiée",
+      deleted: "Tâche supprimée du journal",
+      unvalidated: "Validation annulée — la tâche est de nouveau en attente",
+    },
+    errors: {
+      task_not_found: "Cette tâche n'existe plus ou a déjà été traitée.",
+      task_not_pending: "Seule une tâche en attente peut être modifiée.",
+      task_invoiced: "Ce temps figure déjà sur une facture : il ne peut plus être modifié.",
+      dossier_not_assignable: "Ce dossier est archivé ou introuvable.",
+      generic: "L'action n'a pas pu être effectuée — réessayez.",
+    },
     title: "Journal du temps",
     pendingPill: (n: number) => `${n} en attente`,
     resetDemo: "Réinitialiser la démo",
@@ -69,6 +104,14 @@ export const fr = {
     upToDate: "À jour ✓",
   },
   dossiers: {
+    renameDossier: "Renommer le dossier",
+    renameError: "Impossible d'enregistrer — réessayez.",
+    toasts: {
+      created: (name: string) => `Dossier « ${name} » créé`,
+      renamed: (name: string) => `Dossier renommé · ${name}`,
+      budgetUpdated: (name: string) => `${name} · budget mis à jour`,
+      statusChanged: (name: string, status: string) => `${name} · statut « ${status} »`,
+    },
     title: "Dossiers",
     newDossier: "Nouveau Dossier",
     minutesUsed: "utilisées",
@@ -114,6 +157,22 @@ export const fr = {
     currentUsageSuffix: " — l'IA vous alertera à l'approche de la limite.",
   },
   auth: {
+    notVerified: "Adresse e-mail non confirmée : un nouveau lien vient de vous être envoyé.",
+    emailUnavailable: "L'e-mail n'a pas pu être envoyé — réessayez plus tard.",
+    forgotPassword: "Mot de passe oublié ?",
+    forgotTitle: "Réinitialiser le mot de passe",
+    forgotIntro: "Indiquez l'adresse de votre compte : nous vous envoyons un lien pour choisir un nouveau mot de passe.",
+    forgotSubmit: "Envoyer le lien",
+    forgotSent: "Si un compte existe pour cette adresse, un lien vient d'y être envoyé. Il expire dans 1 heure.",
+    forgotRetry: "Demander un nouveau lien",
+    resetTitle: "Choisir un nouveau mot de passe",
+    newPassword: "Nouveau mot de passe",
+    resetSubmit: "Enregistrer le mot de passe",
+    resetDone: "Mot de passe modifié. Vous pouvez vous connecter.",
+    resetInvalid: "Ce lien n'est plus valable. Demandez-en un nouveau.",
+    verifyTitle: "Confirmez votre adresse e-mail",
+    verifyBody: (email: string) => `Un lien de confirmation vient d'être envoyé à ${email}. Cliquez dessus pour activer votre compte et ouvrir votre cabinet.`,
+    verifyHint: "Rien reçu ? Vérifiez vos courriers indésirables, ou essayez de vous connecter : un nouveau lien vous sera envoyé.",
     title: "ACTE",
     subtitle: "Connexion au cabinet",
     email: "Adresse e-mail",
@@ -136,6 +195,36 @@ export const fr = {
     backToHome: "Retour à l'accueil",
   },
   brain: {
+    insight: {
+      pendingDay: (n: number, duration: string, eur: string) =>
+        `${n} tâche${n > 1 ? "s" : ""} en attente (${duration}). Un clic sur « Tout intégrer » sécurise ${eur} €.`,
+      dayDone: "Journée bouclée — l'intégralité du temps saisi a été actée.",
+      dossiers: (name: string, duration: string, budgetPct: number | null) =>
+        `Le dossier ${name} concentre le plus de temps validé ce mois-ci (${duration})${
+          budgetPct === null ? "." : ` — ${budgetPct} % de son budget d'heures est consommé.`
+        }`,
+      dossiersEmpty: "Aucun temps validé sur vos dossiers ce mois-ci pour l'instant.",
+      stats: (revenue: string, growthPct: number | null, previousMonth: string, source: string, sourcePct: number) =>
+        `${revenue} sécurisés ce mois-ci${
+          growthPct === null ? "" : `, soit ${growthPct >= 0 ? "+" : "−"}${Math.abs(growthPct)} % par rapport à ${previousMonth}`
+        }. ${source} est votre première source de temps validé (${sourcePct} %).`,
+      statsEmpty: "Pas encore de temps validé ce mois-ci : les statistiques se rempliront au fil des validations.",
+      billingReady: (n: number, duration: string) =>
+        `${n} dossier${n > 1 ? "s" : ""} prêt${n > 1 ? "s" : ""} à facturer — ${duration} de temps validé. Les autres attendent la validation de temps au journal.`,
+      billingBlocked: (n: number) =>
+        `${n} dossier${n > 1 ? "s ont" : " a"} du temps validé à facturer, mais aussi du temps encore en attente au journal. Validez-le pour générer la facture.`,
+      billingDone: "Tout le temps validé est facturé. Validez le temps restant au journal pour débloquer de nouvelles factures.",
+      profile: (duration: string, billablePct: number) => `Bilan personnel — ce mois-ci, ${duration} saisies, dont ${billablePct} % sur des dossiers facturables.`,
+      cloud: "Cloud ACTE — aucun appareil lié pour l'instant. Seules des métadonnées de temps sont enregistrées : vos documents restent sur vos postes.",
+      settings: "Ces réglages sont enregistrés sur votre compte et vous suivent d'un poste à l'autre.",
+    },
+    dossierCard: {
+      title: "À intégrer",
+      body: (duration: string, dossier: string, n: number) =>
+        `${duration} en attente sur le dossier ${dossier} (${n} tâche${n > 1 ? "s" : ""}). Voulez-vous tout intégrer ?`,
+      integrate: (duration: string) => `Intégrer ${duration}`,
+      seeTasks: "Voir les tâches",
+    },
     title: "Le Cerveau d'ACTE",
     activityTitle: "Activité récente",
     cabinet: {
@@ -185,6 +274,9 @@ export const fr = {
     darkModeOn: "Mode sombre activé",
   },
   stats: {
+    capturedThisMonth: "Temps capturé ce mois-ci",
+    billableShare: "de temps facturable",
+    versus: "vs",
     title: "Statistiques",
     subtitle: "Ce qu'ACTE vous a rapporté",
     revenueByMonth: "CA sécurisé par mois",
@@ -203,6 +295,15 @@ export const fr = {
     goToJournal: "Voir mon journal →",
   },
   billing: {
+    toInvoiceSuffix: "validées à facturer",
+    allInvoiced: "Tout le temps validé est facturé",
+    toasts: { generated: "Facture générée" },
+    errors: {
+      nothing_to_invoice: "Aucun temps validé à facturer sur ce dossier.",
+      dossier_not_billable: "Ce dossier ne peut pas être facturé.",
+      dossier_not_found: "Dossier introuvable.",
+      generic: "La facture n'a pas pu être générée — réessayez.",
+    },
     title: "Facturation",
     subtitle: "Factures issues du temps validé",
     draftsPending: "Brouillons en attente",
@@ -222,6 +323,12 @@ export const fr = {
     notCovered: "Factur-X, les connecteurs Secib / Kleos / Jarvis et l'abonnement Stripe ne sont pas encore couverts (voir ROADMAP.md).",
   },
   profile: {
+    highlightsTitle: "Vos temps forts du mois",
+    bestDay: "Meilleure journée",
+    topDossier: "Dossier dominant",
+    ofTime: "du temps",
+    savedFromOblivion: "Sauvées de l'oubli",
+    shortTasks: "tâches de moins de 10 min",
     title: "Mon profil & impact",
     hourlyRate: "Taux horaire",
     contact: "Contact",
@@ -239,6 +346,8 @@ export const fr = {
     generateKey: "+ Générer une clé d'activation",
   },
   cloud: {
+    exportMyData: "Exporter mes données (.json)",
+    exportStarted: "Export de vos données lancé",
     title: "Cloud ACTE",
     subtitle: "Synchronisation & sauvegarde",
     linkedDevices: "Appareils liés",
@@ -253,6 +362,18 @@ export const fr = {
     companionVersion: (version: string) => `Compagnon v${version}`,
   },
   settingsView: {
+    alertEmailsTitle: "Alertes par e-mail",
+    alertEmailsNote:
+      "Un e-mail par jour au plus, quand des alertes vous attendent (budget d'un dossier, validation en retard, invitation sans réponse). Il indique seulement combien : le détail reste dans l'application.",
+    alertEmailsOn: "Alertes par e-mail activées",
+    alertEmailsOff: "Alertes par e-mail désactivées",
+    passwordTitle: "Mot de passe",
+    passwordCurrent: "Mot de passe actuel",
+    passwordNew: "Nouveau mot de passe",
+    passwordSubmit: "Changer le mot de passe",
+    passwordChanged: "Mot de passe modifié — vos autres sessions ont été fermées",
+    passwordWrong: "Mot de passe actuel incorrect.",
+    passwordTooShort: "8 caractères au minimum.",
     title: "Paramètres",
     subtitle: "Réglages de la capture",
     sourcesTitle: "Sources surveillées",
@@ -268,12 +389,31 @@ export const fr = {
     saveError: "Impossible d'enregistrer ce réglage",
     hourlyRateTitle: "Mon taux horaire",
     hourlyRateNote:
-      "Défini par le cabinet. La modification par l'administrateur du cabinet arrive avec la Console Admin (D-004, en attente de décision).",
+      "Défini par le cabinet : un administrateur le modifie depuis la Console Admin. Un nouveau taux s'applique aux temps validés ensuite, pas à ceux déjà validés.",
     privacyTitle: "Confidentialité",
     privacyBody:
       "Les contenus (documents, courriels, pages web) ne quittent jamais votre poste. Seules des métadonnées de temps — durée, dossier, source — remontent, chiffrées avec la clé de votre cabinet. Voir docs/03-security/PRIVACY_MODEL.md.",
   },
   admin: {
+    adminBadge: "Admin",
+    renameFirm: "Renommer le cabinet",
+    firmNameLabel: "Nom du cabinet",
+    firmNameHint: "Ce nom apparaît dans la console, les invitations et les e-mails envoyés à vos membres.",
+    tabFeedback: "Vos retours",
+    feedback: {
+      title: "Un retour pour l'équipe ACTE ?",
+      intro: "Une idée, un bug, une remarque : dites-le ici. Vos retours sont enregistrés à l'attention de l'équipe ACTE et visibles des administrateurs de votre cabinet.",
+      categoryLabel: "Type de retour",
+      categories: { idea: "Idée", bug: "Bug", other: "Autre" },
+      messageLabel: "Votre message",
+      placeholder: "Ce qui vous aiderait, ce qui vous a gêné…",
+      privacyNote: "N'indiquez pas de nom de client ni de détail de dossier.",
+      send: "Envoyer",
+      sent: "Merci — votre retour a été envoyé",
+      sendError: "Le retour n'a pas pu être envoyé — réessayez.",
+      historyTitle: "Retours envoyés",
+      empty: "Aucun retour envoyé pour l'instant.",
+    },
     title: "Console admin",
     heading: "Équipe du cabinet & abonnement",
     sectionsAria: "Sections de la console",
@@ -296,6 +436,7 @@ export const fr = {
     pendingSuffix: "en attente d'activation",
     invitationExpired: "Invitation expirée",
     errors: {
+      last_admin: "Le cabinet doit garder au moins un administrateur.",
       generic: "Action impossible — réessayez.",
       cannot_suspend_self: "Vous ne pouvez pas suspendre votre propre compte.",
       already_reminded: "Un rappel a déjà été envoyé au cours des dernières 24 h.",
@@ -304,6 +445,9 @@ export const fr = {
       email_unavailable: "L'e-mail n'a pas pu être envoyé — réessayez plus tard.",
     },
     toasts: {
+      adminGranted: (name: string) => `${name} est maintenant administrateur`,
+      adminRevoked: (name: string) => `${name} n'est plus administrateur`,
+      firmRenamed: "Nom du cabinet mis à jour",
       invited: (email: string, role: string) => `Invitation envoyée à ${email} · ${role}`,
       resent: (email: string) => `Invitation renvoyée à ${email}`,
       cancelled: "Invitation annulée",
@@ -329,6 +473,8 @@ export const fr = {
       juriste_stagiaire: "Juriste stagiaire",
     },
     menu: {
+      grantAdmin: "Donner les droits admin",
+      revokeAdmin: "Retirer les droits admin",
       resend: "Renvoyer l'invitation",
       cancelInvite: "Annuler l'invitation",
       edit: "Modifier le profil / Taux horaire",

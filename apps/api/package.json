@@ -12,7 +12,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --env-file-if-exists=../../.env --import tsx src/db/migrate.ts",
     "db:seed": "node --env-file-if-exists=../../.env --import tsx src/db/seed.ts",
-    "db:reset": "node --env-file-if-exists=../../.env --import tsx src/db/reset.ts && pnpm run db:migrate && pnpm run db:seed"
+    "db:reset": "node --env-file-if-exists=../../.env --import tsx src/db/reset.ts && pnpm run db:migrate && pnpm run db:seed",
+    "test:routes": "vitest run --config vitest.routes.config.ts"
   },
   "dependencies": {
     "@acte/contracts": "workspace:*",

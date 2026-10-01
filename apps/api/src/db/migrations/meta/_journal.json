@@ -22,6 +22,20 @@
       "when": 1790174262336,
       "tag": "0002_pale_rawhide_kid",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790834964320,
+      "tag": "0003_member_onboarded_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790835281972,
+      "tag": "0004_audit_followups",
+      "breakpoints": true
     }
   ]
 }

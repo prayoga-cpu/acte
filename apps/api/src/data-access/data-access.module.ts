@@ -4,10 +4,12 @@ import { AuditLogRepository } from "./audit-log.repository.js";
 import { ClientInvoicesRepository } from "./client-invoices.repository.js";
 import { DevicesRepository } from "./devices.repository.js";
 import { DossiersRepository } from "./dossiers.repository.js";
+import { FeedbackRepository } from "./feedback.repository.js";
 import { FirmsRepository } from "./firms.repository.js";
 import { InvitationsRepository } from "./invitations.repository.js";
 import { MembersRepository } from "./members.repository.js";
 import { NotificationsRepository } from "./notifications.repository.js";
+import { OnboardingRepository } from "./onboarding.repository.js";
 import { TasksRepository } from "./tasks.repository.js";
 
 const repositories = [
@@ -21,6 +23,8 @@ const repositories = [
   ClientInvoicesRepository,
   NotificationsRepository,
   InvitationsRepository,
+  FeedbackRepository,
+  OnboardingRepository,
 ];
 
 @Global()

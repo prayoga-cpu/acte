@@ -16,10 +16,12 @@ const CHECK = (
 
 export function DossierMenu({
   dossier,
+  onRename,
   onEditBudget,
   onSetStatus,
 }: {
   dossier: DossierUsage;
+  onRename: () => void;
   onEditBudget: () => void;
   onSetStatus: (status: DossierStatus) => void;
 }) {
@@ -43,6 +45,7 @@ export function DossierMenu({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={t.dossiers.dossierActionsAria(dossier.name)}
+        data-tour="dossier-menu"
         aria-haspopup="menu"
         className="flex h-7 w-7 items-center justify-center rounded-lg border border-white/[0.08] text-ash transition hover:border-gold/35 hover:text-gold-pale"
       >
@@ -55,6 +58,19 @@ export function DossierMenu({
       {open && (
         <div className="dossier-menu fade-up absolute right-0 top-[calc(100%+6px)] z-[70] w-[240px] overflow-hidden rounded-xl border border-white/[0.1] bg-carbon/95 shadow-[0_14px_40px_-8px_rgba(0,0,0,0.8)] backdrop-blur-xl">
           <p className="truncate border-b border-white/[0.06] px-3.5 py-2 text-[10px] uppercase tracking-[0.16em] text-ash">{dossier.name}</p>
+          <button
+            type="button"
+            onClick={() => {
+              setOpen(false);
+              onRename();
+            }}
+            className="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left text-[12.5px] text-ivory/90 transition hover:bg-white/[0.05]"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+            </svg>
+            <span>{t.dossiers.renameDossier}</span>
+          </button>
           <button
             type="button"
             onClick={() => {

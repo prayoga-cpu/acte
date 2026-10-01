@@ -82,12 +82,20 @@ export class DossiersRepository {
   async update(
     ctx: FirmContext,
     id: string,
-    patch: { budgetMinutes?: number | null; status?: DossierStatus },
+    patch: { name?: string; clientLabel?: string; budgetMinutes?: number | null; status?: DossierStatus },
   ): Promise<DossierRecord | null> {
     const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
+    const { name, clientLabel, ...plain } = patch;
+    const set = {
+      ...plain,
+      ...(name !== undefined ? { name: encryptField(name, dataKey) } : {}),
+      ...(clientLabel !== undefined ? { clientLabel: encryptField(clientLabel, dataKey) } : {}),
+    };
+    // An empty patch is a no-op, not a 500 ("No values to set").
+    if (Object.keys(set).length === 0) return this.findById(ctx, id);
     const [row] = await this.db
       .update(dossiers)
-      .set(patch)
+      .set(set)
       .where(and(eq(dossiers.firmId, ctx.firmId), eq(dossiers.id, id)))
       .returning();
     return row ? this.decrypt(row, dataKey) : null;

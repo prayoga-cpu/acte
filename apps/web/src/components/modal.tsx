@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 
-export function Modal({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+/** `size="lg"` is the wider, scrollable variant used by the help centre and the welcome (D-021); the default is the prototype's modal. */
+export function Modal({ onClose, children, size = "sm" }: { onClose: () => void; children: React.ReactNode; size?: "sm" | "lg" }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -14,7 +15,11 @@ export function Modal({ onClose, children }: { onClose: () => void; children: Re
   return (
     <div id="modal-root" className="fixed inset-0 z-[80] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="fade-up relative w-full max-w-[400px] rounded-2xl border border-white/[0.1] bg-carbon p-5 shadow-[0_24px_70px_-18px_rgba(0,0,0,0.9)]">
+      <div
+        className={`fade-up relative w-full rounded-2xl border border-white/[0.1] bg-carbon p-5 shadow-[0_24px_70px_-18px_rgba(0,0,0,0.9)] ${
+          size === "lg" ? "scroll-thin max-h-[calc(100dvh-2rem)] max-w-[540px] overflow-y-auto" : "max-w-[400px]"
+        }`}
+      >
         <button
           type="button"
           onClick={onClose}

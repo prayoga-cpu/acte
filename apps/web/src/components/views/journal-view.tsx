@@ -1,34 +1,26 @@
 "use client";
 
 import type { Dossier, Task } from "@acte/contracts";
-import { JournalCard } from "@/components/journal/journal-card";
+import { JournalCard, type JournalActions } from "@/components/journal/journal-card";
 
 export function JournalView({
   tasks,
+  backlog,
+  dateKey,
   dossiers,
-  onValidate,
-  onValidateAll,
-  onReassign,
-  onCreateManualTask,
+  flash,
+  actions,
 }: {
   tasks: Task[];
+  backlog: Task[];
+  dateKey: string;
   dossiers: Dossier[];
-  onValidate: (id: string) => void;
-  onValidateAll: () => void;
-  onReassign: (id: string, dossierId: string) => void;
-  onCreateManualTask: (input: { title: string; dossierId: string | null; startedAt: string; durationMin: number }) => Promise<void>;
+  flash?: { dossierId: string; seq: number } | null;
+  actions: JournalActions;
 }) {
   return (
     <div className="mx-auto max-w-[1080px]">
-      <JournalCard
-        tasks={tasks}
-        dossiers={dossiers}
-        focused
-        onValidate={onValidate}
-        onValidateAll={onValidateAll}
-        onReassign={onReassign}
-        onCreateManualTask={onCreateManualTask}
-      />
+      <JournalCard tasks={tasks} backlog={backlog} dateKey={dateKey} dossiers={dossiers} focused flash={flash} actions={actions} />
     </div>
   );
 }

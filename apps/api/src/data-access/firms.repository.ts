@@ -36,6 +36,15 @@ export class FirmsRepository {
     return !!row;
   }
 
+  /** Admin console: the firm's display name (it starts as the founder's email domain). */
+  async rename(firmId: string, name: string): Promise<boolean> {
+    const [row] = await this.db.select({ dataKeyWrapped: firms.dataKeyWrapped }).from(firms).where(eq(firms.id, firmId));
+    if (!row) return false;
+    const dataKey = unwrapDataKey(row.dataKeyWrapped, this.masterKey);
+    await this.db.update(firms).set({ name: encryptField(name, dataKey) }).where(eq(firms.id, firmId));
+    return true;
+  }
+
   /** Decrypted firm name — used for the invite email/preview, where showing "which firm" matters. */
   async findNameById(firmId: string): Promise<string | null> {
     const [row] = await this.db.select({ name: firms.name, dataKeyWrapped: firms.dataKeyWrapped }).from(firms).where(eq(firms.id, firmId));

@@ -29,12 +29,22 @@ export class ApiExceptionFilter implements ExceptionFilter {
     const body = exception instanceof HttpException ? exception.getResponse() : null;
 
     let error: { code: string; message: string };
-    if (body && typeof body === "object" && "error" in body) {
-      error = (body as { error: { code: string; message: string } }).error;
+    const thrown = body && typeof body === "object" && "error" in body ? (body as { error: unknown }).error : null;
+    if (thrown && typeof thrown === "object") {
+      error = thrown as { code: string; message: string };
     } else if (exception instanceof HttpException) {
+      // Nest's own exceptions (unknown route, malformed JSON) carry `error` as a
+      // status text, not as our envelope — build the envelope here.
       error = {
-        code: status === HttpStatus.UNAUTHORIZED ? "unauthorized" : status === HttpStatus.NOT_FOUND ? "not_found" : "http_error",
-        message: exception.message,
+        code:
+          status === HttpStatus.UNAUTHORIZED
+            ? "unauthorized"
+            : status === HttpStatus.NOT_FOUND
+              ? "not_found"
+              : status === HttpStatus.BAD_REQUEST
+                ? "bad_request"
+                : "http_error",
+        message: status === HttpStatus.NOT_FOUND ? "Not found" : status === HttpStatus.BAD_REQUEST ? "Malformed request" : exception.message,
       };
     } else {
       if (!process.env.VERCEL && process.env.NODE_ENV !== "production") console.error(exception);

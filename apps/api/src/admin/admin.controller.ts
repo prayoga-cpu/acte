@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, Inject, Param, Patch, Post, UseGuards } from "@nestjs/common";
-import { InviteMemberBody, UpdateMemberBody } from "@acte/contracts";
+import { InviteMemberBody, UpdateFirmBody, UpdateMemberBody } from "@acte/contracts";
 import type { z } from "zod";
 import { AdminGuard } from "../auth/admin.guard.js";
 import { CurrentFirm } from "../auth/current-firm.decorator.js";
@@ -13,6 +13,11 @@ import { AdminService } from "./admin.service.js";
 @UseGuards(SessionGuard, AdminGuard)
 export class AdminController {
   constructor(@Inject(AdminService) private readonly admin: AdminService) {}
+
+  @Patch()
+  renameFirm(@CurrentFirm() ctx: FirmContext, @Body(new ZodValidationPipe(UpdateFirmBody)) body: z.infer<typeof UpdateFirmBody>) {
+    return this.admin.renameFirm(ctx, body);
+  }
 
   @Get("members")
   listTeam(@CurrentFirm() ctx: FirmContext) {

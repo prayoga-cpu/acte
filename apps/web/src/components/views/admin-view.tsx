@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { MemberRole, TeamMemberSummary } from "@acte/contracts";
+import type { FeedbackCategory, FeedbackEntry, MemberRole, TeamMemberSummary } from "@acte/contracts";
 import { fmtEurFromCents, fmtMin } from "@/lib/format";
 import { useI18n } from "@/i18n/locale-context";
 import { isRecentReminder } from "@/lib/reminders";
@@ -9,8 +9,10 @@ import { MemberMenu } from "@/components/admin/member-menu";
 import { InviteMemberModal } from "@/components/admin/invite-member-modal";
 import { EditMemberModal } from "@/components/admin/edit-member-modal";
 import { SubscriptionTab } from "@/components/admin/subscription-tab";
+import { FeedbackTab } from "@/components/admin/feedback-tab";
+import { RenameFirmModal } from "@/components/admin/rename-firm-modal";
 
-type AdminTab = "team" | "subscription";
+type AdminTab = "team" | "subscription" | "feedback";
 
 export function AdminView({
   team,
@@ -22,6 +24,10 @@ export function AdminView({
   onRemind,
   onSuspend,
   onReactivate,
+  onSetAdmin,
+  onRenameFirm,
+  feedback,
+  onSendFeedback,
   onToast,
   complianceClaimsEnabled,
 }: {
@@ -35,12 +41,19 @@ export function AdminView({
   onRemind: (memberId: string) => Promise<void>;
   onSuspend: (memberId: string) => Promise<void>;
   onReactivate: (memberId: string) => Promise<void>;
+  onSetAdmin: (memberId: string, isAdmin: boolean) => Promise<void>;
+  onRenameFirm: (name: string) => Promise<void>;
+  feedback: FeedbackEntry[];
+  onSendFeedback: (category: FeedbackCategory, message: string) => Promise<void>;
   onToast: (msg: string) => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  // Team figures are for the current month (prototype: "Volume capturé · juillet").
+  const month = new Intl.DateTimeFormat(locale === "en" ? "en-GB" : "fr-FR", { month: "long", timeZone: "Europe/Paris" }).format(new Date());
   const [tab, setTab] = useState<AdminTab>("team");
   const [inviteOpen, setInviteOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<TeamMemberSummary | null>(null);
+  const [renameOpen, setRenameOpen] = useState(false);
 
   const real = team.filter((m) => m.status !== "invited");
   const totalMin = real.reduce((s, m) => s + m.capturedMin, 0);
@@ -53,7 +66,21 @@ export function AdminView({
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="eyebrow">{t.admin.title}</p>
-          <h2 className="mt-1 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">{firmName || t.admin.heading}</h2>
+          <h2 className="mt-1 flex items-center gap-2 font-display text-[16px] font-extrabold uppercase tracking-[0.05em] text-ivory">
+            {firmName || t.admin.heading}
+            {/* Not in the prototype (D-018): the firm name starts as the founder's email domain and needs a way to be corrected. */}
+            <button
+              type="button"
+              onClick={() => setRenameOpen(true)}
+              title={t.admin.renameFirm}
+              aria-label={t.admin.renameFirm}
+              className="flex h-6 w-6 items-center justify-center rounded-md text-ash transition hover:bg-white/[0.06] hover:text-gold-pale"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+              </svg>
+            </button>
+          </h2>
         </div>
         <span className="flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-3.5 py-1.5 text-[11.5px] font-medium text-emerald-300">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -65,17 +92,19 @@ export function AdminView({
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <section className="glass fade-up p-5">
-          <p className="eyebrow">{t.admin.volumeLabel}</p>
+        <section className="glass fade-up p-5" data-tour="admin-kpis">
+          <p className="eyebrow">
+            {t.admin.volumeLabel} · {month}
+          </p>
           <p className="mt-2 font-display text-[23px] font-bold leading-none tracking-tight text-ivory">{fmtMin(totalMin)}</p>
           <p className="mt-[24px] text-[12px] text-ash">{t.admin.volumeSub}</p>
         </section>
-        <section className="glass fade-up p-5" style={{ animationDelay: "0.06s" }}>
+        <section className="glass fade-up p-5" style={{ animationDelay: "0.06s" }} data-tour="admin-kpis">
           <p className="eyebrow">{t.admin.revenueLabel}</p>
           <p className="mt-2 font-display text-[23px] font-bold leading-none tracking-tight text-gold-grad">{fmtEurFromCents(Math.round(totalCa * 100))}</p>
           <p className="mt-[24px] text-[12px] text-ash">{t.admin.revenueSub}</p>
         </section>
-        <section className="glass fade-up p-5" style={{ animationDelay: "0.12s" }}>
+        <section className="glass fade-up p-5" style={{ animationDelay: "0.12s" }} data-tour="admin-kpis">
           <p className="eyebrow">{t.admin.activeMembersLabel}</p>
           <p className="mt-2 font-display text-[23px] font-bold leading-none tracking-tight text-ivory">
             {actives} <span className="text-[20px] text-ash">/ {real.length}</span>
@@ -84,9 +113,9 @@ export function AdminView({
         </section>
 
         {/* relative z-10: this card's fade-up transform makes its own stacking context, so the last row's member menu would otherwise render under the encryption card below. */}
-        <section className="glass fade-up relative z-10 md:col-span-3" style={{ animationDelay: "0.18s" }}>
+        <section className="glass fade-up relative z-10 md:col-span-3" style={{ animationDelay: "0.18s" }} data-tour="admin-team">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.06] px-5 py-3">
-            <div className="flex items-center gap-1.5" role="tablist" aria-label={t.admin.sectionsAria}>
+            <div className="flex items-center gap-1.5" role="tablist" aria-label={t.admin.sectionsAria} data-tour="admin-tabs">
               <button
                 type="button"
                 role="tab"
@@ -105,6 +134,15 @@ export function AdminView({
               >
                 {t.admin.tabSubscription}
               </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={tab === "feedback"}
+                onClick={() => setTab("feedback")}
+                className={`cursor-pointer rounded-full px-3 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.14em] transition ${tab === "feedback" ? "bg-gold/10 text-gold-pale" : "text-ash hover:text-ivory"}`}
+              >
+                {t.admin.tabFeedback}
+              </button>
             </div>
             {tab === "team" ? (
               <div className="flex items-center gap-3">
@@ -112,17 +150,18 @@ export function AdminView({
                 <button
                   type="button"
                   onClick={() => setInviteOpen(true)}
+                  data-tour="admin-invite"
                   className="cursor-pointer rounded-full bg-gradient-to-r from-gold to-gold-deep px-3.5 py-1.5 text-[12px] font-semibold text-noir transition hover:brightness-110 active:scale-[0.98]"
                 >
                   + {t.admin.inviteMember}
                 </button>
               </div>
-            ) : (
+            ) : tab === "subscription" ? (
               <span className="flex items-center gap-1.5 rounded-full border border-emerald-400/30 bg-emerald-400/[0.08] px-3 py-1 text-[11px] font-medium text-emerald-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot" />
                 {t.admin.subscription.subscriptionActive}
               </span>
-            )}
+            ) : null}
           </div>
 
           {tab === "team" ? (
@@ -142,7 +181,12 @@ export function AdminView({
                         {m.initials}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[13.5px] font-medium text-ivory/95">{m.displayName}</p>
+                        <p className="truncate text-[13.5px] font-medium text-ivory/95">
+                          {m.displayName}
+                          {m.isAdmin && (
+                            <span className="ml-1.5 rounded-full border border-gold/30 bg-gold/10 px-1.5 py-0.5 text-[9.5px] font-semibold text-gold-pale">{t.admin.adminBadge}</span>
+                          )}
+                        </p>
                         <p className="mt-0.5 truncate text-[11.5px] text-ash">
                           {t.admin.roles[m.role]}
                           {pending && ` · ${t.admin.pendingSuffix}`}
@@ -198,6 +242,7 @@ export function AdminView({
                         onRemind={() => onRemind(m.id)}
                         onSuspend={() => onSuspend(m.id)}
                         onReactivate={() => onReactivate(m.id)}
+                        onSetAdmin={(isAdmin) => onSetAdmin(m.id, isAdmin)}
                         onResendInvitation={() => onResendInvitation(m.id)}
                         onCancelInvitation={() => onCancelInvitation(m.id)}
                       />
@@ -206,8 +251,10 @@ export function AdminView({
                 );
               })}
             </div>
-          ) : (
+          ) : tab === "subscription" ? (
             <SubscriptionTab team={team} firmName={firmName} onToast={onToast} onAddSeat={() => setInviteOpen(true)} />
+          ) : (
+            <FeedbackTab entries={feedback} onSend={onSendFeedback} />
           )}
         </section>
 
@@ -229,6 +276,7 @@ export function AdminView({
         </section>
       </div>
 
+      {renameOpen && <RenameFirmModal firmName={firmName} onClose={() => setRenameOpen(false)} onSave={onRenameFirm} />}
       {inviteOpen && <InviteMemberModal onClose={() => setInviteOpen(false)} onInvite={onInvite} />}
       {editTarget && (
         <EditMemberModal

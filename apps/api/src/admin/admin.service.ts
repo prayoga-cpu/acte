@@ -1,5 +1,5 @@
 import { ConflictException, ForbiddenException, HttpException, HttpStatus, Inject, Injectable, NotFoundException } from "@nestjs/common";
-import type { InviteMemberBody, TeamMemberSummary, UpdateMemberBody } from "@acte/contracts";
+import { FirmRenamed, type InviteMemberBody, type TeamMemberSummary, type UpdateFirmBody, type UpdateMemberBody } from "@acte/contracts";
 import type { z } from "zod";
 import { AuditLogRepository } from "../data-access/audit-log.repository.js";
 import { FirmsRepository } from "../data-access/firms.repository.js";
@@ -107,13 +107,16 @@ export class AdminService {
       throw new ConflictException({ error: { code: "invite_pending", message: "An invitation to this address is already pending" } });
     }
 
-    const issued = existing ? await this.invitations.reissue(ctx, existing.id, body.role) : await this.invitations.create(ctx, body);
+    // An expired invite for the same address is re-issued rather than duplicated.
+    const reissued = existing ? await this.invitations.reissue(ctx, existing.id, body.role) : null;
+    const issued = reissued ?? (existing ? null : await this.invitations.create(ctx, body));
     if (!issued) throw new NotFoundException({ error: { code: "invitation_not_found", message: "No pending invitation" } });
 
     try {
       await sendInvitationEmail(issued.invitation.email, inviteUrl(issued.plainToken), firmName, issued.invitation.role);
     } catch {
-      if (!existing) await this.invitations.cancel(ctx, issued.invitation.id);
+      if (reissued) await this.invitations.restore(ctx, reissued.invitation.id, reissued.previous);
+      else await this.invitations.cancel(ctx, issued.invitation.id);
       throw emailUnavailable();
     }
     await this.auditLog.record(ctx, "admin.invite", "invitation", issued.invitation.id);
@@ -127,6 +130,8 @@ export class AdminService {
     try {
       await sendInvitationReminderEmail(reissued.invitation.email, inviteUrl(reissued.plainToken), firmName);
     } catch {
+      // The new link never reached the invitee: put the old one back (BUG-8).
+      await this.invitations.restore(ctx, invitationId, reissued.previous);
       throw emailUnavailable();
     }
     await this.auditLog.record(ctx, "admin.invitation.resend", "invitation", invitationId);
@@ -140,12 +145,31 @@ export class AdminService {
   }
 
   async updateMember(ctx: FirmContext, memberId: string, body: z.infer<typeof UpdateMemberBody>): Promise<TeamMemberSummary> {
+    const before = await this.members.findById(ctx.firmId, memberId);
+    if (!before) throw new NotFoundException({ error: { code: "member_not_found", message: "Member not found" } });
+
+    // D-004 interim (D-019): a firm always keeps at least one admin who can sign in.
+    const removesAdmin = body.isAdmin === false && before.isAdmin;
+    if (removesAdmin && before.status !== "suspended" && (await this.members.countActiveAdmins(ctx.firmId)) <= 1) {
+      throw new ConflictException({ error: { code: "last_admin", message: "A firm must keep at least one admin" } });
+    }
+
     const updated = await this.members.updateMember(ctx, memberId, body);
     if (!updated) throw new NotFoundException({ error: { code: "member_not_found", message: "Member not found" } });
     if (body.role !== undefined || body.hourlyRateCents !== undefined) {
       await this.auditLog.record(ctx, "admin.member.update", "member", memberId);
     }
+    if (body.isAdmin !== undefined && body.isAdmin !== before.isAdmin) {
+      await this.auditLog.record(ctx, body.isAdmin ? "admin.member.grant_admin" : "admin.member.revoke_admin", "member", memberId);
+    }
     return this.summaryFor(ctx, updated);
+  }
+
+  async renameFirm(ctx: FirmContext, body: z.infer<typeof UpdateFirmBody>): Promise<{ name: string }> {
+    const renamed = await this.firms.rename(ctx.firmId, body.name);
+    if (!renamed) throw new NotFoundException({ error: { code: "firm_not_found", message: "Firm not found" } });
+    await this.auditLog.record(ctx, "admin.firm.rename", "firm", ctx.firmId);
+    return FirmRenamed.parse({ name: body.name });
   }
 
   async remindValidation(ctx: FirmContext, memberId: string): Promise<TeamMemberSummary> {

@@ -33,6 +33,14 @@ Member status: `active`, `in_court` ("En audience"), `suspended`, `invited`.
 | Abonnement Cabinet | Seats × monthly seat price, live; Stripe Customer Portal; invoice history |
 | Feedback (new) | Epidom-style feedback page. Not in the prototype; designed in stage 6 using the prototype's visual language. |
 
+## Welcome and help (not in the prototype — D-021)
+
+| Piece | Must do |
+|---|---|
+| Welcome | Shown once to a member who has never seen it (server-side, per member): the manual loop in three steps, a plain statement that automatic capture is not available yet, start the tour or put it off |
+| Help centre | Opened from the "?" button in the rail. "Premiers pas" checklist computed from the member's real data, shown until its required steps are done; then every guide the member may follow, the current view's first |
+| Guides | One per view and per shell feature (12 guides, 56 steps): a spotlight on the real element, the text beside it, the page shielded from clicks meanwhile. Copy states what works today and what does not |
+
 ## Confidence thresholds (defined by the client)
 
 | Score | Badge | Behaviour |

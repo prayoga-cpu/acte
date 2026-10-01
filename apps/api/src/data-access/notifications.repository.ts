@@ -61,6 +61,30 @@ export class NotificationsRepository {
     }
   }
 
+  /** Open, unread episodes that no digest email has covered yet (D-019). */
+  async listForDigest(ctx: FirmContext) {
+    return this.db
+      .select({ id: notifications.id, type: notifications.type })
+      .from(notifications)
+      .where(
+        and(
+          eq(notifications.firmId, ctx.firmId),
+          eq(notifications.memberId, ctx.memberId),
+          isNull(notifications.resolvedAt),
+          isNull(notifications.readAt),
+          isNull(notifications.emailedAt),
+        ),
+      );
+  }
+
+  async markEmailed(ctx: FirmContext, ids: string[]) {
+    if (ids.length === 0) return;
+    await this.db
+      .update(notifications)
+      .set({ emailedAt: new Date() })
+      .where(and(eq(notifications.firmId, ctx.firmId), eq(notifications.memberId, ctx.memberId), inArray(notifications.id, ids)));
+  }
+
   async markRead(ctx: FirmContext, id: string) {
     const [row] = await this.db
       .update(notifications)

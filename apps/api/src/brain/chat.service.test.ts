@@ -41,7 +41,7 @@ const week: WeekSummary = {
 };
 const dossier = (over: Partial<DossierUsage> & { name: string }): DossierUsage => ({
   id: crypto.randomUUID(), firmId: "f", clientLabel: "", budgetMinutes: null, status: "progress", isBillable: true,
-  lastActivityAt: null, usedMinutes: 0, pendingMinutes: 0, ...over,
+  lastActivityAt: null, usedMinutes: 0, pendingMinutes: 0, monthMinutes: 0, uninvoicedMinutes: 0, ...over,
 });
 const dossiers: DossierUsage[] = [
   dossier({ name: CANARY_DOSSIER, clientLabel: CANARY_CLIENT, budgetMinutes: 2100, usedMinutes: 1233, pendingMinutes: 77 }),

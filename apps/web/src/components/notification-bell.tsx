@@ -31,7 +31,7 @@ export function NotificationBell({
   const unread = notifications.filter((n) => !n.readAt);
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={ref} className="relative" data-tour="bell">
       <button
         type="button"
         onClick={() => {

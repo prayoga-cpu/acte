@@ -2004,10 +2004,10 @@ var require_controller_decorator = __commonJS({
   "../../node_modules/.pnpm/@nestjs+common@10.4.22_reflect-metadata@0.2.2_rxjs@7.8.2/node_modules/@nestjs/common/decorators/core/controller.decorator.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.Controller = Controller15;
+    exports2.Controller = Controller18;
     var constants_1 = require_constants2();
     var shared_utils_1 = require_shared_utils();
-    function Controller15(prefixOrOptions) {
+    function Controller18(prefixOrOptions) {
       const defaultPath = "/";
       const [path2, host, scopeOptions, versionOptions] = (0, shared_utils_1.isUndefined)(prefixOrOptions) ? [defaultPath, void 0, void 0, void 0] : (0, shared_utils_1.isString)(prefixOrOptions) || Array.isArray(prefixOrOptions) ? [prefixOrOptions, void 0, void 0, void 0] : [
         prefixOrOptions.path || defaultPath,
@@ -2126,10 +2126,10 @@ var require_inject_decorator = __commonJS({
   "../../node_modules/.pnpm/@nestjs+common@10.4.22_reflect-metadata@0.2.2_rxjs@7.8.2/node_modules/@nestjs/common/decorators/core/inject.decorator.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.Inject = Inject38;
+    exports2.Inject = Inject44;
     var constants_1 = require_constants2();
     var shared_utils_1 = require_shared_utils();
-    function Inject38(token) {
+    function Inject44(token) {
       const injectCallHasArguments = arguments.length > 0;
       return (target, key, index) => {
         let type = token || Reflect.getMetadata("design:type", target, key);
@@ -2176,11 +2176,11 @@ var require_injectable_decorator = __commonJS({
   "../../node_modules/.pnpm/@nestjs+common@10.4.22_reflect-metadata@0.2.2_rxjs@7.8.2/node_modules/@nestjs/common/decorators/core/injectable.decorator.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.Injectable = Injectable26;
+    exports2.Injectable = Injectable29;
     exports2.mixin = mixin;
     var uid_1 = require_dist();
     var constants_1 = require_constants2();
-    function Injectable26(options) {
+    function Injectable29(options) {
       return (target) => {
         Reflect.defineMetadata(constants_1.INJECTABLE_WATERMARK, true, target);
         Reflect.defineMetadata(constants_1.SCOPE_OPTIONS_METADATA, options, target);
@@ -2190,7 +2190,7 @@ var require_injectable_decorator = __commonJS({
       Object.defineProperty(mixinClass, "name", {
         value: (0, uid_1.uid)(21)
       });
-      Injectable26()(mixinClass);
+      Injectable29()(mixinClass);
       return mixinClass;
     }
   }
@@ -2245,12 +2245,12 @@ var require_use_guards_decorator = __commonJS({
   "../../node_modules/.pnpm/@nestjs+common@10.4.22_reflect-metadata@0.2.2_rxjs@7.8.2/node_modules/@nestjs/common/decorators/core/use-guards.decorator.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.UseGuards = UseGuards13;
+    exports2.UseGuards = UseGuards15;
     var constants_1 = require_constants2();
     var extend_metadata_util_1 = require_extend_metadata_util();
     var shared_utils_1 = require_shared_utils();
     var validate_each_util_1 = require_validate_each_util();
-    function UseGuards13(...guards) {
+    function UseGuards15(...guards) {
       return (target, key, descriptor) => {
         const isGuardValid = (guard) => guard && ((0, shared_utils_1.isFunction)(guard) || (0, shared_utils_1.isFunction)(guard.canActivate));
         if (descriptor) {
@@ -2427,9 +2427,9 @@ var require_module_decorator = __commonJS({
   "../../node_modules/.pnpm/@nestjs+common@10.4.22_reflect-metadata@0.2.2_rxjs@7.8.2/node_modules/@nestjs/common/decorators/modules/module.decorator.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.Module = Module15;
+    exports2.Module = Module17;
     var validate_module_keys_util_1 = require_validate_module_keys_util();
-    function Module15(metadata) {
+    function Module17(metadata) {
       const propsKeys = Object.keys(metadata);
       (0, validate_module_keys_util_1.validateModuleKeys)(propsKeys);
       return (target) => {
@@ -2551,7 +2551,7 @@ var require_route_params_decorator = __commonJS({
     exports2.UploadedFile = UploadedFile;
     exports2.UploadedFiles = UploadedFiles;
     exports2.Query = Query3;
-    exports2.Body = Body8;
+    exports2.Body = Body9;
     exports2.RawBody = RawBody;
     exports2.Param = Param8;
     exports2.HostParam = HostParam;
@@ -2602,7 +2602,7 @@ var require_route_params_decorator = __commonJS({
     function Query3(property, ...pipes) {
       return createPipesRouteParamDecorator(route_paramtypes_enum_1.RouteParamtypes.QUERY)(property, ...pipes);
     }
-    function Body8(property, ...pipes) {
+    function Body9(property, ...pipes) {
       return createPipesRouteParamDecorator(route_paramtypes_enum_1.RouteParamtypes.BODY)(property, ...pipes);
     }
     function RawBody(...pipes) {
@@ -2624,9 +2624,9 @@ var require_http_code_decorator = __commonJS({
   "../../node_modules/.pnpm/@nestjs+common@10.4.22_reflect-metadata@0.2.2_rxjs@7.8.2/node_modules/@nestjs/common/decorators/http/http-code.decorator.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
-    exports2.HttpCode = HttpCode5;
+    exports2.HttpCode = HttpCode8;
     var constants_1 = require_constants2();
-    function HttpCode5(statusCode) {
+    function HttpCode8(statusCode) {
       return (target, key, descriptor) => {
         Reflect.defineMetadata(constants_1.HTTP_CODE_METADATA, statusCode, descriptor.value);
         return descriptor;
@@ -2785,57 +2785,57 @@ var require_http_status_enum = __commonJS({
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.HttpStatus = void 0;
-    var HttpStatus4;
-    (function(HttpStatus5) {
-      HttpStatus5[HttpStatus5["CONTINUE"] = 100] = "CONTINUE";
-      HttpStatus5[HttpStatus5["SWITCHING_PROTOCOLS"] = 101] = "SWITCHING_PROTOCOLS";
-      HttpStatus5[HttpStatus5["PROCESSING"] = 102] = "PROCESSING";
-      HttpStatus5[HttpStatus5["EARLYHINTS"] = 103] = "EARLYHINTS";
-      HttpStatus5[HttpStatus5["OK"] = 200] = "OK";
-      HttpStatus5[HttpStatus5["CREATED"] = 201] = "CREATED";
-      HttpStatus5[HttpStatus5["ACCEPTED"] = 202] = "ACCEPTED";
-      HttpStatus5[HttpStatus5["NON_AUTHORITATIVE_INFORMATION"] = 203] = "NON_AUTHORITATIVE_INFORMATION";
-      HttpStatus5[HttpStatus5["NO_CONTENT"] = 204] = "NO_CONTENT";
-      HttpStatus5[HttpStatus5["RESET_CONTENT"] = 205] = "RESET_CONTENT";
-      HttpStatus5[HttpStatus5["PARTIAL_CONTENT"] = 206] = "PARTIAL_CONTENT";
-      HttpStatus5[HttpStatus5["AMBIGUOUS"] = 300] = "AMBIGUOUS";
-      HttpStatus5[HttpStatus5["MOVED_PERMANENTLY"] = 301] = "MOVED_PERMANENTLY";
-      HttpStatus5[HttpStatus5["FOUND"] = 302] = "FOUND";
-      HttpStatus5[HttpStatus5["SEE_OTHER"] = 303] = "SEE_OTHER";
-      HttpStatus5[HttpStatus5["NOT_MODIFIED"] = 304] = "NOT_MODIFIED";
-      HttpStatus5[HttpStatus5["TEMPORARY_REDIRECT"] = 307] = "TEMPORARY_REDIRECT";
-      HttpStatus5[HttpStatus5["PERMANENT_REDIRECT"] = 308] = "PERMANENT_REDIRECT";
-      HttpStatus5[HttpStatus5["BAD_REQUEST"] = 400] = "BAD_REQUEST";
-      HttpStatus5[HttpStatus5["UNAUTHORIZED"] = 401] = "UNAUTHORIZED";
-      HttpStatus5[HttpStatus5["PAYMENT_REQUIRED"] = 402] = "PAYMENT_REQUIRED";
-      HttpStatus5[HttpStatus5["FORBIDDEN"] = 403] = "FORBIDDEN";
-      HttpStatus5[HttpStatus5["NOT_FOUND"] = 404] = "NOT_FOUND";
-      HttpStatus5[HttpStatus5["METHOD_NOT_ALLOWED"] = 405] = "METHOD_NOT_ALLOWED";
-      HttpStatus5[HttpStatus5["NOT_ACCEPTABLE"] = 406] = "NOT_ACCEPTABLE";
-      HttpStatus5[HttpStatus5["PROXY_AUTHENTICATION_REQUIRED"] = 407] = "PROXY_AUTHENTICATION_REQUIRED";
-      HttpStatus5[HttpStatus5["REQUEST_TIMEOUT"] = 408] = "REQUEST_TIMEOUT";
-      HttpStatus5[HttpStatus5["CONFLICT"] = 409] = "CONFLICT";
-      HttpStatus5[HttpStatus5["GONE"] = 410] = "GONE";
-      HttpStatus5[HttpStatus5["LENGTH_REQUIRED"] = 411] = "LENGTH_REQUIRED";
-      HttpStatus5[HttpStatus5["PRECONDITION_FAILED"] = 412] = "PRECONDITION_FAILED";
-      HttpStatus5[HttpStatus5["PAYLOAD_TOO_LARGE"] = 413] = "PAYLOAD_TOO_LARGE";
-      HttpStatus5[HttpStatus5["URI_TOO_LONG"] = 414] = "URI_TOO_LONG";
-      HttpStatus5[HttpStatus5["UNSUPPORTED_MEDIA_TYPE"] = 415] = "UNSUPPORTED_MEDIA_TYPE";
-      HttpStatus5[HttpStatus5["REQUESTED_RANGE_NOT_SATISFIABLE"] = 416] = "REQUESTED_RANGE_NOT_SATISFIABLE";
-      HttpStatus5[HttpStatus5["EXPECTATION_FAILED"] = 417] = "EXPECTATION_FAILED";
-      HttpStatus5[HttpStatus5["I_AM_A_TEAPOT"] = 418] = "I_AM_A_TEAPOT";
-      HttpStatus5[HttpStatus5["MISDIRECTED"] = 421] = "MISDIRECTED";
-      HttpStatus5[HttpStatus5["UNPROCESSABLE_ENTITY"] = 422] = "UNPROCESSABLE_ENTITY";
-      HttpStatus5[HttpStatus5["FAILED_DEPENDENCY"] = 424] = "FAILED_DEPENDENCY";
-      HttpStatus5[HttpStatus5["PRECONDITION_REQUIRED"] = 428] = "PRECONDITION_REQUIRED";
-      HttpStatus5[HttpStatus5["TOO_MANY_REQUESTS"] = 429] = "TOO_MANY_REQUESTS";
-      HttpStatus5[HttpStatus5["INTERNAL_SERVER_ERROR"] = 500] = "INTERNAL_SERVER_ERROR";
-      HttpStatus5[HttpStatus5["NOT_IMPLEMENTED"] = 501] = "NOT_IMPLEMENTED";
-      HttpStatus5[HttpStatus5["BAD_GATEWAY"] = 502] = "BAD_GATEWAY";
-      HttpStatus5[HttpStatus5["SERVICE_UNAVAILABLE"] = 503] = "SERVICE_UNAVAILABLE";
-      HttpStatus5[HttpStatus5["GATEWAY_TIMEOUT"] = 504] = "GATEWAY_TIMEOUT";
-      HttpStatus5[HttpStatus5["HTTP_VERSION_NOT_SUPPORTED"] = 505] = "HTTP_VERSION_NOT_SUPPORTED";
-    })(HttpStatus4 || (exports2.HttpStatus = HttpStatus4 = {}));
+    var HttpStatus5;
+    (function(HttpStatus6) {
+      HttpStatus6[HttpStatus6["CONTINUE"] = 100] = "CONTINUE";
+      HttpStatus6[HttpStatus6["SWITCHING_PROTOCOLS"] = 101] = "SWITCHING_PROTOCOLS";
+      HttpStatus6[HttpStatus6["PROCESSING"] = 102] = "PROCESSING";
+      HttpStatus6[HttpStatus6["EARLYHINTS"] = 103] = "EARLYHINTS";
+      HttpStatus6[HttpStatus6["OK"] = 200] = "OK";
+      HttpStatus6[HttpStatus6["CREATED"] = 201] = "CREATED";
+      HttpStatus6[HttpStatus6["ACCEPTED"] = 202] = "ACCEPTED";
+      HttpStatus6[HttpStatus6["NON_AUTHORITATIVE_INFORMATION"] = 203] = "NON_AUTHORITATIVE_INFORMATION";
+      HttpStatus6[HttpStatus6["NO_CONTENT"] = 204] = "NO_CONTENT";
+      HttpStatus6[HttpStatus6["RESET_CONTENT"] = 205] = "RESET_CONTENT";
+      HttpStatus6[HttpStatus6["PARTIAL_CONTENT"] = 206] = "PARTIAL_CONTENT";
+      HttpStatus6[HttpStatus6["AMBIGUOUS"] = 300] = "AMBIGUOUS";
+      HttpStatus6[HttpStatus6["MOVED_PERMANENTLY"] = 301] = "MOVED_PERMANENTLY";
+      HttpStatus6[HttpStatus6["FOUND"] = 302] = "FOUND";
+      HttpStatus6[HttpStatus6["SEE_OTHER"] = 303] = "SEE_OTHER";
+      HttpStatus6[HttpStatus6["NOT_MODIFIED"] = 304] = "NOT_MODIFIED";
+      HttpStatus6[HttpStatus6["TEMPORARY_REDIRECT"] = 307] = "TEMPORARY_REDIRECT";
+      HttpStatus6[HttpStatus6["PERMANENT_REDIRECT"] = 308] = "PERMANENT_REDIRECT";
+      HttpStatus6[HttpStatus6["BAD_REQUEST"] = 400] = "BAD_REQUEST";
+      HttpStatus6[HttpStatus6["UNAUTHORIZED"] = 401] = "UNAUTHORIZED";
+      HttpStatus6[HttpStatus6["PAYMENT_REQUIRED"] = 402] = "PAYMENT_REQUIRED";
+      HttpStatus6[HttpStatus6["FORBIDDEN"] = 403] = "FORBIDDEN";
+      HttpStatus6[HttpStatus6["NOT_FOUND"] = 404] = "NOT_FOUND";
+      HttpStatus6[HttpStatus6["METHOD_NOT_ALLOWED"] = 405] = "METHOD_NOT_ALLOWED";
+      HttpStatus6[HttpStatus6["NOT_ACCEPTABLE"] = 406] = "NOT_ACCEPTABLE";
+      HttpStatus6[HttpStatus6["PROXY_AUTHENTICATION_REQUIRED"] = 407] = "PROXY_AUTHENTICATION_REQUIRED";
+      HttpStatus6[HttpStatus6["REQUEST_TIMEOUT"] = 408] = "REQUEST_TIMEOUT";
+      HttpStatus6[HttpStatus6["CONFLICT"] = 409] = "CONFLICT";
+      HttpStatus6[HttpStatus6["GONE"] = 410] = "GONE";
+      HttpStatus6[HttpStatus6["LENGTH_REQUIRED"] = 411] = "LENGTH_REQUIRED";
+      HttpStatus6[HttpStatus6["PRECONDITION_FAILED"] = 412] = "PRECONDITION_FAILED";
+      HttpStatus6[HttpStatus6["PAYLOAD_TOO_LARGE"] = 413] = "PAYLOAD_TOO_LARGE";
+      HttpStatus6[HttpStatus6["URI_TOO_LONG"] = 414] = "URI_TOO_LONG";
+      HttpStatus6[HttpStatus6["UNSUPPORTED_MEDIA_TYPE"] = 415] = "UNSUPPORTED_MEDIA_TYPE";
+      HttpStatus6[HttpStatus6["REQUESTED_RANGE_NOT_SATISFIABLE"] = 416] = "REQUESTED_RANGE_NOT_SATISFIABLE";
+      HttpStatus6[HttpStatus6["EXPECTATION_FAILED"] = 417] = "EXPECTATION_FAILED";
+      HttpStatus6[HttpStatus6["I_AM_A_TEAPOT"] = 418] = "I_AM_A_TEAPOT";
+      HttpStatus6[HttpStatus6["MISDIRECTED"] = 421] = "MISDIRECTED";
+      HttpStatus6[HttpStatus6["UNPROCESSABLE_ENTITY"] = 422] = "UNPROCESSABLE_ENTITY";
+      HttpStatus6[HttpStatus6["FAILED_DEPENDENCY"] = 424] = "FAILED_DEPENDENCY";
+      HttpStatus6[HttpStatus6["PRECONDITION_REQUIRED"] = 428] = "PRECONDITION_REQUIRED";
+      HttpStatus6[HttpStatus6["TOO_MANY_REQUESTS"] = 429] = "TOO_MANY_REQUESTS";
+      HttpStatus6[HttpStatus6["INTERNAL_SERVER_ERROR"] = 500] = "INTERNAL_SERVER_ERROR";
+      HttpStatus6[HttpStatus6["NOT_IMPLEMENTED"] = 501] = "NOT_IMPLEMENTED";
+      HttpStatus6[HttpStatus6["BAD_GATEWAY"] = 502] = "BAD_GATEWAY";
+      HttpStatus6[HttpStatus6["SERVICE_UNAVAILABLE"] = 503] = "SERVICE_UNAVAILABLE";
+      HttpStatus6[HttpStatus6["GATEWAY_TIMEOUT"] = 504] = "GATEWAY_TIMEOUT";
+      HttpStatus6[HttpStatus6["HTTP_VERSION_NOT_SUPPORTED"] = 505] = "HTTP_VERSION_NOT_SUPPORTED";
+    })(HttpStatus5 || (exports2.HttpStatus = HttpStatus5 = {}));
   }
 });
 
@@ -2898,7 +2898,7 @@ var require_http_exception = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.HttpException = void 0;
     var shared_utils_1 = require_shared_utils();
-    var HttpException4 = class extends Error {
+    var HttpException5 = class extends Error {
       /**
        * Instantiate a plain HTTP Exception.
        *
@@ -3007,7 +3007,7 @@ var require_http_exception = __commonJS({
         };
       }
     };
-    exports2.HttpException = HttpException4;
+    exports2.HttpException = HttpException5;
   }
 });
 
@@ -3061,7 +3061,7 @@ var require_unauthorized_exception = __commonJS({
     exports2.UnauthorizedException = void 0;
     var http_status_enum_1 = require_http_status_enum();
     var http_exception_1 = require_http_exception();
-    var UnauthorizedException2 = class extends http_exception_1.HttpException {
+    var UnauthorizedException3 = class extends http_exception_1.HttpException {
       /**
        * Instantiate an `UnauthorizedException` Exception.
        *
@@ -3091,7 +3091,7 @@ var require_unauthorized_exception = __commonJS({
         super(http_exception_1.HttpException.createBody(objectOrError, description, http_status_enum_1.HttpStatus.UNAUTHORIZED), http_status_enum_1.HttpStatus.UNAUTHORIZED, httpExceptionOptions);
       }
     };
-    exports2.UnauthorizedException = UnauthorizedException2;
+    exports2.UnauthorizedException = UnauthorizedException3;
   }
 });
 
@@ -3145,7 +3145,7 @@ var require_not_found_exception = __commonJS({
     exports2.NotFoundException = void 0;
     var http_status_enum_1 = require_http_status_enum();
     var http_exception_1 = require_http_exception();
-    var NotFoundException9 = class extends http_exception_1.HttpException {
+    var NotFoundException10 = class extends http_exception_1.HttpException {
       /**
        * Instantiate a `NotFoundException` Exception.
        *
@@ -3175,7 +3175,7 @@ var require_not_found_exception = __commonJS({
         super(http_exception_1.HttpException.createBody(objectOrError, description, http_status_enum_1.HttpStatus.NOT_FOUND), http_status_enum_1.HttpStatus.NOT_FOUND, httpExceptionOptions);
       }
     };
-    exports2.NotFoundException = NotFoundException9;
+    exports2.NotFoundException = NotFoundException10;
   }
 });
 
@@ -3313,7 +3313,7 @@ var require_conflict_exception = __commonJS({
     exports2.ConflictException = void 0;
     var http_status_enum_1 = require_http_status_enum();
     var http_exception_1 = require_http_exception();
-    var ConflictException3 = class extends http_exception_1.HttpException {
+    var ConflictException5 = class extends http_exception_1.HttpException {
       /**
        * Instantiate a `ConflictException` Exception.
        *
@@ -3343,7 +3343,7 @@ var require_conflict_exception = __commonJS({
         super(http_exception_1.HttpException.createBody(objectOrError, description, http_status_enum_1.HttpStatus.CONFLICT), http_status_enum_1.HttpStatus.CONFLICT, httpExceptionOptions);
       }
     };
-    exports2.ConflictException = ConflictException3;
+    exports2.ConflictException = ConflictException5;
   }
 });
 
@@ -20449,7 +20449,7 @@ var require_module = __commonJS({
     var constants_2 = require_constants4();
     var instance_wrapper_1 = require_instance_wrapper();
     var module_ref_1 = require_module_ref();
-    var Module15 = class {
+    var Module17 = class {
       constructor(_metatype, container) {
         this._metatype = _metatype;
         this.container = container;
@@ -20843,7 +20843,7 @@ var require_module = __commonJS({
         return (0, get_class_scope_1.getClassScope)(provider) === interfaces_1.Scope.TRANSIENT;
       }
     };
-    exports2.Module = Module15;
+    exports2.Module = Module17;
   }
 });
 
@@ -87114,7 +87114,7 @@ var import_reflect_metadata = __toESM(require_Reflect(), 1);
 var import_core7 = __toESM(require_core2(), 1);
 
 // src/app.module.ts
-var import_common91 = __toESM(require_common(), 1);
+var import_common99 = __toESM(require_common(), 1);
 
 // src/admin/admin.module.ts
 var import_common53 = __toESM(require_common(), 1);
@@ -97149,13 +97149,13 @@ async function handleOAuthUserInfo(c, opts) {
   };
 }
 async function dispatchVerificationEmail(c, user2, callbackURL, deferUntilAfterTransaction) {
-  const sendVerificationEmail2 = c.context.options.emailVerification?.sendVerificationEmail;
-  if (!sendVerificationEmail2) return;
+  const sendVerificationEmail3 = c.context.options.emailVerification?.sendVerificationEmail;
+  if (!sendVerificationEmail3) return;
   const send = async () => {
     try {
       const token = await createEmailVerificationToken(c.context.secret, user2.email, void 0, c.context.options.emailVerification?.expiresIn);
       const url = `${c.context.baseURL}/verify-email?token=${token}&callbackURL=${encodeURIComponent(callbackURL || "/")}`;
-      await c.context.runInBackgroundOrAwait(sendVerificationEmail2({
+      await c.context.runInBackgroundOrAwait(sendVerificationEmail3({
         user: user2,
         url,
         token
@@ -115289,6 +115289,7 @@ __export(schema_exports, {
   devices: () => devices,
   dossierStatusEnum: () => dossierStatusEnum,
   dossiers: () => dossiers,
+  feedback: () => feedback,
   firms: () => firms,
   invitations: () => invitations,
   invoiceStatusEnum: () => invoiceStatusEnum,
@@ -115439,6 +115440,13 @@ var members2 = pgTable("member", {
   // "Rappeler la validation" (admin nudges a member with pending Journal
   // tasks) — last-sent timestamp, shown as "rappel envoyé ✓" in the prototype.
   remindedAt: timestamp("reminded_at", { withTimezone: true }),
+  // Dark is the default; light is `html.light` (apps/web/CLAUDE.md: persisted per user).
+  theme: text("theme").$type().notNull().default("dark"),
+  // D-005 interim (D-019): daily email digest of open alerts. Opt-out per member.
+  alertEmails: boolean4("alert_emails").notNull().default(true),
+  // First-run welcome (D-021): null until the member has seen it. Stamped
+  // once and never cleared — replaying the welcome is a client-side action.
+  onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
   ...timestamps
 });
 
@@ -115457,6 +115465,26 @@ var dossiers = pgTable("dossier", {
   ...timestamps
 });
 
+// src/db/schema/client-invoice.ts
+var clientInvoices = pgTable(
+  "client_invoice",
+  {
+    id: idColumn(),
+    firmId: uuid2("firm_id").notNull().references(() => firms.id, { onDelete: "cascade" }),
+    dossierId: uuid2("dossier_id").notNull().references(() => dossiers.id, { onDelete: "cascade" }),
+    number: text("number").notNull(),
+    // "FA-2026-041"
+    periodLabel: text("period_label").notNull(),
+    // 🔒
+    minutes: integer2("minutes").notNull(),
+    amountCents: integer2("amount_cents").notNull(),
+    status: invoiceStatusEnum("status").notNull().default("draft"),
+    ...timestamps
+  },
+  // Two concurrent "Générer la facture" clicks can't both take the same number.
+  (t) => [uniqueIndex("client_invoice_firm_number_uniq").on(t.firmId, t.number)]
+);
+
 // src/db/schema/task.ts
 var tasks = pgTable("task", {
   id: idColumn(),
@@ -115473,6 +115501,12 @@ var tasks = pgTable("task", {
   // why_ref intentionally absent: decision D-003 (docs/DECISIONS.md) is OPEN.
   status: taskStatusEnum("status").notNull().default("pending"),
   validatedAt: timestamp("validated_at", { withTimezone: true }),
+  // The member's hourly rate when the task was validated — a later rate change
+  // applies to the next validated time, not to this one (D-020).
+  rateCents: integer2("rate_cents"),
+  // Set when the task's time goes onto a client invoice draft, so the same
+  // time is never billed twice (D-020).
+  invoiceId: uuid2("invoice_id").references(() => clientInvoices.id, { onDelete: "set null" }),
   deviceId: uuid2("device_id"),
   ...timestamps
 });
@@ -115510,21 +115544,6 @@ var activationKeys = pgTable("activation_key", {
   revokedAt: timestamp("revoked_at", { withTimezone: true })
 });
 
-// src/db/schema/client-invoice.ts
-var clientInvoices = pgTable("client_invoice", {
-  id: idColumn(),
-  firmId: uuid2("firm_id").notNull().references(() => firms.id, { onDelete: "cascade" }),
-  dossierId: uuid2("dossier_id").notNull().references(() => dossiers.id, { onDelete: "cascade" }),
-  number: text("number").notNull(),
-  // "FA-2026-041"
-  periodLabel: text("period_label").notNull(),
-  // 🔒
-  minutes: integer2("minutes").notNull(),
-  amountCents: integer2("amount_cents").notNull(),
-  status: invoiceStatusEnum("status").notNull().default("draft"),
-  ...timestamps
-});
-
 // src/db/schema/audit-log.ts
 var auditLogs = pgTable("audit_log", {
   id: idColumn(),
@@ -115548,7 +115567,9 @@ var notifications = pgTable(
     refId: uuid2("ref_id").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     readAt: timestamp("read_at", { withTimezone: true }),
-    resolvedAt: timestamp("resolved_at", { withTimezone: true })
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    // Set once the episode has gone out in an email digest (D-019), so it is emailed at most once.
+    emailedAt: timestamp("emailed_at", { withTimezone: true })
   },
   (t) => [uniqueIndex("notification_open_episode_uniq").on(t.memberId, t.type, t.refId).where(sql2`resolved_at is null`)]
 );
@@ -115569,6 +115590,17 @@ var invitations = pgTable(
   },
   (t) => [uniqueIndex("invitation_pending_firm_email_uniq").on(t.firmId, t.email).where(sql2`accepted_at is null`)]
 );
+
+// src/db/schema/feedback.ts
+var feedback = pgTable("feedback", {
+  id: idColumn(),
+  firmId: uuid2("firm_id").notNull().references(() => firms.id, { onDelete: "cascade" }),
+  memberId: uuid2("member_id").notNull().references(() => members2.id, { onDelete: "cascade" }),
+  category: text("category").$type().notNull(),
+  message: text("message").notNull(),
+  // 🔒
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow()
+});
 
 // src/db/client.ts
 var connectionString = process.env.DATABASE_URL;
@@ -115688,6 +115720,14 @@ var FirmsRepository = class {
     const [row] = await this.db.select({ id: firms.id }).from(firms).where(eq(firms.id, firmId));
     return !!row;
   }
+  /** Admin console: the firm's display name (it starts as the founder's email domain). */
+  async rename(firmId, name) {
+    const [row] = await this.db.select({ dataKeyWrapped: firms.dataKeyWrapped }).from(firms).where(eq(firms.id, firmId));
+    if (!row) return false;
+    const dataKey = unwrapDataKey(row.dataKeyWrapped, this.masterKey);
+    await this.db.update(firms).set({ name: encryptField(name, dataKey) }).where(eq(firms.id, firmId));
+    return true;
+  }
   /** Decrypted firm name — used for the invite email/preview, where showing "which firm" matters. */
   async findNameById(firmId) {
     const [row] = await this.db.select({ name: firms.name, dataKeyWrapped: firms.dataKeyWrapped }).from(firms).where(eq(firms.id, firmId));
@@ -115745,6 +115785,8 @@ var MembersRepository = class {
       role: "associe",
       isPartner: true,
       isAdmin: true,
+      // The role's default rate, like an invited member gets — a 0 € rate made every figure of a new firm 0 € (BUG-7).
+      hourlyRateCents: defaultRateCents("associe"),
       status: "active"
     }).returning();
     return row;
@@ -115752,6 +115794,11 @@ var MembersRepository = class {
   async findByAuthUserId(authUserId) {
     const [row] = await this.db.select().from(members2).where(eq(members2.authUserId, authUserId));
     return row ?? null;
+  }
+  /** Does a sign-in account (better-auth `user`) already exist for this address, in any firm? */
+  async authAccountExists(email3) {
+    const [row] = await this.db.select({ id: user.id }).from(user).where(eq(user.email, email3.toLowerCase()));
+    return !!row;
   }
   /** A suspended member resolves to no context — suspension revokes access, it doesn't just relabel the row. */
   async toFirmContext(authUserId) {
@@ -115775,6 +115822,19 @@ var MembersRepository = class {
     const [row] = await this.db.update(members2).set({ sourceSettings: settings }).where(eq(members2.id, memberId)).returning();
     return row ?? null;
   }
+  /**
+   * Every member who can sign in and hasn't opted out of alert emails —
+   * across firms, for the scheduled digest job only (it has no session and
+   * builds one FirmContext per recipient).
+   */
+  async listDigestRecipients() {
+    const rows = await this.db.select().from(members2).where(eq(members2.alertEmails, true)).orderBy(asc(members2.createdAt), asc(members2.id));
+    return rows.filter((m) => m.status === "active" || m.status === "in_court");
+  }
+  async updatePreferences(ctx, patch) {
+    const [row] = await this.db.update(members2).set(patch).where(and(eq(members2.firmId, ctx.firmId), eq(members2.id, ctx.memberId))).returning();
+    return row ?? null;
+  }
   /** Admin console team table. createdAt never changes, so rows keep their position across edits. */
   async listByFirmOrdered(firmId) {
     return this.db.select().from(members2).where(eq(members2.firmId, firmId)).orderBy(asc(members2.createdAt), asc(members2.id));
@@ -115783,11 +115843,17 @@ var MembersRepository = class {
   async updateMember(ctx, memberId, patch) {
     const set = {
       ...patch.hourlyRateCents !== void 0 ? { hourlyRateCents: patch.hourlyRateCents } : {},
+      ...patch.isAdmin !== void 0 ? { isAdmin: patch.isAdmin } : {},
       ...patch.role !== void 0 ? { role: patch.role, isPartner: isPartnerRole(patch.role) } : {}
     };
     if (Object.keys(set).length === 0) return this.findById(ctx.firmId, memberId);
     const [row] = await this.db.update(members2).set(set).where(and(eq(members2.firmId, ctx.firmId), eq(members2.id, memberId))).returning();
     return row ?? null;
+  }
+  /** Members who can still administer the firm (admins who aren't suspended). */
+  async countActiveAdmins(firmId) {
+    const rows = await this.db.select({ id: members2.id, status: members2.status }).from(members2).where(and(eq(members2.firmId, firmId), eq(members2.isAdmin, true)));
+    return rows.filter((r) => r.status !== "suspended").length;
   }
   async suspend(ctx, memberId) {
     const [row] = await this.db.update(members2).set({ status: "suspended" }).where(and(eq(members2.firmId, ctx.firmId), eq(members2.id, memberId))).returning();
@@ -115900,6 +115966,30 @@ async function sendMagicLinkEmail(email3, url) {
     html: `<p>Cliquez pour vous connecter \xE0 ACTE : <a href="${u}">${u}</a></p><p>Ce lien expire dans 5 minutes.</p>`
   });
 }
+async function sendVerificationEmail2(email3, url) {
+  const u = escapeHtml(url);
+  await sendEmail({
+    to: email3,
+    subject: "Confirmez votre adresse e-mail ACTE",
+    html: `<p>Bienvenue sur ACTE. Confirmez votre adresse e-mail pour activer votre compte : <a href="${u}">${u}</a></p><p>Ce lien expire dans 1 heure.</p>`
+  });
+}
+async function sendPasswordResetEmail(email3, url) {
+  const u = escapeHtml(url);
+  await sendEmail({
+    to: email3,
+    subject: "R\xE9initialisation de votre mot de passe ACTE",
+    html: `<p>Pour choisir un nouveau mot de passe ACTE : <a href="${u}">${u}</a></p><p>Ce lien expire dans 1 heure. Si vous n'\xEAtes pas \xE0 l'origine de cette demande, ignorez ce message.</p>`
+  });
+}
+async function sendAlertDigestEmail(email3, displayName, lines, url) {
+  const u = escapeHtml(url);
+  await sendEmail({
+    to: email3,
+    subject: "ACTE \u2014 alertes en attente",
+    html: `<p>Bonjour ${escapeHtml(displayName)},</p><p>Des alertes vous attendent dans ACTE :</p><ul>${lines.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}</ul><p><a href="${u}">${u}</a></p><p>Vous pouvez d\xE9sactiver ces e-mails dans Param\xE8tres.</p>`
+  });
+}
 var ROLE_LABEL_FR = {
   associe: "Associ\xE9",
   associee: "Associ\xE9e",
@@ -115935,6 +116025,7 @@ async function sendValidationReminderEmail(email3, displayName) {
 // src/auth/invitation-context.ts
 var import_node_async_hooks = require("node:async_hooks");
 var invitationAcceptance = new import_node_async_hooks.AsyncLocalStorage();
+var silentSignup = new import_node_async_hooks.AsyncLocalStorage();
 
 // src/auth/auth.config.ts
 async function createFirmForNewUser(created) {
@@ -115964,6 +116055,16 @@ function masterKeyFromEnv() {
   if (!hex2) throw new Error("ENCRYPTION_MASTER_KEY is not set");
   return Buffer.from(hex2, "hex");
 }
+var webOrigin = () => process.env.WEB_ORIGIN ?? "http://localhost:3000";
+function emailedLink(url, path2) {
+  const link = new URL(url);
+  const web = new URL(webOrigin());
+  link.protocol = web.protocol;
+  link.host = web.host;
+  link.searchParams.set("callbackURL", `${web.origin}${path2}`);
+  return link.toString();
+}
+var sendLikePause = () => new Promise((resolve) => setTimeout(resolve, 300 + Math.random() * 400));
 var auth = betterAuth({
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:4000",
@@ -115974,12 +116075,46 @@ var auth = betterAuth({
     schema: { user, session, account, verification }
   }),
   emailAndPassword: {
-    enabled: true
+    enabled: true,
+    // D-017 (closes B5): an account is unusable until its address is proven.
+    // Without this, anyone could register someone else's address, and
+    // better-auth deletes an unverified account's password the first time
+    // its real owner signs in by magic link (BUG-3).
+    requireEmailVerification: true,
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword: async ({ user: account2, url }) => {
+      try {
+        await sendPasswordResetEmail(account2.email, emailedLink(url, "/reset-password"));
+      } catch {
+        console.error("[auth] a password-reset email could not be sent");
+      }
+    }
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    // A sign-in attempt before verifying re-sends the link, so a lost email isn't a dead end.
+    sendOnSignIn: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user: account2, url }) => {
+      if (invitationAcceptance.getStore() || silentSignup.getStore()) return;
+      await sendVerificationEmail2(account2.email, emailedLink(url, "/dashboard"));
+    }
   },
   plugins: [
     magicLink({
+      // A magic link signs in to an existing account; it never founds a firm.
+      // Accounts are created by /signup (verified by email) or an invitation.
+      disableSignUp: true,
       sendMagicLink: async ({ email: email3, url }) => {
-        await sendMagicLinkEmail(email3, url);
+        if (!await new MembersRepository(db).authAccountExists(email3)) {
+          await sendLikePause();
+          return;
+        }
+        try {
+          await sendMagicLinkEmail(email3, emailedLink(url, "/dashboard"));
+        } catch {
+          console.error("[auth] a magic-link email could not be sent");
+        }
       }
     })
   ],
@@ -120162,7 +120297,13 @@ var Task = external_exports.object({
   durationMin: external_exports.number().int().positive(),
   confidence: external_exports.number().int().min(0).max(100).nullable(),
   status: TaskStatus,
-  validatedAt: ts.nullable()
+  validatedAt: ts.nullable(),
+  /** Hourly rate stamped when the task was validated, so a later rate change never re-prices past time. */
+  rateCents: external_exports.number().int().nonnegative().nullable(),
+  /** Set once the task's time is on a client invoice draft; such a task can no longer be un-validated. */
+  invoiceId: id.nullable(),
+  /** True once the member has moved the task to another dossier ("Corrigé ✓" in the Journal). */
+  corrected: external_exports.boolean()
   // The "why" explanation is intentionally absent until decision D-003 is taken.
 });
 var Device = external_exports.object({
@@ -120192,7 +120333,13 @@ var CreateManualTaskBody = external_exports.object({
   startedAt: external_exports.string().datetime(),
   durationMin: external_exports.number().int().positive().max(24 * 60)
 }).strict();
-var ReassignTaskBody = external_exports.object({ dossierId: external_exports.string().uuid() }).strict();
+var UpdateTaskBody = external_exports.object({
+  dossierId: external_exports.string().uuid().optional(),
+  title: external_exports.string().min(1).max(200).optional(),
+  startedAt: external_exports.string().datetime().optional(),
+  durationMin: external_exports.number().int().positive().max(24 * 60).optional()
+}).strict().refine((b2) => Object.keys(b2).length > 0, { message: "At least one field is required" });
+var ValidateTasksBody = external_exports.object({ taskIds: external_exports.array(external_exports.string().uuid()).min(1).max(500) }).strict();
 var CreateDossierBody = external_exports.object({
   name: external_exports.string().min(1).max(160),
   clientLabel: external_exports.string().max(160),
@@ -120200,10 +120347,17 @@ var CreateDossierBody = external_exports.object({
 }).strict();
 var GenerateInvoiceBody = external_exports.object({ dossierId: external_exports.string().uuid() }).strict();
 var DossierUsage = Dossier.extend({
+  /** Validated minutes, all time — what the budget bar and the budget alert measure. */
   usedMinutes: external_exports.number().int(),
-  pendingMinutes: external_exports.number().int()
+  pendingMinutes: external_exports.number().int(),
+  /** Validated minutes in the current Paris month — the "ce mois-ci" figures. */
+  monthMinutes: external_exports.number().int(),
+  /** Validated minutes not yet on an invoice draft — what "Générer la facture" would bill. */
+  uninvoicedMinutes: external_exports.number().int()
 });
 var UpdateDossierBody = external_exports.object({
+  name: external_exports.string().min(1).max(160).optional(),
+  clientLabel: external_exports.string().max(160).optional(),
   budgetMinutes: external_exports.number().int().positive().nullable().optional(),
   status: external_exports.enum(["progress", "ready", "archived"]).optional()
 }).strict();
@@ -120221,7 +120375,17 @@ var WeekSummary = external_exports.object({
 });
 var StatsSummary = external_exports.object({
   months: external_exports.array(external_exports.object({ label: external_exports.string(), revenueCents: external_exports.number().int() })),
-  sourceBreakdown: external_exports.array(external_exports.object({ source: TaskSource, minutes: external_exports.number().int() }))
+  /** Validated minutes by source, current Paris month. */
+  sourceBreakdown: external_exports.array(external_exports.object({ source: TaskSource, minutes: external_exports.number().int() })),
+  /** Every non-discarded minute logged this month, and the share of it on billable dossiers (0–100). */
+  capturedMonthMin: external_exports.number().int(),
+  billableMonthPct: external_exports.number().int().min(0).max(100),
+  /** Profile & Impact "temps forts du mois" — the member's own data only. */
+  highlights: external_exports.object({
+    bestDay: external_exports.object({ date: external_exports.string(), minutes: external_exports.number().int() }).nullable(),
+    topDossier: external_exports.object({ name: external_exports.string(), pct: external_exports.number().int().min(0).max(100) }).nullable(),
+    shortTasksCount: external_exports.number().int()
+  })
 });
 var ActivationKeyCreated = external_exports.object({
   id: id2,
@@ -120242,7 +120406,8 @@ var ClientInvoiceSummary = external_exports.object({
   periodLabel: external_exports.string(),
   minutes: external_exports.number().int(),
   amountCents: external_exports.number().int(),
-  status: external_exports.enum(["draft", "issued"])
+  status: external_exports.enum(["draft", "issued"]),
+  createdAt: ts2
 });
 var BrainInsight = external_exports.object({
   id: external_exports.string(),
@@ -120264,13 +120429,60 @@ var InviteMemberBody = external_exports.object({
 }).strict();
 var UpdateMemberBody = external_exports.object({
   role: MemberRole.optional(),
-  hourlyRateCents: external_exports.number().int().min(0).max(5e5).optional()
+  hourlyRateCents: external_exports.number().int().min(0).max(5e5).optional(),
+  /** D-004 interim (D-019): an admin may grant or remove admin rights; the last admin can't be removed. */
+  isAdmin: external_exports.boolean().optional()
+}).strict();
+var UpdateFirmBody = external_exports.object({ name: external_exports.string().trim().min(1).max(120) }).strict();
+var FirmRenamed = external_exports.object({ name: external_exports.string() }).strict();
+var MyDataExport = external_exports.object({
+  exportedAt: ts2,
+  member: external_exports.object({
+    displayName: external_exports.string(),
+    email: external_exports.string().email(),
+    role: MemberRole,
+    hourlyRateCents: external_exports.number().int().nonnegative()
+  }).strict().nullable(),
+  tasks: external_exports.array(external_exports.object({
+    title: external_exports.string(),
+    dossier: external_exports.string().nullable(),
+    source: TaskSource,
+    startedAt: ts2,
+    endedAt: ts2,
+    durationMin: external_exports.number().int().positive(),
+    status: TaskStatus,
+    validatedAt: ts2.nullable(),
+    rateCents: external_exports.number().int().nonnegative().nullable()
+  }).strict()),
+  dossiers: external_exports.array(external_exports.object({
+    name: external_exports.string(),
+    clientLabel: external_exports.string(),
+    status: DossierStatus,
+    budgetMinutes: external_exports.number().int().positive().nullable()
+  }).strict())
 }).strict();
 var AcceptInvitationBody = external_exports.object({
   name: external_exports.string().trim().min(1).max(120),
   password: external_exports.string().min(8).max(128)
 }).strict();
-var MemberProfile = Member.extend({ firmName: external_exports.string() });
+var ThemePreference = external_exports.enum(["dark", "light"]);
+var MemberProfile = Member.extend({
+  firmName: external_exports.string(),
+  theme: ThemePreference,
+  /** D-005 interim (D-019): daily email digest of open alerts, on by default. */
+  alertEmails: external_exports.boolean()
+});
+var UpdatePreferencesBody = external_exports.object({ theme: ThemePreference.optional(), alertEmails: external_exports.boolean().optional() }).strict().refine((b2) => Object.keys(b2).length > 0, { message: "At least one field is required" });
+var FeedbackCategory = external_exports.enum(["bug", "idea", "other"]);
+var FeedbackBody = external_exports.object({ category: FeedbackCategory, message: external_exports.string().trim().min(1).max(2e3) }).strict();
+var FeedbackCreated = external_exports.object({ id: id2 }).strict();
+var FeedbackEntry = external_exports.object({
+  id: id2,
+  category: FeedbackCategory,
+  message: external_exports.string(),
+  authorName: external_exports.string(),
+  createdAt: ts2
+});
 var InvitationPreview = external_exports.object({
   email: external_exports.string().email(),
   firmName: external_exports.string(),
@@ -120333,11 +120545,47 @@ var LlmChatContext = external_exports.object({
   }).strict()).max(40)
 }).strict();
 
+// ../../packages/contracts/src/onboarding.ts
+var OnboardingState = external_exports.object({
+  /** Null until the member has seen the welcome. Stamped once, never cleared. */
+  completedAt: external_exports.string().datetime().nullable(),
+  checklist: external_exports.object({
+    /** The member's own hourly rate is above 0 (a firm founder starts at 0 €). */
+    hourlyRateSet: external_exports.boolean(),
+    /** The firm has at least one dossier. */
+    hasDossier: external_exports.boolean(),
+    /** The member has at least one task of their own, any day, any status. */
+    hasTask: external_exports.boolean(),
+    hasValidatedTask: external_exports.boolean(),
+    /** Admins only (always false otherwise): another member or a pending invitation exists. */
+    hasInvitedMember: external_exports.boolean()
+  }).strict()
+}).strict();
+
 // ../../packages/contracts/src/format.ts
 function fmtMin(min) {
   const h = Math.floor(min / 60);
   const mm = Math.round(min % 60);
   return h > 0 ? `${h} h ${String(mm).padStart(2, "0")}` : `${mm} min`;
+}
+
+// ../../packages/contracts/src/time.ts
+var PARIS = "Europe/Paris";
+var dateKeyFormatter = new Intl.DateTimeFormat("en-CA", { timeZone: PARIS, year: "numeric", month: "2-digit", day: "2-digit" });
+var partsFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: PARIS,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23"
+});
+function parisDateKey(date5) {
+  return dateKeyFormatter.format(date5);
+}
+function parisMonthKey(date5) {
+  return parisDateKey(date5).slice(0, 7);
 }
 
 // src/auth/current-firm.decorator.ts
@@ -120360,7 +120608,9 @@ var ZodValidationPipe = class {
       throw new import_common45.BadRequestException({
         error: {
           code: "invalid_body",
-          message: result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")
+          // Zod's enum and literal messages end with "received '<value>'": drop that part, so a
+          // rejected body is never echoed back (API_CONTRACT.md, PRIVACY_MODEL.md).
+          message: result.error.issues.map((i) => `${i.path.join(".")}: ${i.message.replace(/, received .*$/s, "")}`).join("; ")
         }
       });
     }
@@ -120448,11 +120698,30 @@ var InvitationsRepository = class {
     }).returning();
     return { invitation: row, plainToken };
   }
-  /** New token + fresh expiry (the old link stops working). Optionally updates the role. */
+  /**
+   * New token + fresh expiry (the old link stops working). Optionally updates
+   * the role. `previous` is what restore() needs to undo it if the email
+   * carrying the new link can't be sent.
+   */
   async reissue(ctx, id3, role) {
-    const { plainToken, tokenHash, expiresAt } = newToken();
-    const [row] = await this.db.update(invitations).set({ tokenHash, expiresAt, ...role ? { role } : {} }).where(and(eq(invitations.firmId, ctx.firmId), eq(invitations.id, id3), isNull2(invitations.acceptedAt))).returning();
-    return row ? { invitation: row, plainToken } : null;
+    const pending = and(eq(invitations.firmId, ctx.firmId), eq(invitations.id, id3), isNull2(invitations.acceptedAt));
+    return this.db.transaction(async (tx) => {
+      const [before] = await tx.select().from(invitations).where(pending);
+      if (!before) return null;
+      const { plainToken, tokenHash, expiresAt } = newToken();
+      const [row] = await tx.update(invitations).set({ tokenHash, expiresAt, ...role ? { role } : {} }).where(pending).returning();
+      if (!row) return null;
+      const previous = { tokenHash: before.tokenHash, expiresAt: before.expiresAt, role: before.role, updatedAt: before.updatedAt };
+      return { invitation: row, plainToken, previous };
+    });
+  }
+  /**
+   * Undoes a reissue whose email could not be sent: the link the invitee
+   * already holds keeps working, and `updatedAt` (the "last sent" clock of
+   * the stale-invitation alert) is not moved by a send that never happened.
+   */
+  async restore(ctx, id3, previous) {
+    await this.db.update(invitations).set({ tokenHash: previous.tokenHash, expiresAt: previous.expiresAt, role: previous.role, updatedAt: previous.updatedAt }).where(and(eq(invitations.firmId, ctx.firmId), eq(invitations.id, id3), isNull2(invitations.acceptedAt)));
   }
   async cancel(ctx, id3) {
     const [row] = await this.db.delete(invitations).where(and(eq(invitations.firmId, ctx.firmId), eq(invitations.id, id3), isNull2(invitations.acceptedAt))).returning();
@@ -120501,20 +120770,8 @@ InvitationsRepository = __decorateClass([
 var import_common48 = __toESM(require_common(), 1);
 
 // src/lib/time.ts
-var dateKeyFormatter = new Intl.DateTimeFormat("en-CA", {
-  timeZone: "Europe/Paris",
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit"
-});
 var weekdayFormatter = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Paris", weekday: "short" });
 var WEEKDAY_INDEX = { Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5, Sun: 6 };
-function parisDateKey(date5) {
-  return dateKeyFormatter.format(date5);
-}
-function parisMonthKey(date5) {
-  return parisDateKey(date5).slice(0, 7);
-}
 function startOfParisWeek(date5) {
   const [y, m, d] = parisDateKey(date5).split("-").map(Number);
   const offset = WEEKDAY_INDEX[weekdayFormatter.format(date5)] ?? 0;
@@ -120531,7 +120788,7 @@ var TasksRepository = class {
   }
   db;
   firmKeys;
-  decrypt(row, dataKey) {
+  decrypt(row, dataKey, corrected = false) {
     return {
       id: row.id,
       firmId: row.firmId,
@@ -120544,20 +120801,66 @@ var TasksRepository = class {
       durationMin: row.durationMin,
       confidence: row.confidence,
       status: row.status,
-      validatedAt: row.validatedAt ? row.validatedAt.toISOString() : null
+      validatedAt: row.validatedAt ? row.validatedAt.toISOString() : null,
+      rateCents: row.rateCents,
+      invoiceId: row.invoiceId,
+      corrected
     };
+  }
+  /** Ids of the member's tasks that were moved to another dossier at least once. */
+  async correctedTaskIds(ctx) {
+    const rows = await this.db.selectDistinct({ taskId: corrections.taskId }).from(corrections).where(eq(corrections.memberId, ctx.memberId));
+    return new Set(rows.map((r) => r.taskId));
+  }
+  own(ctx) {
+    return and(eq(tasks.firmId, ctx.firmId), eq(tasks.memberId, ctx.memberId), ne(tasks.status, "discarded"));
   }
   async listForMember(ctx, date5) {
     const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
-    const rows = await this.db.select().from(tasks).where(and(eq(tasks.firmId, ctx.firmId), eq(tasks.memberId, ctx.memberId))).orderBy(asc(tasks.startedAt));
-    const decrypted = rows.map((r) => this.decrypt(r, dataKey));
+    const [rows, corrected] = await Promise.all([
+      this.db.select().from(tasks).where(this.own(ctx)).orderBy(asc(tasks.startedAt)),
+      this.correctedTaskIds(ctx)
+    ]);
+    const decrypted = rows.map((r) => this.decrypt(r, dataKey, corrected.has(r.id)));
     if (!date5) return decrypted;
     return decrypted.filter((t) => parisDateKey(new Date(t.startedAt)) === date5);
   }
+  /** Still-pending tasks from before `todayKey` (a Paris date) — the Journal's carry-over list. */
+  async listBacklog(ctx, todayKey) {
+    const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
+    const [rows, corrected] = await Promise.all([
+      this.db.select().from(tasks).where(and(this.own(ctx), eq(tasks.status, "pending"))).orderBy(asc(tasks.startedAt)),
+      this.correctedTaskIds(ctx)
+    ]);
+    return rows.filter((r) => parisDateKey(r.startedAt) < todayKey).map((r) => this.decrypt(r, dataKey, corrected.has(r.id)));
+  }
   async findOwnedById(ctx, id3) {
     const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
-    const [row] = await this.db.select().from(tasks).where(and(eq(tasks.firmId, ctx.firmId), eq(tasks.memberId, ctx.memberId), eq(tasks.id, id3)));
-    return row ? this.decrypt(row, dataKey) : null;
+    const [row] = await this.db.select().from(tasks).where(and(this.own(ctx), eq(tasks.id, id3)));
+    if (!row) return null;
+    return this.decrypt(row, dataKey, (await this.correctedTaskIds(ctx)).has(row.id));
+  }
+  /** Edits a still-pending task's title, start or duration. Null when it isn't the caller's, or isn't pending. */
+  async updatePending(ctx, id3, patch) {
+    const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
+    return this.db.transaction(async (tx) => {
+      const [current] = await tx.select().from(tasks).where(and(this.own(ctx), eq(tasks.id, id3), eq(tasks.status, "pending")));
+      if (!current) return null;
+      const startedAt = patch.startedAt ? new Date(patch.startedAt) : current.startedAt;
+      const durationMin = patch.durationMin ?? current.durationMin;
+      const [row] = await tx.update(tasks).set({
+        ...patch.title !== void 0 ? { title: encryptField(patch.title, dataKey) } : {},
+        startedAt,
+        durationMin,
+        endedAt: new Date(startedAt.getTime() + durationMin * 6e4)
+      }).where(and(this.own(ctx), eq(tasks.id, id3), eq(tasks.status, "pending"))).returning();
+      return row ? this.decrypt(row, dataKey) : null;
+    });
+  }
+  /** "Supprimer" — a soft delete: the row stays for the audit trail, but nothing lists or counts it again. */
+  async discardPending(ctx, id3) {
+    const rows = await this.db.update(tasks).set({ status: "discarded" }).where(and(this.own(ctx), eq(tasks.id, id3), eq(tasks.status, "pending"))).returning({ id: tasks.id });
+    return rows.length > 0;
   }
   async createManual(ctx, input) {
     const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
@@ -120580,7 +120883,7 @@ var TasksRepository = class {
   /** Reassigns a task to a different dossier and logs a correction, atomically. */
   async reassign(ctx, taskId, toDossierId) {
     return this.db.transaction(async (tx) => {
-      const [current] = await tx.select().from(tasks).where(and(eq(tasks.firmId, ctx.firmId), eq(tasks.memberId, ctx.memberId), eq(tasks.id, taskId)));
+      const [current] = await tx.select().from(tasks).where(and(this.own(ctx), eq(tasks.id, taskId), isNull2(tasks.invoiceId)));
       if (!current) return null;
       const [target] = await tx.select({ id: dossiers.id }).from(dossiers).where(and(eq(dossiers.firmId, ctx.firmId), eq(dossiers.id, toDossierId)));
       if (!target) throw new Error("Unknown dossier");
@@ -120592,63 +120895,79 @@ var TasksRepository = class {
         toDossierId
       });
       const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
-      return this.decrypt(updated, dataKey);
+      return this.decrypt(updated, dataKey, true);
     });
   }
-  async validate(ctx, taskId) {
+  /** Stamps the member's current rate on the task, so later rate changes don't re-price it. */
+  async validate(ctx, taskId, rateCents) {
     const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
-    const [row] = await this.db.update(tasks).set({ status: "validated", validatedAt: /* @__PURE__ */ new Date() }).where(
-      and(
-        eq(tasks.firmId, ctx.firmId),
-        eq(tasks.memberId, ctx.memberId),
-        eq(tasks.id, taskId),
-        eq(tasks.status, "pending")
-      )
-    ).returning();
+    const [row] = await this.db.update(tasks).set({ status: "validated", validatedAt: /* @__PURE__ */ new Date(), rateCents }).where(and(this.own(ctx), eq(tasks.id, taskId), eq(tasks.status, "pending"))).returning();
     return row ? this.decrypt(row, dataKey) : null;
   }
-  async validateAllPending(ctx) {
+  /** Back to pending — refused (null) once the time is on an invoice draft. */
+  async unvalidate(ctx, taskId) {
     const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
-    const rows = await this.db.update(tasks).set({ status: "validated", validatedAt: /* @__PURE__ */ new Date() }).where(and(eq(tasks.firmId, ctx.firmId), eq(tasks.memberId, ctx.memberId), eq(tasks.status, "pending"))).returning();
+    const [row] = await this.db.update(tasks).set({ status: "pending", validatedAt: null, rateCents: null }).where(and(this.own(ctx), eq(tasks.id, taskId), eq(tasks.status, "validated"), isNull2(tasks.invoiceId))).returning();
+    return row ? this.decrypt(row, dataKey) : null;
+  }
+  /** Validates exactly `taskIds` (the caller's own, still pending) — never "everything pending". */
+  async validateMany(ctx, taskIds, rateCents) {
+    const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
+    const rows = await this.db.update(tasks).set({ status: "validated", validatedAt: /* @__PURE__ */ new Date(), rateCents }).where(and(this.own(ctx), inArray(tasks.id, taskIds), eq(tasks.status, "pending"))).returning();
     return rows.map((r) => this.decrypt(r, dataKey));
   }
   /**
-   * Firm-wide (not member-scoped) validated total for one dossier, for a
-   * billing draft. Durations and rates only — no task titles are read, so
-   * this never exposes another member's task detail (PRIVACY_MODEL rule 4).
+   * Firm-wide (not member-scoped) validated time on one dossier that is not
+   * yet on an invoice, for a billing draft. Durations, dates and rates only —
+   * no task titles are read, so this never exposes another member's task
+   * detail (PRIVACY_MODEL rule 4). A task validated before rates were
+   * stamped falls back to its author's current rate.
    */
-  async sumValidatedForDossier(firmId, dossierId) {
-    const rows = await this.db.select({ durationMin: tasks.durationMin, hourlyRateCents: members2.hourlyRateCents }).from(tasks).innerJoin(members2, eq(tasks.memberId, members2.id)).where(and(eq(tasks.firmId, firmId), eq(tasks.dossierId, dossierId), eq(tasks.status, "validated")));
-    return rows.reduce(
-      (acc, r) => ({
-        minutes: acc.minutes + r.durationMin,
-        amountCents: acc.amountCents + Math.round(r.durationMin / 60 * r.hourlyRateCents)
-      }),
-      { minutes: 0, amountCents: 0 }
-    );
+  async listUninvoicedForDossier(firmId, dossierId) {
+    const rows = await this.db.select({
+      id: tasks.id,
+      durationMin: tasks.durationMin,
+      rateCents: tasks.rateCents,
+      memberRateCents: members2.hourlyRateCents,
+      startedAt: tasks.startedAt
+    }).from(tasks).innerJoin(members2, eq(tasks.memberId, members2.id)).where(and(eq(tasks.firmId, firmId), eq(tasks.dossierId, dossierId), eq(tasks.status, "validated"), isNull2(tasks.invoiceId)));
+    return rows.map((r) => ({ id: r.id, durationMin: r.durationMin, rateCents: r.rateCents ?? r.memberRateCents, startedAt: r.startedAt }));
   }
-  /** Firm-wide validated/pending minute totals per dossier, for the Dossiers view. */
+  /** Firm-wide minute totals per dossier, for the Dossiers and Billing views. `monthMin` is the current Paris month. */
   async minutesByDossier(firmId) {
-    const rows = await this.db.select({ dossierId: tasks.dossierId, status: tasks.status, durationMin: tasks.durationMin }).from(tasks).where(and(eq(tasks.firmId, firmId), isNotNull(tasks.dossierId)));
+    const rows = await this.db.select({
+      dossierId: tasks.dossierId,
+      status: tasks.status,
+      durationMin: tasks.durationMin,
+      startedAt: tasks.startedAt,
+      invoiceId: tasks.invoiceId
+    }).from(tasks).where(and(eq(tasks.firmId, firmId), isNotNull(tasks.dossierId)));
+    const monthKey = parisMonthKey(/* @__PURE__ */ new Date());
     const byDossier = /* @__PURE__ */ new Map();
     for (const row of rows) {
       const key = row.dossierId;
-      const entry = byDossier.get(key) ?? { validatedMin: 0, pendingMin: 0 };
-      if (row.status === "validated") entry.validatedMin += row.durationMin;
+      const entry = byDossier.get(key) ?? { validatedMin: 0, pendingMin: 0, monthMin: 0, uninvoicedMin: 0 };
+      if (row.status === "validated") {
+        entry.validatedMin += row.durationMin;
+        if (parisMonthKey(row.startedAt) === monthKey) entry.monthMin += row.durationMin;
+        if (!row.invoiceId) entry.uninvoicedMin += row.durationMin;
+      }
       if (row.status === "pending") entry.pendingMin += row.durationMin;
       byDossier.set(key, entry);
     }
     return [...byDossier.entries()].map(([dossierId, v]) => ({ dossierId, ...v }));
   }
   /**
-   * Firm-wide per-member captured/validated minutes, pending count and the
-   * oldest still-pending task's date — for the admin console team table and
-   * the "team validation lagging" notification rule. Durations and status
-   * only, no task titles (PRIVACY_MODEL rule 4: an admin sees aggregates,
-   * never another member's task detail).
+   * Firm-wide per-member captured/validated minutes for the current Paris
+   * month, plus the pending count and the oldest still-pending task's date
+   * (any month) — for the admin console team table and the "team validation
+   * lagging" notification rule. Durations and status only, no task titles
+   * (PRIVACY_MODEL rule 4: an admin sees aggregates, never another member's
+   * task detail).
    */
   async taskStatsByMember(firmId) {
-    const rows = await this.db.select({ memberId: tasks.memberId, status: tasks.status, durationMin: tasks.durationMin, startedAt: tasks.startedAt }).from(tasks).where(eq(tasks.firmId, firmId));
+    const monthKey = parisMonthKey(/* @__PURE__ */ new Date());
+    const rows = await this.db.select({ memberId: tasks.memberId, status: tasks.status, durationMin: tasks.durationMin, startedAt: tasks.startedAt }).from(tasks).where(and(eq(tasks.firmId, firmId), ne(tasks.status, "discarded")));
     const byMember = /* @__PURE__ */ new Map();
     for (const row of rows) {
       const entry = byMember.get(row.memberId) ?? {
@@ -120657,8 +120976,10 @@ var TasksRepository = class {
         pendingCount: 0,
         oldestPendingAt: null
       };
-      entry.capturedMin += row.durationMin;
-      if (row.status === "validated") entry.validatedMin += row.durationMin;
+      if (parisMonthKey(row.startedAt) === monthKey) {
+        entry.capturedMin += row.durationMin;
+        if (row.status === "validated") entry.validatedMin += row.durationMin;
+      }
       if (row.status === "pending") {
         entry.pendingCount += 1;
         const iso = row.startedAt.toISOString();
@@ -120683,8 +121004,8 @@ TasksRepository = __decorateClass([
 
 // src/admin/admin.service.ts
 function inviteUrl(token) {
-  const webOrigin = process.env.WEB_ORIGIN ?? "http://localhost:3000";
-  return `${webOrigin}/invite/${encodeURIComponent(token)}`;
+  const webOrigin2 = process.env.WEB_ORIGIN ?? "http://localhost:3000";
+  return `${webOrigin2}/invite/${encodeURIComponent(token)}`;
 }
 function emailUnavailable() {
   return new import_common49.HttpException(
@@ -120771,12 +121092,14 @@ var AdminService = class {
     if (existing && existing.expiresAt.getTime() > Date.now()) {
       throw new import_common49.ConflictException({ error: { code: "invite_pending", message: "An invitation to this address is already pending" } });
     }
-    const issued = existing ? await this.invitations.reissue(ctx, existing.id, body.role) : await this.invitations.create(ctx, body);
+    const reissued = existing ? await this.invitations.reissue(ctx, existing.id, body.role) : null;
+    const issued = reissued ?? (existing ? null : await this.invitations.create(ctx, body));
     if (!issued) throw new import_common49.NotFoundException({ error: { code: "invitation_not_found", message: "No pending invitation" } });
     try {
       await sendInvitationEmail(issued.invitation.email, inviteUrl(issued.plainToken), firmName, issued.invitation.role);
     } catch {
-      if (!existing) await this.invitations.cancel(ctx, issued.invitation.id);
+      if (reissued) await this.invitations.restore(ctx, reissued.invitation.id, reissued.previous);
+      else await this.invitations.cancel(ctx, issued.invitation.id);
       throw emailUnavailable();
     }
     await this.auditLog.record(ctx, "admin.invite", "invitation", issued.invitation.id);
@@ -120789,6 +121112,7 @@ var AdminService = class {
     try {
       await sendInvitationReminderEmail(reissued.invitation.email, inviteUrl(reissued.plainToken), firmName);
     } catch {
+      await this.invitations.restore(ctx, invitationId, reissued.previous);
       throw emailUnavailable();
     }
     await this.auditLog.record(ctx, "admin.invitation.resend", "invitation", invitationId);
@@ -120800,12 +121124,27 @@ var AdminService = class {
     await this.auditLog.record(ctx, "admin.invitation.cancel", "invitation", invitationId);
   }
   async updateMember(ctx, memberId, body) {
+    const before = await this.members.findById(ctx.firmId, memberId);
+    if (!before) throw new import_common49.NotFoundException({ error: { code: "member_not_found", message: "Member not found" } });
+    const removesAdmin = body.isAdmin === false && before.isAdmin;
+    if (removesAdmin && before.status !== "suspended" && await this.members.countActiveAdmins(ctx.firmId) <= 1) {
+      throw new import_common49.ConflictException({ error: { code: "last_admin", message: "A firm must keep at least one admin" } });
+    }
     const updated = await this.members.updateMember(ctx, memberId, body);
     if (!updated) throw new import_common49.NotFoundException({ error: { code: "member_not_found", message: "Member not found" } });
     if (body.role !== void 0 || body.hourlyRateCents !== void 0) {
       await this.auditLog.record(ctx, "admin.member.update", "member", memberId);
     }
+    if (body.isAdmin !== void 0 && body.isAdmin !== before.isAdmin) {
+      await this.auditLog.record(ctx, body.isAdmin ? "admin.member.grant_admin" : "admin.member.revoke_admin", "member", memberId);
+    }
     return this.summaryFor(ctx, updated);
+  }
+  async renameFirm(ctx, body) {
+    const renamed = await this.firms.rename(ctx.firmId, body.name);
+    if (!renamed) throw new import_common49.NotFoundException({ error: { code: "firm_not_found", message: "Firm not found" } });
+    await this.auditLog.record(ctx, "admin.firm.rename", "firm", ctx.firmId);
+    return FirmRenamed.parse({ name: body.name });
   }
   async remindValidation(ctx, memberId) {
     const before = await this.members.findById(ctx.firmId, memberId);
@@ -120855,6 +121194,9 @@ var AdminController = class {
     this.admin = admin;
   }
   admin;
+  renameFirm(ctx, body) {
+    return this.admin.renameFirm(ctx, body);
+  }
   listTeam(ctx) {
     return this.admin.listTeam(ctx);
   }
@@ -120880,6 +121222,11 @@ var AdminController = class {
     return this.admin.cancelInvitation(ctx, id3);
   }
 };
+__decorateClass([
+  (0, import_common50.Patch)(),
+  __decorateParam(0, CurrentFirm()),
+  __decorateParam(1, (0, import_common50.Body)(new ZodValidationPipe(UpdateFirmBody)))
+], AdminController.prototype, "renameFirm", 1);
 __decorateClass([
   (0, import_common50.Get)("members"),
   __decorateParam(0, CurrentFirm())
@@ -120954,6 +121301,9 @@ var InvitationsService = class {
   async accept(token, body) {
     const inv = await this.invitations.findUsableByToken(token);
     if (!inv) throw notFound();
+    if (await this.members.authAccountExists(inv.email)) {
+      throw new import_common51.ConflictException({ error: { code: "account_exists", message: "An ACTE account already exists for this address" } });
+    }
     const res = await invitationAcceptance.run(
       { invitationId: inv.id },
       () => auth.api.signUpEmail({ body: { email: inv.email, password: body.password, name: body.name }, asResponse: true })
@@ -120978,7 +121328,11 @@ var InvitationsService = class {
       throw notFound();
     }
     await this.auditLog.record({ firmId: member.firmId, memberId: member.id, isAdmin: false }, "invitation.accept", "member", member.id);
-    return { setCookies: res.headers.getSetCookie() };
+    const signedIn = await auth.api.signInEmail({ body: { email: inv.email, password: body.password }, asResponse: true });
+    if (!signedIn.ok) {
+      throw new import_common51.BadRequestException({ error: { code: "signin_failed", message: "Account created \u2014 sign in to continue" } });
+    }
+    return { setCookies: signedIn.headers.getSetCookie() };
   }
 };
 InvitationsService = __decorateClass([
@@ -121041,6 +121395,10 @@ var import_common56 = __toESM(require_common(), 1);
 
 // src/data-access/client-invoices.repository.ts
 var import_common54 = __toESM(require_common(), 1);
+var isUniqueViolation = (err) => {
+  const e = err;
+  return (e?.code ?? e?.cause?.code) === "23505";
+};
 var ClientInvoicesRepository = class {
   constructor(db2, firmKeys) {
     this.db = db2;
@@ -121050,7 +121408,7 @@ var ClientInvoicesRepository = class {
   firmKeys;
   async list(ctx) {
     const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
-    const rows = await this.db.select({ invoice: clientInvoices, dossierName: dossiers.name }).from(clientInvoices).innerJoin(dossiers, eq(clientInvoices.dossierId, dossiers.id)).where(eq(clientInvoices.firmId, ctx.firmId));
+    const rows = await this.db.select({ invoice: clientInvoices, dossierName: dossiers.name }).from(clientInvoices).innerJoin(dossiers, eq(clientInvoices.dossierId, dossiers.id)).where(eq(clientInvoices.firmId, ctx.firmId)).orderBy(asc(clientInvoices.createdAt), asc(clientInvoices.id));
     return rows.map(({ invoice, dossierName }) => ({
       id: invoice.id,
       dossierId: invoice.dossierId,
@@ -121059,20 +121417,61 @@ var ClientInvoicesRepository = class {
       periodLabel: decryptField(invoice.periodLabel, dataKey),
       minutes: invoice.minutes,
       amountCents: invoice.amountCents,
-      status: invoice.status
+      status: invoice.status,
+      createdAt: invoice.createdAt.toISOString()
     }));
   }
-  async createDraft(ctx, input) {
+  /**
+   * Creates a draft for exactly `taskIds` and stamps them with the new
+   * invoice id, in one transaction: the stamp only lands on tasks that are
+   * still un-invoiced, and the draft's totals are recomputed from the rows
+   * actually stamped, so two concurrent "Générer la facture" clicks can
+   * never bill the same minute twice. Returns null when nothing was left to
+   * bill. The number is the next free FA-<year>-NNN for the firm; the unique
+   * index makes a race retry rather than duplicate.
+   */
+  async createDraftForTasks(ctx, input) {
     const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
-    await this.db.insert(clientInvoices).values({
-      firmId: ctx.firmId,
-      dossierId: input.dossierId,
-      number: input.number,
-      periodLabel: encryptField(input.periodLabel, dataKey),
-      minutes: input.minutes,
-      amountCents: input.amountCents,
-      status: "draft"
-    });
+    const rateById = new Map(input.lines.map((l) => [l.id, l.rateCents]));
+    const prefix = `FA-${input.year}-`;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        return await this.db.transaction(async (tx) => {
+          const existing = await tx.select({ number: clientInvoices.number }).from(clientInvoices).where(and(eq(clientInvoices.firmId, ctx.firmId), like(clientInvoices.number, `${prefix}%`)));
+          const last = existing.reduce((max, r) => Math.max(max, Number(r.number.slice(prefix.length)) || 0), 0);
+          const [invoice] = await tx.insert(clientInvoices).values({
+            firmId: ctx.firmId,
+            dossierId: input.dossierId,
+            number: `${prefix}${String(last + 1).padStart(3, "0")}`,
+            periodLabel: encryptField(input.periodLabel, dataKey),
+            minutes: 0,
+            amountCents: 0,
+            status: "draft"
+          }).returning({ id: clientInvoices.id });
+          const stamped = await tx.update(tasks).set({ invoiceId: invoice.id }).where(
+            and(
+              eq(tasks.firmId, ctx.firmId),
+              eq(tasks.dossierId, input.dossierId),
+              eq(tasks.status, "validated"),
+              isNull2(tasks.invoiceId),
+              inArray(tasks.id, input.lines.map((l) => l.id))
+            )
+          ).returning({ id: tasks.id, durationMin: tasks.durationMin });
+          if (stamped.length === 0) {
+            tx.rollback();
+          }
+          const minutes = stamped.reduce((s, t) => s + t.durationMin, 0);
+          const amountCents = stamped.reduce((s, t) => s + Math.round(t.durationMin / 60 * (rateById.get(t.id) ?? 0)), 0);
+          await tx.update(clientInvoices).set({ minutes, amountCents }).where(eq(clientInvoices.id, invoice.id));
+          return { id: invoice.id };
+        });
+      } catch (err) {
+        if (isUniqueViolation(err)) continue;
+        if (err instanceof TransactionRollbackError) return null;
+        throw err;
+      }
+    }
+    throw new Error("Could not allocate an invoice number");
   }
 };
 ClientInvoicesRepository = __decorateClass([
@@ -121126,7 +121525,14 @@ var DossiersRepository = class {
   }
   async update(ctx, id3, patch) {
     const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
-    const [row] = await this.db.update(dossiers).set(patch).where(and(eq(dossiers.firmId, ctx.firmId), eq(dossiers.id, id3))).returning();
+    const { name, clientLabel, ...plain } = patch;
+    const set = {
+      ...plain,
+      ...name !== void 0 ? { name: encryptField(name, dataKey) } : {},
+      ...clientLabel !== void 0 ? { clientLabel: encryptField(clientLabel, dataKey) } : {}
+    };
+    if (Object.keys(set).length === 0) return this.findById(ctx, id3);
+    const [row] = await this.db.update(dossiers).set(set).where(and(eq(dossiers.firmId, ctx.firmId), eq(dossiers.id, id3))).returning();
     return row ? this.decrypt(row, dataKey) : null;
   }
   async touchActivity(ctx, id3, when) {
@@ -121140,39 +121546,59 @@ DossiersRepository = __decorateClass([
 ], DossiersRepository);
 
 // src/billing/billing.service.ts
+var monthLabel = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric", timeZone: "Europe/Paris" });
+function periodLabelFor(dates) {
+  const sorted = [...dates].sort((a, b2) => a.getTime() - b2.getTime());
+  const first = monthLabel.format(sorted[0]);
+  const last = monthLabel.format(sorted[sorted.length - 1]);
+  return `Diligences \xB7 ${first === last ? first : `${first} \u2013 ${last}`}`;
+}
 var BillingService = class {
-  constructor(invoices, dossiers2, tasks2, auditLog) {
+  constructor(invoices, tasks2, dossiers2, auditLog) {
     this.invoices = invoices;
-    this.dossiers = dossiers2;
     this.tasks = tasks2;
+    this.dossiers = dossiers2;
     this.auditLog = auditLog;
   }
   invoices;
-  dossiers;
   tasks;
+  dossiers;
   auditLog;
   list(ctx) {
     return this.invoices.list(ctx);
   }
+  /**
+   * A draft bills the dossier's validated time that isn't on an invoice yet,
+   * each task at the rate stamped when it was validated, and marks that time
+   * as invoiced (D-020). Generating again only bills time validated since.
+   */
   async generateDraft(ctx, dossierId) {
     const dossier = await this.dossiers.findById(ctx, dossierId);
     if (!dossier) {
       throw new import_common56.NotFoundException({ error: { code: "dossier_not_found", message: "Dossier not found" } });
     }
-    const { minutes, amountCents } = await this.tasks.sumValidatedForDossier(ctx.firmId, dossierId);
-    const existing = await this.invoices.list(ctx);
-    const number4 = `FA-${(/* @__PURE__ */ new Date()).getFullYear()}-${String(existing.length + 1).padStart(3, "0")}`;
-    const periodLabel = `Diligences \xB7 ${new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric" }).format(/* @__PURE__ */ new Date())}`;
-    await this.invoices.createDraft(ctx, { dossierId, number: number4, periodLabel, minutes, amountCents });
-    await this.auditLog.record(ctx, "invoice.draft", "client_invoice", dossierId);
+    if (!dossier.isBillable || dossier.status === "archived") {
+      throw new import_common56.ConflictException({ error: { code: "dossier_not_billable", message: "This dossier cannot be invoiced" } });
+    }
+    const nothing = () => new import_common56.ConflictException({ error: { code: "nothing_to_invoice", message: "No validated time left to invoice on this dossier" } });
+    const lines = await this.tasks.listUninvoicedForDossier(ctx.firmId, dossierId);
+    if (lines.length === 0) throw nothing();
+    const created = await this.invoices.createDraftForTasks(ctx, {
+      dossierId,
+      year: Number(parisDateKey(/* @__PURE__ */ new Date()).slice(0, 4)),
+      periodLabel: periodLabelFor(lines.map((l) => l.startedAt)),
+      lines
+    });
+    if (!created) throw nothing();
+    await this.auditLog.record(ctx, "invoice.draft", "client_invoice", created.id);
     return this.invoices.list(ctx);
   }
 };
 BillingService = __decorateClass([
   (0, import_common56.Injectable)(),
   __decorateParam(0, (0, import_common56.Inject)(ClientInvoicesRepository)),
-  __decorateParam(1, (0, import_common56.Inject)(DossiersRepository)),
-  __decorateParam(2, (0, import_common56.Inject)(TasksRepository)),
+  __decorateParam(1, (0, import_common56.Inject)(TasksRepository)),
+  __decorateParam(2, (0, import_common56.Inject)(DossiersRepository)),
   __decorateParam(3, (0, import_common56.Inject)(AuditLogRepository))
 ], BillingService);
 
@@ -121228,10 +121654,11 @@ var ExportsService = class {
       this.members.findById(ctx.firmId, ctx.memberId)
     ]);
     const dossierNames = new Map(dossierList.map((d) => [d.id, d.name]));
-    const rateEur = (member?.hourlyRateCents ?? 0) / 100;
+    const memberRateCents = member?.hourlyRateCents ?? 0;
     const header = "Date;Dossier;Intitul\xE9;Dur\xE9e (min);Taux (\u20AC/h);Montant (\u20AC);Source";
     const rows = validatedTasks.map((t) => {
       const dossierName = t.dossierId ? dossierNames.get(t.dossierId) ?? "" : "";
+      const rateEur = (t.rateCents ?? memberRateCents) / 100;
       const amount = Math.round(t.durationMin / 60 * rateEur * 100) / 100;
       return [
         parisDateKey(new Date(t.startedAt)),
@@ -121244,6 +121671,36 @@ var ExportsService = class {
       ].map(csvEscape).join(";");
     });
     return [header, ...rows].join("\n");
+  }
+  /**
+   * "Exporter mes données (.json)" (Cloud & Sync view; PRIVACY_MODEL rule 5,
+   * portability): the member's own tasks, with the dossiers they point to.
+   * Own data only — never another member's tasks.
+   */
+  async myData(ctx) {
+    const [tasks2, dossierList, member] = await Promise.all([
+      this.tasks.listForMember(ctx),
+      this.dossiers.list(ctx),
+      this.members.findById(ctx.firmId, ctx.memberId)
+    ]);
+    const dossierById = new Map(dossierList.map((d) => [d.id, d]));
+    const usedDossierIds = new Set(tasks2.map((t) => t.dossierId).filter((id3) => id3 !== null));
+    return MyDataExport.parse({
+      exportedAt: (/* @__PURE__ */ new Date()).toISOString(),
+      member: member ? { displayName: member.displayName, email: member.email, role: member.role, hourlyRateCents: member.hourlyRateCents } : null,
+      tasks: tasks2.map((t) => ({
+        title: t.title,
+        dossier: t.dossierId ? dossierById.get(t.dossierId)?.name ?? null : null,
+        source: t.source,
+        startedAt: t.startedAt,
+        endedAt: t.endedAt,
+        durationMin: t.durationMin,
+        status: t.status,
+        validatedAt: t.validatedAt,
+        rateCents: t.rateCents
+      })),
+      dossiers: dossierList.filter((d) => usedDossierIds.has(d.id)).map((d) => ({ name: d.name, clientLabel: d.clientLabel, status: d.status, budgetMinutes: d.budgetMinutes }))
+    });
   }
 };
 ExportsService = __decorateClass([
@@ -121262,6 +121719,9 @@ var ExportsController = class {
   validatedCsv(ctx) {
     return this.exportsService.validatedCsv(ctx);
   }
+  myData(ctx) {
+    return this.exportsService.myData(ctx);
+  }
 };
 __decorateClass([
   (0, import_common59.Get)("validated.csv"),
@@ -121269,6 +121729,12 @@ __decorateClass([
   (0, import_common59.Header)("Content-Disposition", 'attachment; filename="temps-valide.csv"'),
   __decorateParam(0, CurrentFirm())
 ], ExportsController.prototype, "validatedCsv", 1);
+__decorateClass([
+  (0, import_common59.Get)("my-data.json"),
+  (0, import_common59.Header)("Content-Type", "application/json; charset=utf-8"),
+  (0, import_common59.Header)("Content-Disposition", 'attachment; filename="acte-export.json"'),
+  __decorateParam(0, CurrentFirm())
+], ExportsController.prototype, "myData", 1);
 ExportsController = __decorateClass([
   (0, import_common59.Controller)("v1/exports"),
   (0, import_common59.UseGuards)(SessionGuard),
@@ -121312,7 +121778,9 @@ var DossiersService = class {
     return dossierList.map((d) => ({
       ...d,
       usedMinutes: usageByDossier.get(d.id)?.validatedMin ?? 0,
-      pendingMinutes: usageByDossier.get(d.id)?.pendingMin ?? 0
+      pendingMinutes: usageByDossier.get(d.id)?.pendingMin ?? 0,
+      monthMinutes: usageByDossier.get(d.id)?.monthMin ?? 0,
+      uninvoicedMinutes: usageByDossier.get(d.id)?.uninvoicedMin ?? 0
     }));
   }
   async create(ctx, body) {
@@ -121396,15 +121864,19 @@ var import_common65 = __toESM(require_common(), 1);
 var import_common64 = __toESM(require_common(), 1);
 var MANUAL_ENTRY_OVERHEAD_MIN = 3;
 var WEEKDAY_LABELS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+var SHORT_TASK_MIN = 10;
+var revenueCents = (t, fallbackRateCents) => Math.round(t.durationMin / 60 * (t.rateCents ?? fallbackRateCents));
 var MeService = class {
-  constructor(tasks2, members3, firms2) {
+  constructor(tasks2, members3, firms2, dossiers2) {
     this.tasks = tasks2;
     this.members = members3;
     this.firms = firms2;
+    this.dossiers = dossiers2;
   }
   tasks;
   members;
   firms;
+  dossiers;
   async profile(ctx) {
     const [member, firmName] = await Promise.all([this.members.findById(ctx.firmId, ctx.memberId), this.firms.findNameById(ctx.firmId)]);
     if (!member) throw new import_common64.NotFoundException();
@@ -121419,8 +121891,15 @@ var MeService = class {
       isPartner: member.isPartner,
       isAdmin: member.isAdmin,
       hourlyRateCents: member.hourlyRateCents,
-      status: member.status
+      status: member.status,
+      theme: member.theme,
+      alertEmails: member.alertEmails
     };
+  }
+  async updatePreferences(ctx, body) {
+    const updated = await this.members.updatePreferences(ctx, body);
+    if (!updated) throw new import_common64.NotFoundException();
+    return this.profile(ctx);
   }
   async summary(ctx) {
     const member = await this.members.findById(ctx.firmId, ctx.memberId);
@@ -121433,7 +121912,7 @@ var MeService = class {
     const capturedTodayMin = todays.reduce((s, t) => s + t.durationMin, 0);
     const validatedTodayMin = todays.filter((t) => t.status === "validated").reduce((s, t) => s + t.durationMin, 0);
     const pendingTodayMin = todays.filter((t) => t.status === "pending").reduce((s, t) => s + t.durationMin, 0);
-    const securedRevenueMonthCents = all.filter((t) => t.status === "validated" && parisMonthKey(new Date(t.startedAt)) === monthKey).reduce((s, t) => s + Math.round(t.durationMin / 60 * member.hourlyRateCents), 0);
+    const securedRevenueMonthCents = all.filter((t) => t.status === "validated" && parisMonthKey(new Date(t.startedAt)) === monthKey).reduce((s, t) => s + revenueCents(t, member.hourlyRateCents), 0);
     const roiMinutesToday = todays.filter((t) => t.source !== "manual").length * MANUAL_ENTRY_OVERHEAD_MIN;
     return {
       capturedTodayMin,
@@ -121459,26 +121938,50 @@ var MeService = class {
   async stats(ctx) {
     const member = await this.members.findById(ctx.firmId, ctx.memberId);
     if (!member) throw new import_common64.NotFoundException();
-    const all = await this.tasks.listForMember(ctx);
+    const [all, dossierList] = await Promise.all([this.tasks.listForMember(ctx), this.dossiers.list(ctx)]);
     const validated = all.filter((t) => t.status === "validated");
+    const dossierById = new Map(dossierList.map((d) => [d.id, d]));
     const now2 = /* @__PURE__ */ new Date();
+    const monthKey = parisMonthKey(now2);
+    const [year, month] = monthKey.split("-").map(Number);
     const months = Array.from({ length: 6 }, (_, i) => {
-      const d = new Date(Date.UTC(now2.getUTCFullYear(), now2.getUTCMonth() - (5 - i), 1));
+      const d = new Date(Date.UTC(year, month - 1 - (5 - i), 15));
       const key = parisMonthKey(d);
       const label = new Intl.DateTimeFormat("fr-FR", { month: "short", timeZone: "Europe/Paris" }).format(d);
-      const revenueCents = validated.filter((t) => parisMonthKey(new Date(t.startedAt)) === key).reduce((s, t) => s + Math.round(t.durationMin / 60 * member.hourlyRateCents), 0);
-      return { label, revenueCents };
+      const revenue = validated.filter((t) => parisMonthKey(new Date(t.startedAt)) === key).reduce((s, t) => s + revenueCents(t, member.hourlyRateCents), 0);
+      return { label, revenueCents: revenue };
     });
+    const thisMonth = all.filter((t) => parisMonthKey(new Date(t.startedAt)) === monthKey);
+    const validatedThisMonth = thisMonth.filter((t) => t.status === "validated");
     const bySource = /* @__PURE__ */ new Map();
-    for (const t of validated) {
+    for (const t of validatedThisMonth) {
       bySource.set(t.source, (bySource.get(t.source) ?? 0) + t.durationMin);
     }
+    const capturedMonthMin = thisMonth.reduce((s, t) => s + t.durationMin, 0);
+    const billableMin = thisMonth.filter((t) => t.dossierId && dossierById.get(t.dossierId)?.isBillable).reduce((s, t) => s + t.durationMin, 0);
+    const byDay = /* @__PURE__ */ new Map();
+    const byDossier = /* @__PURE__ */ new Map();
+    for (const t of thisMonth) {
+      const day = parisDateKey(new Date(t.startedAt));
+      byDay.set(day, (byDay.get(day) ?? 0) + t.durationMin);
+      if (t.dossierId) byDossier.set(t.dossierId, (byDossier.get(t.dossierId) ?? 0) + t.durationMin);
+    }
+    const bestDay = [...byDay.entries()].sort((a, b2) => b2[1] - a[1] || a[0].localeCompare(b2[0]))[0];
+    const topDossier = [...byDossier.entries()].sort((a, b2) => b2[1] - a[1])[0];
+    const topDossierName = topDossier ? dossierById.get(topDossier[0])?.name : void 0;
     return {
       months,
       sourceBreakdown: [...bySource.entries()].map(([source, minutes]) => ({
         source,
         minutes
-      }))
+      })),
+      capturedMonthMin,
+      billableMonthPct: capturedMonthMin > 0 ? Math.round(billableMin / capturedMonthMin * 100) : 0,
+      highlights: {
+        bestDay: bestDay ? { date: bestDay[0], minutes: bestDay[1] } : null,
+        topDossier: topDossier && topDossierName ? { name: topDossierName, pct: Math.round(topDossier[1] / capturedMonthMin * 100) } : null,
+        shortTasksCount: thisMonth.filter((t) => t.durationMin < SHORT_TASK_MIN).length
+      }
     };
   }
   async sources(ctx) {
@@ -121496,7 +121999,8 @@ MeService = __decorateClass([
   (0, import_common64.Injectable)(),
   __decorateParam(0, (0, import_common64.Inject)(TasksRepository)),
   __decorateParam(1, (0, import_common64.Inject)(MembersRepository)),
-  __decorateParam(2, (0, import_common64.Inject)(FirmsRepository))
+  __decorateParam(2, (0, import_common64.Inject)(FirmsRepository)),
+  __decorateParam(3, (0, import_common64.Inject)(DossiersRepository))
 ], MeService);
 
 // src/me/me.controller.ts
@@ -121507,6 +122011,9 @@ var MeController = class {
   meService;
   profile(ctx) {
     return this.meService.profile(ctx);
+  }
+  updatePreferences(ctx, body) {
+    return this.meService.updatePreferences(ctx, body);
   }
   summary(ctx) {
     return this.meService.summary(ctx);
@@ -121528,6 +122035,11 @@ __decorateClass([
   (0, import_common65.Get)("profile"),
   __decorateParam(0, CurrentFirm())
 ], MeController.prototype, "profile", 1);
+__decorateClass([
+  (0, import_common65.Patch)("preferences"),
+  __decorateParam(0, CurrentFirm()),
+  __decorateParam(1, (0, import_common65.Body)(new ZodValidationPipe(UpdatePreferencesBody)))
+], MeController.prototype, "updatePreferences", 1);
 __decorateClass([
   (0, import_common65.Get)("summary"),
   __decorateParam(0, CurrentFirm())
@@ -121573,8 +122085,12 @@ var import_common68 = __toESM(require_common(), 1);
 // src/brain/activity.service.ts
 var import_common67 = __toESM(require_common(), 1);
 var TEMPLATES = {
+  "task.create": (a) => `${a} \xB7 saisie manuelle ajout\xE9e au journal.`,
+  "task.update": (a) => `${a} \xB7 t\xE2che modifi\xE9e.`,
+  "task.discard": (a) => `${a} \xB7 t\xE2che supprim\xE9e du journal.`,
+  "task.unvalidate": (a) => `${a} \xB7 validation annul\xE9e.`,
   "task.validate": (a) => `${a} \xB7 t\xE2che valid\xE9e au journal.`,
-  "task.validate_all": (a) => `${a} \xB7 toutes les t\xE2ches en attente valid\xE9es.`,
+  "task.validate_all": (a) => `${a} \xB7 t\xE2ches en attente int\xE9gr\xE9es.`,
   "task.reassign": (a) => `${a} \xB7 t\xE2che r\xE9associ\xE9e \xE0 un autre dossier.`,
   "dossier.create": (a, t) => `${a} \xB7 dossier \xAB ${t} \xBB cr\xE9\xE9.`,
   "dossier.update": (a, t) => `${a} \xB7 dossier \xAB ${t} \xBB mis \xE0 jour.`,
@@ -121587,7 +122103,11 @@ var TEMPLATES = {
   "admin.member.update": (a, t) => `${a} \xB7 profil de ${t} mis \xE0 jour.`,
   "admin.member.remind": (a, t) => `${a} \xB7 rappel de validation envoy\xE9 \xE0 ${t}.`,
   "admin.member.suspend": (a, t) => `${a} \xB7 compte de ${t} suspendu.`,
-  "admin.member.reactivate": (a, t) => `${a} \xB7 compte de ${t} r\xE9activ\xE9.`
+  "admin.member.reactivate": (a, t) => `${a} \xB7 compte de ${t} r\xE9activ\xE9.`,
+  "admin.member.grant_admin": (a, t) => `${a} \xB7 droits admin donn\xE9s \xE0 ${t}.`,
+  "admin.member.revoke_admin": (a, t) => `${a} \xB7 droits admin retir\xE9s \xE0 ${t}.`,
+  "admin.firm.rename": (a) => `${a} \xB7 nom du cabinet modifi\xE9.`,
+  "feedback.send": (a) => `${a} \xB7 retour envoy\xE9 \xE0 l'\xE9quipe ACTE.`
 };
 var ActivityService = class {
   constructor(auditLog, members3, dossiers2) {
@@ -122378,11 +122898,23 @@ CryptoModule = __decorateClass([
 ], CryptoModule);
 
 // src/data-access/data-access.module.ts
-var import_common79 = __toESM(require_common(), 1);
+var import_common81 = __toESM(require_common(), 1);
 
 // src/data-access/activation-keys.repository.ts
 var import_node_crypto6 = require("node:crypto");
 var import_common76 = __toESM(require_common(), 1);
+
+// src/data-access/key-summary.ts
+function toKeySummary(row) {
+  return {
+    id: row.id,
+    prefix: row.prefix,
+    createdAt: row.createdAt.toISOString(),
+    revokedAt: row.revokedAt ? row.revokedAt.toISOString() : null
+  };
+}
+
+// src/data-access/activation-keys.repository.ts
 function generatePlainKey(initials) {
   const groups = Array.from({ length: 4 }, () => (0, import_node_crypto6.randomBytes)(2).toString("hex").toUpperCase());
   return `ACTE-${initials.toUpperCase()}-${groups.join("-")}`;
@@ -122406,11 +122938,12 @@ var ActivationKeysRepository = class {
     return { id: row.id, prefix: row.prefix, plainKey };
   }
   async list(ctx) {
-    return this.db.select().from(activationKeys).where(eq(activationKeys.memberId, ctx.memberId));
+    const rows = await this.db.select().from(activationKeys).where(eq(activationKeys.memberId, ctx.memberId));
+    return rows.map(toKeySummary);
   }
   async revoke(ctx, id3) {
     const [row] = await this.db.update(activationKeys).set({ revokedAt: /* @__PURE__ */ new Date() }).where(and(eq(activationKeys.memberId, ctx.memberId), eq(activationKeys.id, id3), isNull2(activationKeys.revokedAt))).returning();
-    return row ?? null;
+    return row ? toKeySummary(row) : null;
   }
 };
 ActivationKeysRepository = __decorateClass([
@@ -122434,8 +122967,40 @@ DevicesRepository = __decorateClass([
   __decorateParam(0, (0, import_common77.Inject)(DB))
 ], DevicesRepository);
 
-// src/data-access/notifications.repository.ts
+// src/data-access/feedback.repository.ts
 var import_common78 = __toESM(require_common(), 1);
+var FeedbackRepository = class {
+  constructor(db2, firmKeys) {
+    this.db = db2;
+    this.firmKeys = firmKeys;
+  }
+  db;
+  firmKeys;
+  async create(ctx, input) {
+    const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
+    const [row] = await this.db.insert(feedback).values({ firmId: ctx.firmId, memberId: ctx.memberId, category: input.category, message: encryptField(input.message, dataKey) }).returning({ id: feedback.id });
+    return row;
+  }
+  async listByFirm(ctx, limit = 50) {
+    const dataKey = await this.firmKeys.getDataKey(ctx.firmId);
+    const rows = await this.db.select({ entry: feedback, authorName: members2.displayName }).from(feedback).innerJoin(members2, eq(feedback.memberId, members2.id)).where(eq(feedback.firmId, ctx.firmId)).orderBy(desc(feedback.createdAt)).limit(limit);
+    return rows.map(({ entry, authorName }) => ({
+      id: entry.id,
+      category: entry.category,
+      message: decryptField(entry.message, dataKey),
+      authorName,
+      createdAt: entry.createdAt.toISOString()
+    }));
+  }
+};
+FeedbackRepository = __decorateClass([
+  (0, import_common78.Injectable)(),
+  __decorateParam(0, (0, import_common78.Inject)(DB)),
+  __decorateParam(1, (0, import_common78.Inject)(FirmKeyService))
+], FeedbackRepository);
+
+// src/data-access/notifications.repository.ts
+var import_common79 = __toESM(require_common(), 1);
 var episodeKey = (type, refId) => `${type}:${refId}`;
 var NotificationsRepository = class {
   constructor(db2) {
@@ -122471,6 +123036,22 @@ var NotificationsRepository = class {
       await this.db.update(notifications).set({ resolvedAt: /* @__PURE__ */ new Date() }).where(inArray(notifications.id, stale));
     }
   }
+  /** Open, unread episodes that no digest email has covered yet (D-019). */
+  async listForDigest(ctx) {
+    return this.db.select({ id: notifications.id, type: notifications.type }).from(notifications).where(
+      and(
+        eq(notifications.firmId, ctx.firmId),
+        eq(notifications.memberId, ctx.memberId),
+        isNull2(notifications.resolvedAt),
+        isNull2(notifications.readAt),
+        isNull2(notifications.emailedAt)
+      )
+    );
+  }
+  async markEmailed(ctx, ids) {
+    if (ids.length === 0) return;
+    await this.db.update(notifications).set({ emailedAt: /* @__PURE__ */ new Date() }).where(and(eq(notifications.firmId, ctx.firmId), eq(notifications.memberId, ctx.memberId), inArray(notifications.id, ids)));
+  }
   async markRead(ctx, id3) {
     const [row] = await this.db.update(notifications).set({ readAt: /* @__PURE__ */ new Date() }).where(and(eq(notifications.firmId, ctx.firmId), eq(notifications.memberId, ctx.memberId), eq(notifications.id, id3))).returning();
     return row ?? null;
@@ -122487,9 +123068,52 @@ var NotificationsRepository = class {
   }
 };
 NotificationsRepository = __decorateClass([
-  (0, import_common78.Injectable)(),
-  __decorateParam(0, (0, import_common78.Inject)(DB))
+  (0, import_common79.Injectable)(),
+  __decorateParam(0, (0, import_common79.Inject)(DB))
 ], NotificationsRepository);
+
+// src/data-access/onboarding.repository.ts
+var import_common80 = __toESM(require_common(), 1);
+var OnboardingRepository = class {
+  constructor(db2) {
+    this.db = db2;
+  }
+  db;
+  async findOwn(ctx) {
+    const [row] = await this.db.select({ onboardedAt: members2.onboardedAt, hourlyRateCents: members2.hourlyRateCents }).from(members2).where(and(eq(members2.firmId, ctx.firmId), eq(members2.id, ctx.memberId)));
+    return row ?? null;
+  }
+  /** Stamps the first time only: a second call keeps the original date. */
+  async markOnboarded(ctx) {
+    await this.db.update(members2).set({ onboardedAt: /* @__PURE__ */ new Date() }).where(and(eq(members2.firmId, ctx.firmId), eq(members2.id, ctx.memberId), isNull2(members2.onboardedAt)));
+  }
+  /** Firm-wide, like the Dossiers view: any member sees the firm's dossiers. */
+  async hasDossier(ctx) {
+    const rows = await this.db.select({ id: dossiers.id }).from(dossiers).where(eq(dossiers.firmId, ctx.firmId)).limit(1);
+    return rows.length > 0;
+  }
+  /** The member's own tasks only (PRIVACY_MODEL rule 4), any day. */
+  async ownTaskFlags(ctx) {
+    const own2 = and(eq(tasks.firmId, ctx.firmId), eq(tasks.memberId, ctx.memberId));
+    const [anyTask, validated] = await Promise.all([
+      this.db.select({ id: tasks.id }).from(tasks).where(own2).limit(1),
+      this.db.select({ id: tasks.id }).from(tasks).where(and(own2, eq(tasks.status, "validated"))).limit(1)
+    ]);
+    return { hasTask: anyTask.length > 0, hasValidatedTask: validated.length > 0 };
+  }
+  /** Another member in the firm, or an invitation still awaiting an answer. Call for admins only. */
+  async hasOtherMemberOrInvitation(ctx) {
+    const [others, pending] = await Promise.all([
+      this.db.select({ id: members2.id }).from(members2).where(and(eq(members2.firmId, ctx.firmId), ne(members2.id, ctx.memberId))).limit(1),
+      this.db.select({ id: invitations.id }).from(invitations).where(and(eq(invitations.firmId, ctx.firmId), isNull2(invitations.acceptedAt))).limit(1)
+    ]);
+    return others.length > 0 || pending.length > 0;
+  }
+};
+OnboardingRepository = __decorateClass([
+  (0, import_common80.Injectable)(),
+  __decorateParam(0, (0, import_common80.Inject)(DB))
+], OnboardingRepository);
 
 // src/data-access/data-access.module.ts
 var repositories = [
@@ -122502,23 +123126,25 @@ var repositories = [
   DevicesRepository,
   ClientInvoicesRepository,
   NotificationsRepository,
-  InvitationsRepository
+  InvitationsRepository,
+  FeedbackRepository,
+  OnboardingRepository
 ];
 var DataAccessModule = class {
 };
 DataAccessModule = __decorateClass([
-  (0, import_common79.Global)(),
-  (0, import_common79.Module)({
+  (0, import_common81.Global)(),
+  (0, import_common81.Module)({
     providers: repositories,
     exports: repositories
   })
 ], DataAccessModule);
 
 // src/devices/devices.module.ts
-var import_common81 = __toESM(require_common(), 1);
+var import_common83 = __toESM(require_common(), 1);
 
 // src/devices/devices.controller.ts
-var import_common80 = __toESM(require_common(), 1);
+var import_common82 = __toESM(require_common(), 1);
 var DevicesController = class {
   constructor(devices2) {
     this.devices = devices2;
@@ -122529,33 +123155,81 @@ var DevicesController = class {
   }
 };
 __decorateClass([
-  (0, import_common80.Get)(),
+  (0, import_common82.Get)(),
   __decorateParam(0, CurrentFirm())
 ], DevicesController.prototype, "list", 1);
 DevicesController = __decorateClass([
-  (0, import_common80.Controller)("v1/devices"),
-  (0, import_common80.UseGuards)(SessionGuard),
-  __decorateParam(0, (0, import_common80.Inject)(DevicesRepository))
+  (0, import_common82.Controller)("v1/devices"),
+  (0, import_common82.UseGuards)(SessionGuard),
+  __decorateParam(0, (0, import_common82.Inject)(DevicesRepository))
 ], DevicesController);
 
 // src/devices/devices.module.ts
 var DevicesModule = class {
 };
 DevicesModule = __decorateClass([
-  (0, import_common81.Module)({
+  (0, import_common83.Module)({
     imports: [AuthModule],
     controllers: [DevicesController]
   })
 ], DevicesModule);
 
-// src/keys/keys.module.ts
+// src/feedback/feedback.module.ts
+var import_common85 = __toESM(require_common(), 1);
+
+// src/feedback/feedback.controller.ts
 var import_common84 = __toESM(require_common(), 1);
+var FeedbackController = class {
+  constructor(feedback2, auditLog) {
+    this.feedback = feedback2;
+    this.auditLog = auditLog;
+  }
+  feedback;
+  auditLog;
+  async send(ctx, body) {
+    const created = await this.feedback.create(ctx, body);
+    await this.auditLog.record(ctx, "feedback.send", "feedback", created.id);
+    return FeedbackCreated.parse(created);
+  }
+  async list(ctx) {
+    return FeedbackEntry.array().parse(await this.feedback.listByFirm(ctx));
+  }
+};
+__decorateClass([
+  (0, import_common84.Post)(),
+  __decorateParam(0, CurrentFirm()),
+  __decorateParam(1, (0, import_common84.Body)(new ZodValidationPipe(FeedbackBody)))
+], FeedbackController.prototype, "send", 1);
+__decorateClass([
+  (0, import_common84.Get)(),
+  (0, import_common84.UseGuards)(AdminGuard),
+  __decorateParam(0, CurrentFirm())
+], FeedbackController.prototype, "list", 1);
+FeedbackController = __decorateClass([
+  (0, import_common84.Controller)("v1/feedback"),
+  (0, import_common84.UseGuards)(SessionGuard),
+  __decorateParam(0, (0, import_common84.Inject)(FeedbackRepository)),
+  __decorateParam(1, (0, import_common84.Inject)(AuditLogRepository))
+], FeedbackController);
+
+// src/feedback/feedback.module.ts
+var FeedbackModule = class {
+};
+FeedbackModule = __decorateClass([
+  (0, import_common85.Module)({
+    imports: [AuthModule],
+    controllers: [FeedbackController]
+  })
+], FeedbackModule);
+
+// src/keys/keys.module.ts
+var import_common88 = __toESM(require_common(), 1);
 
 // src/keys/keys.controller.ts
-var import_common83 = __toESM(require_common(), 1);
+var import_common87 = __toESM(require_common(), 1);
 
 // src/keys/keys.service.ts
-var import_common82 = __toESM(require_common(), 1);
+var import_common86 = __toESM(require_common(), 1);
 var KeysService = class {
   constructor(keys, members3) {
     this.keys = keys;
@@ -122568,21 +123242,21 @@ var KeysService = class {
   }
   async create(ctx) {
     const member = await this.members.findById(ctx.firmId, ctx.memberId);
-    if (!member) throw new import_common82.NotFoundException();
+    if (!member) throw new import_common86.NotFoundException();
     return this.keys.create(ctx, member.initials);
   }
   async revoke(ctx, id3) {
     const revoked = await this.keys.revoke(ctx, id3);
     if (!revoked) {
-      throw new import_common82.NotFoundException({ error: { code: "key_not_found", message: "Key not found or already revoked" } });
+      throw new import_common86.NotFoundException({ error: { code: "key_not_found", message: "Key not found or already revoked" } });
     }
     return revoked;
   }
 };
 KeysService = __decorateClass([
-  (0, import_common82.Injectable)(),
-  __decorateParam(0, (0, import_common82.Inject)(ActivationKeysRepository)),
-  __decorateParam(1, (0, import_common82.Inject)(MembersRepository))
+  (0, import_common86.Injectable)(),
+  __decorateParam(0, (0, import_common86.Inject)(ActivationKeysRepository)),
+  __decorateParam(1, (0, import_common86.Inject)(MembersRepository))
 ], KeysService);
 
 // src/keys/keys.controller.ts
@@ -122602,29 +123276,29 @@ var KeysController = class {
   }
 };
 __decorateClass([
-  (0, import_common83.Get)(),
+  (0, import_common87.Get)(),
   __decorateParam(0, CurrentFirm())
 ], KeysController.prototype, "list", 1);
 __decorateClass([
-  (0, import_common83.Post)(),
+  (0, import_common87.Post)(),
   __decorateParam(0, CurrentFirm())
 ], KeysController.prototype, "create", 1);
 __decorateClass([
-  (0, import_common83.Delete)(":id"),
+  (0, import_common87.Delete)(":id"),
   __decorateParam(0, CurrentFirm()),
-  __decorateParam(1, (0, import_common83.Param)("id"))
+  __decorateParam(1, (0, import_common87.Param)("id"))
 ], KeysController.prototype, "revoke", 1);
 KeysController = __decorateClass([
-  (0, import_common83.Controller)("v1/me/keys"),
-  (0, import_common83.UseGuards)(SessionGuard),
-  __decorateParam(0, (0, import_common83.Inject)(KeysService))
+  (0, import_common87.Controller)("v1/me/keys"),
+  (0, import_common87.UseGuards)(SessionGuard),
+  __decorateParam(0, (0, import_common87.Inject)(KeysService))
 ], KeysController);
 
 // src/keys/keys.module.ts
 var KeysModule = class {
 };
 KeysModule = __decorateClass([
-  (0, import_common84.Module)({
+  (0, import_common88.Module)({
     imports: [AuthModule],
     controllers: [KeysController],
     providers: [KeysService]
@@ -122632,15 +123306,17 @@ KeysModule = __decorateClass([
 ], KeysModule);
 
 // src/notifications/notifications.module.ts
-var import_common87 = __toESM(require_common(), 1);
+var import_common92 = __toESM(require_common(), 1);
 
-// src/notifications/notifications.controller.ts
-var import_common86 = __toESM(require_common(), 1);
+// src/notifications/digest.controller.ts
+var import_node_crypto7 = require("node:crypto");
+var import_common90 = __toESM(require_common(), 1);
 
 // src/notifications/notifications.service.ts
-var import_common85 = __toESM(require_common(), 1);
+var import_common89 = __toESM(require_common(), 1);
 var BUDGET_THRESHOLD_RATIO = 0.8;
 var LAG_HOURS = 48;
+var DIGEST_CONCURRENCY = 5;
 var MANAGED_TYPES = ["budget", "validation_lag", "health"];
 var NotificationsService = class {
   constructor(notifications2, tasks2, dossiers2, members3, invitations2) {
@@ -122715,24 +123391,103 @@ var NotificationsService = class {
     }
     return views;
   }
+  /**
+   * D-005 interim (D-019): one email per member with alerts they haven't
+   * read and haven't been emailed about. The email carries counts by kind
+   * and a link — never the alert text, which names dossiers and colleagues.
+   * Run by the scheduled job (see DigestController); each episode is emailed
+   * at most once, and only marked as emailed when the send succeeded.
+   */
+  async sendDigests() {
+    const dashboardUrl = `${process.env.WEB_ORIGIN ?? "http://localhost:3000"}/dashboard`;
+    const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
+    const recipients = await this.members.listDigestRecipients();
+    let sent = 0;
+    let failed = 0;
+    const sendOne = async (member) => {
+      const ctx = { firmId: member.firmId, memberId: member.id, isAdmin: member.isAdmin };
+      try {
+        await this.list(ctx);
+        const pending = await this.notifications.listForDigest(ctx);
+        if (pending.length === 0) return;
+        const count2 = (type) => pending.filter((p) => p.type === type).length;
+        const lines = [
+          count2("budget") ? plural(count2("budget"), "dossier proche de son budget d'heures", "dossiers proches de leur budget d'heures") : null,
+          count2("validation_lag") ? plural(count2("validation_lag"), "membre avec des temps en attente depuis plus de 48 h", "membres avec des temps en attente depuis plus de 48 h") : null,
+          count2("health") ? plural(count2("health"), "invitation sans r\xE9ponse", "invitations sans r\xE9ponse") : null
+        ].filter((l) => l !== null);
+        if (lines.length === 0) return;
+        await sendAlertDigestEmail(member.email, member.displayName, lines, dashboardUrl);
+        await this.notifications.markEmailed(ctx, pending.map((p) => p.id));
+        sent += 1;
+      } catch {
+        failed += 1;
+      }
+    };
+    for (let i = 0; i < recipients.length; i += DIGEST_CONCURRENCY) {
+      await Promise.all(recipients.slice(i, i + DIGEST_CONCURRENCY).map(sendOne));
+    }
+    return { recipients: recipients.length, sent, failed };
+  }
   async markRead(ctx, id3) {
     const row = await this.notifications.markRead(ctx, id3);
-    if (!row) throw new import_common85.NotFoundException({ error: { code: "notification_not_found", message: "Notification not found" } });
+    if (!row) throw new import_common89.NotFoundException({ error: { code: "notification_not_found", message: "Notification not found" } });
   }
   async markAllRead(ctx) {
     await this.notifications.markAllRead(ctx);
   }
 };
 NotificationsService = __decorateClass([
-  (0, import_common85.Injectable)(),
-  __decorateParam(0, (0, import_common85.Inject)(NotificationsRepository)),
-  __decorateParam(1, (0, import_common85.Inject)(TasksRepository)),
-  __decorateParam(2, (0, import_common85.Inject)(DossiersRepository)),
-  __decorateParam(3, (0, import_common85.Inject)(MembersRepository)),
-  __decorateParam(4, (0, import_common85.Inject)(InvitationsRepository))
+  (0, import_common89.Injectable)(),
+  __decorateParam(0, (0, import_common89.Inject)(NotificationsRepository)),
+  __decorateParam(1, (0, import_common89.Inject)(TasksRepository)),
+  __decorateParam(2, (0, import_common89.Inject)(DossiersRepository)),
+  __decorateParam(3, (0, import_common89.Inject)(MembersRepository)),
+  __decorateParam(4, (0, import_common89.Inject)(InvitationsRepository))
 ], NotificationsService);
 
+// src/notifications/digest.controller.ts
+var DigestController = class {
+  constructor(notifications2) {
+    this.notifications = notifications2;
+  }
+  notifications;
+  authorize(authorization) {
+    const secret = process.env.CRON_SECRET;
+    if (!secret) {
+      throw new import_common90.HttpException({ error: { code: "digest_disabled", message: "Alert digest is not configured" } }, import_common90.HttpStatus.SERVICE_UNAVAILABLE);
+    }
+    const given = Buffer.from(authorization ?? "");
+    const expected = Buffer.from(`Bearer ${secret}`);
+    if (given.length !== expected.length || !(0, import_node_crypto7.timingSafeEqual)(given, expected)) {
+      throw new import_common90.UnauthorizedException();
+    }
+  }
+  runFromCron(authorization) {
+    this.authorize(authorization);
+    return this.notifications.sendDigests();
+  }
+  run(authorization) {
+    this.authorize(authorization);
+    return this.notifications.sendDigests();
+  }
+};
+__decorateClass([
+  (0, import_common90.Get)(),
+  __decorateParam(0, (0, import_common90.Headers)("authorization"))
+], DigestController.prototype, "runFromCron", 1);
+__decorateClass([
+  (0, import_common90.Post)(),
+  (0, import_common90.HttpCode)(200),
+  __decorateParam(0, (0, import_common90.Headers)("authorization"))
+], DigestController.prototype, "run", 1);
+DigestController = __decorateClass([
+  (0, import_common90.Controller)("v1/internal/alert-digest"),
+  __decorateParam(0, (0, import_common90.Inject)(NotificationsService))
+], DigestController);
+
 // src/notifications/notifications.controller.ts
+var import_common91 = __toESM(require_common(), 1);
 var NotificationsController = class {
   constructor(notifications2) {
     this.notifications = notifications2;
@@ -122749,63 +123504,155 @@ var NotificationsController = class {
   }
 };
 __decorateClass([
-  (0, import_common86.Get)(),
+  (0, import_common91.Get)(),
   __decorateParam(0, CurrentFirm())
 ], NotificationsController.prototype, "list", 1);
 __decorateClass([
-  (0, import_common86.Post)(":id/read"),
-  (0, import_common86.HttpCode)(204),
+  (0, import_common91.Post)(":id/read"),
+  (0, import_common91.HttpCode)(204),
   __decorateParam(0, CurrentFirm()),
-  __decorateParam(1, (0, import_common86.Param)("id"))
+  __decorateParam(1, (0, import_common91.Param)("id"))
 ], NotificationsController.prototype, "markRead", 1);
 __decorateClass([
-  (0, import_common86.Post)("read-all"),
-  (0, import_common86.HttpCode)(204),
+  (0, import_common91.Post)("read-all"),
+  (0, import_common91.HttpCode)(204),
   __decorateParam(0, CurrentFirm())
 ], NotificationsController.prototype, "markAllRead", 1);
 NotificationsController = __decorateClass([
-  (0, import_common86.Controller)("v1/notifications"),
-  (0, import_common86.UseGuards)(SessionGuard),
-  __decorateParam(0, (0, import_common86.Inject)(NotificationsService))
+  (0, import_common91.Controller)("v1/notifications"),
+  (0, import_common91.UseGuards)(SessionGuard),
+  __decorateParam(0, (0, import_common91.Inject)(NotificationsService))
 ], NotificationsController);
 
 // src/notifications/notifications.module.ts
 var NotificationsModule = class {
 };
 NotificationsModule = __decorateClass([
-  (0, import_common87.Module)({
+  (0, import_common92.Module)({
     imports: [AuthModule],
-    controllers: [NotificationsController],
+    controllers: [NotificationsController, DigestController],
     providers: [NotificationsService]
   })
 ], NotificationsModule);
 
+// src/onboarding/onboarding.module.ts
+var import_common95 = __toESM(require_common(), 1);
+
+// src/onboarding/onboarding.controller.ts
+var import_common94 = __toESM(require_common(), 1);
+
+// src/onboarding/onboarding.service.ts
+var import_common93 = __toESM(require_common(), 1);
+var OnboardingService = class {
+  constructor(onboarding) {
+    this.onboarding = onboarding;
+  }
+  onboarding;
+  async state(ctx) {
+    const member = await this.onboarding.findOwn(ctx);
+    if (!member) throw new import_common93.NotFoundException();
+    const [hasDossier, taskFlags, hasInvitedMember] = await Promise.all([
+      this.onboarding.hasDossier(ctx),
+      this.onboarding.ownTaskFlags(ctx),
+      // Who is in the team is admin information (D-014): not looked up for anyone else.
+      ctx.isAdmin ? this.onboarding.hasOtherMemberOrInvitation(ctx) : false
+    ]);
+    return OnboardingState.parse({
+      completedAt: member.onboardedAt ? member.onboardedAt.toISOString() : null,
+      checklist: { hourlyRateSet: member.hourlyRateCents > 0, hasDossier, ...taskFlags, hasInvitedMember }
+    });
+  }
+  async complete(ctx) {
+    await this.onboarding.markOnboarded(ctx);
+    return this.state(ctx);
+  }
+};
+OnboardingService = __decorateClass([
+  (0, import_common93.Injectable)(),
+  __decorateParam(0, (0, import_common93.Inject)(OnboardingRepository))
+], OnboardingService);
+
+// src/onboarding/onboarding.controller.ts
+var OnboardingController = class {
+  constructor(onboardingService) {
+    this.onboardingService = onboardingService;
+  }
+  onboardingService;
+  state(ctx) {
+    return this.onboardingService.state(ctx);
+  }
+  complete(ctx) {
+    return this.onboardingService.complete(ctx);
+  }
+};
+__decorateClass([
+  (0, import_common94.Get)(),
+  __decorateParam(0, CurrentFirm())
+], OnboardingController.prototype, "state", 1);
+__decorateClass([
+  (0, import_common94.Post)("complete"),
+  (0, import_common94.HttpCode)(200),
+  __decorateParam(0, CurrentFirm())
+], OnboardingController.prototype, "complete", 1);
+OnboardingController = __decorateClass([
+  (0, import_common94.Controller)("v1/me/onboarding"),
+  (0, import_common94.UseGuards)(SessionGuard),
+  __decorateParam(0, (0, import_common94.Inject)(OnboardingService))
+], OnboardingController);
+
+// src/onboarding/onboarding.module.ts
+var OnboardingModule = class {
+};
+OnboardingModule = __decorateClass([
+  (0, import_common95.Module)({
+    imports: [AuthModule],
+    controllers: [OnboardingController],
+    providers: [OnboardingService]
+  })
+], OnboardingModule);
+
 // src/tasks/tasks.module.ts
-var import_common90 = __toESM(require_common(), 1);
+var import_common98 = __toESM(require_common(), 1);
 
 // src/tasks/tasks.controller.ts
-var import_common89 = __toESM(require_common(), 1);
+var import_common97 = __toESM(require_common(), 1);
 
 // src/tasks/tasks.service.ts
-var import_common88 = __toESM(require_common(), 1);
+var import_common96 = __toESM(require_common(), 1);
+var DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 var TasksService = class {
-  constructor(tasks2, dossiers2, auditLog) {
+  constructor(tasks2, dossiers2, members3, auditLog) {
     this.tasks = tasks2;
     this.dossiers = dossiers2;
+    this.members = members3;
     this.auditLog = auditLog;
   }
   tasks;
   dossiers;
+  members;
   auditLog;
   list(ctx, date5) {
+    if (date5 !== void 0 && !DATE_KEY.test(date5)) {
+      throw new import_common96.BadRequestException({ error: { code: "invalid_date", message: "date must be YYYY-MM-DD" } });
+    }
     return this.tasks.listForMember(ctx, date5);
+  }
+  /** Pending tasks from before today (Paris): they would otherwise be invisible in a Journal that shows one day. */
+  backlog(ctx) {
+    return this.tasks.listBacklog(ctx, parisDateKey(/* @__PURE__ */ new Date()));
   }
   /** Firm-scoped and not archived — PRODUCT_SPEC.md: "Archived dossiers stop receiving captures." */
   async assertAssignableDossier(ctx, dossierId) {
     const dossier = await this.dossiers.findById(ctx, dossierId);
     if (!dossier || dossier.status === "archived") {
-      throw new import_common88.BadRequestException({ error: { code: "dossier_not_assignable", message: "Unknown or archived dossier" } });
+      throw new import_common96.BadRequestException({ error: { code: "dossier_not_assignable", message: "Unknown or archived dossier" } });
     }
+  }
+  /** The rate stamped on a task at validation: the member's rate at that moment. */
+  async currentRateCents(ctx) {
+    const member = await this.members.findById(ctx.firmId, ctx.memberId);
+    if (!member) throw new import_common96.NotFoundException({ error: { code: "member_not_found", message: "Member not found" } });
+    return member.hourlyRateCents;
   }
   async createManual(ctx, body) {
     if (body.dossierId) await this.assertAssignableDossier(ctx, body.dossierId);
@@ -122813,35 +123660,82 @@ var TasksService = class {
     if (body.dossierId) {
       await this.dossiers.touchActivity(ctx, body.dossierId, /* @__PURE__ */ new Date());
     }
+    await this.auditLog.record(ctx, "task.create", "task", task.id);
     return task;
   }
-  async reassign(ctx, taskId, body) {
-    await this.assertAssignableDossier(ctx, body.dossierId);
-    const task = await this.tasks.reassign(ctx, taskId, body.dossierId);
-    if (!task) throw new import_common88.NotFoundException({ error: { code: "task_not_found", message: "Task not found" } });
-    await this.auditLog.record(ctx, "task.reassign", "task", taskId);
-    await this.dossiers.touchActivity(ctx, body.dossierId, /* @__PURE__ */ new Date());
+  /** `dossierId` reassigns (and logs a correction); the other fields edit a still-pending task. */
+  async update(ctx, taskId, body) {
+    const { dossierId, ...edits } = body;
+    const hasEdits = Object.keys(edits).length > 0;
+    const current = await this.tasks.findOwnedById(ctx, taskId);
+    if (!current) throw new import_common96.NotFoundException({ error: { code: "task_not_found", message: "Task not found" } });
+    if (hasEdits && current.status !== "pending") {
+      throw new import_common96.ConflictException({ error: { code: "task_not_pending", message: "Only a pending task can be edited" } });
+    }
+    const reassign = dossierId !== void 0 && dossierId !== current.dossierId;
+    if (reassign) {
+      if (current.invoiceId) {
+        throw new import_common96.ConflictException({ error: { code: "task_invoiced", message: "This time is already on an invoice draft" } });
+      }
+      await this.assertAssignableDossier(ctx, dossierId);
+    }
+    let task = current;
+    if (hasEdits) {
+      const edited = await this.tasks.updatePending(ctx, taskId, edits);
+      if (!edited) throw new import_common96.ConflictException({ error: { code: "task_not_pending", message: "Only a pending task can be edited" } });
+      task = { ...edited, corrected: current.corrected };
+      await this.auditLog.record(ctx, "task.update", "task", taskId);
+    }
+    if (reassign) {
+      const moved = await this.tasks.reassign(ctx, taskId, dossierId);
+      if (!moved) throw new import_common96.NotFoundException({ error: { code: "task_not_found", message: "Task not found" } });
+      task = moved;
+      await this.auditLog.record(ctx, "task.reassign", "task", taskId);
+      await this.dossiers.touchActivity(ctx, dossierId, /* @__PURE__ */ new Date());
+    }
     return task;
+  }
+  async discard(ctx, taskId) {
+    const discarded = await this.tasks.discardPending(ctx, taskId);
+    if (!discarded) {
+      throw new import_common96.NotFoundException({ error: { code: "task_not_found", message: "Task not found or no longer pending" } });
+    }
+    await this.auditLog.record(ctx, "task.discard", "task", taskId);
   }
   async validate(ctx, taskId) {
-    const task = await this.tasks.validate(ctx, taskId);
+    const task = await this.tasks.validate(ctx, taskId, await this.currentRateCents(ctx));
     if (!task) {
-      throw new import_common88.NotFoundException({ error: { code: "task_not_found", message: "Task not found or already validated" } });
+      throw new import_common96.NotFoundException({ error: { code: "task_not_found", message: "Task not found or already validated" } });
     }
     await this.auditLog.record(ctx, "task.validate", "task", taskId);
     return task;
   }
-  async validateAll(ctx) {
-    const validated = await this.tasks.validateAllPending(ctx);
-    await this.auditLog.record(ctx, "task.validate_all", "task", null);
+  async unvalidate(ctx, taskId) {
+    const current = await this.tasks.findOwnedById(ctx, taskId);
+    if (!current || current.status !== "validated") {
+      throw new import_common96.NotFoundException({ error: { code: "task_not_found", message: "Task not found or not validated" } });
+    }
+    if (current.invoiceId) {
+      throw new import_common96.ConflictException({ error: { code: "task_invoiced", message: "This time is already on an invoice draft" } });
+    }
+    const task = await this.tasks.unvalidate(ctx, taskId);
+    if (!task) throw new import_common96.ConflictException({ error: { code: "task_invoiced", message: "This time is already on an invoice draft" } });
+    await this.auditLog.record(ctx, "task.unvalidate", "task", taskId);
+    return { ...task, corrected: current.corrected };
+  }
+  /** Validates exactly the listed tasks — the ones the Journal showed — not every pending task of the member. */
+  async validateMany(ctx, body) {
+    const validated = await this.tasks.validateMany(ctx, body.taskIds, await this.currentRateCents(ctx));
+    if (validated.length > 0) await this.auditLog.record(ctx, "task.validate_all", "task", null);
     return validated;
   }
 };
 TasksService = __decorateClass([
-  (0, import_common88.Injectable)(),
-  __decorateParam(0, (0, import_common88.Inject)(TasksRepository)),
-  __decorateParam(1, (0, import_common88.Inject)(DossiersRepository)),
-  __decorateParam(2, (0, import_common88.Inject)(AuditLogRepository))
+  (0, import_common96.Injectable)(),
+  __decorateParam(0, (0, import_common96.Inject)(TasksRepository)),
+  __decorateParam(1, (0, import_common96.Inject)(DossiersRepository)),
+  __decorateParam(2, (0, import_common96.Inject)(MembersRepository)),
+  __decorateParam(3, (0, import_common96.Inject)(AuditLogRepository))
 ], TasksService);
 
 // src/tasks/tasks.controller.ts
@@ -122853,55 +123747,83 @@ var TasksController = class {
   list(ctx, date5) {
     return this.tasksService.list(ctx, date5);
   }
+  backlog(ctx) {
+    return this.tasksService.backlog(ctx);
+  }
   create(ctx, body) {
     return this.tasksService.createManual(ctx, body);
   }
-  reassign(ctx, id3, body) {
-    return this.tasksService.reassign(ctx, id3, body);
+  validateAll(ctx, body) {
+    return this.tasksService.validateMany(ctx, body);
+  }
+  update(ctx, id3, body) {
+    return this.tasksService.update(ctx, id3, body);
+  }
+  discard(ctx, id3) {
+    return this.tasksService.discard(ctx, id3);
   }
   validate(ctx, id3) {
     return this.tasksService.validate(ctx, id3);
   }
-  validateAll(ctx) {
-    return this.tasksService.validateAll(ctx);
+  unvalidate(ctx, id3) {
+    return this.tasksService.unvalidate(ctx, id3);
   }
 };
 __decorateClass([
-  (0, import_common89.Get)(),
+  (0, import_common97.Get)(),
   __decorateParam(0, CurrentFirm()),
-  __decorateParam(1, (0, import_common89.Query)("date"))
+  __decorateParam(1, (0, import_common97.Query)("date"))
 ], TasksController.prototype, "list", 1);
 __decorateClass([
-  (0, import_common89.Post)(),
+  (0, import_common97.Get)("backlog"),
+  __decorateParam(0, CurrentFirm())
+], TasksController.prototype, "backlog", 1);
+__decorateClass([
+  (0, import_common97.Post)(),
   __decorateParam(0, CurrentFirm()),
-  __decorateParam(1, (0, import_common89.Body)(new ZodValidationPipe(CreateManualTaskBody)))
+  __decorateParam(1, (0, import_common97.Body)(new ZodValidationPipe(CreateManualTaskBody)))
 ], TasksController.prototype, "create", 1);
 __decorateClass([
-  (0, import_common89.Patch)(":id"),
+  (0, import_common97.Post)("validate-all"),
+  (0, import_common97.HttpCode)(200),
   __decorateParam(0, CurrentFirm()),
-  __decorateParam(1, (0, import_common89.Param)("id")),
-  __decorateParam(2, (0, import_common89.Body)(new ZodValidationPipe(ReassignTaskBody)))
-], TasksController.prototype, "reassign", 1);
+  __decorateParam(1, (0, import_common97.Body)(new ZodValidationPipe(ValidateTasksBody)))
+], TasksController.prototype, "validateAll", 1);
 __decorateClass([
-  (0, import_common89.Post)(":id/validate"),
+  (0, import_common97.Patch)(":id"),
   __decorateParam(0, CurrentFirm()),
-  __decorateParam(1, (0, import_common89.Param)("id"))
+  __decorateParam(1, (0, import_common97.Param)("id")),
+  __decorateParam(2, (0, import_common97.Body)(new ZodValidationPipe(UpdateTaskBody)))
+], TasksController.prototype, "update", 1);
+__decorateClass([
+  (0, import_common97.Delete)(":id"),
+  (0, import_common97.HttpCode)(204),
+  __decorateParam(0, CurrentFirm()),
+  __decorateParam(1, (0, import_common97.Param)("id"))
+], TasksController.prototype, "discard", 1);
+__decorateClass([
+  (0, import_common97.Post)(":id/validate"),
+  (0, import_common97.HttpCode)(200),
+  __decorateParam(0, CurrentFirm()),
+  __decorateParam(1, (0, import_common97.Param)("id"))
 ], TasksController.prototype, "validate", 1);
 __decorateClass([
-  (0, import_common89.Post)("validate-all"),
-  __decorateParam(0, CurrentFirm())
-], TasksController.prototype, "validateAll", 1);
+  (0, import_common97.Post)(":id/unvalidate"),
+  (0, import_common97.HttpCode)(200),
+  __decorateParam(0, CurrentFirm()),
+  __decorateParam(1, (0, import_common97.Param)("id"))
+], TasksController.prototype, "unvalidate", 1);
 TasksController = __decorateClass([
-  (0, import_common89.Controller)("v1/tasks"),
-  (0, import_common89.UseGuards)(SessionGuard),
-  __decorateParam(0, (0, import_common89.Inject)(TasksService))
+  (0, import_common97.Controller)("v1/tasks"),
+  (0, import_common97.UseGuards)(SessionGuard),
+  __decorateParam(0, (0, import_common97.Inject)(TasksService))
 ], TasksController);
 
 // src/tasks/tasks.module.ts
 var TasksModule = class {
 };
 TasksModule = __decorateClass([
-  (0, import_common90.Module)({
+  (0, import_common98.Module)({
     imports: [AuthModule],
     controllers: [TasksController],
     providers: [TasksService]
@@ -122912,7 +123834,7 @@ TasksModule = __decorateClass([
 var AppModule = class {
 };
 AppModule = __decorateClass([
-  (0, import_common91.Module)({
+  (0, import_common99.Module)({
     imports: [
       DbModule,
       CryptoModule,
@@ -122926,13 +123848,15 @@ AppModule = __decorateClass([
       BillingModule,
       BrainModule,
       AdminModule,
-      NotificationsModule
+      NotificationsModule,
+      FeedbackModule,
+      OnboardingModule
     ]
   })
 ], AppModule);
 
 // src/common/api-exception.filter.ts
-var import_common92 = __toESM(require_common(), 1);
+var import_common100 = __toESM(require_common(), 1);
 function pgCode(exception) {
   const e = exception;
   const code = e?.code ?? e?.cause?.code;
@@ -122942,18 +123866,19 @@ var ApiExceptionFilter = class {
   catch(exception, host) {
     const res = host.switchToHttp().getResponse();
     if (pgCode(exception) === "22P02") {
-      res.status(import_common92.HttpStatus.NOT_FOUND).json({ error: { code: "not_found", message: "Not found" } });
+      res.status(import_common100.HttpStatus.NOT_FOUND).json({ error: { code: "not_found", message: "Not found" } });
       return;
     }
-    const status = exception instanceof import_common92.HttpException ? exception.getStatus() : import_common92.HttpStatus.INTERNAL_SERVER_ERROR;
-    const body = exception instanceof import_common92.HttpException ? exception.getResponse() : null;
+    const status = exception instanceof import_common100.HttpException ? exception.getStatus() : import_common100.HttpStatus.INTERNAL_SERVER_ERROR;
+    const body = exception instanceof import_common100.HttpException ? exception.getResponse() : null;
     let error3;
-    if (body && typeof body === "object" && "error" in body) {
-      error3 = body.error;
-    } else if (exception instanceof import_common92.HttpException) {
+    const thrown = body && typeof body === "object" && "error" in body ? body.error : null;
+    if (thrown && typeof thrown === "object") {
+      error3 = thrown;
+    } else if (exception instanceof import_common100.HttpException) {
       error3 = {
-        code: status === import_common92.HttpStatus.UNAUTHORIZED ? "unauthorized" : status === import_common92.HttpStatus.NOT_FOUND ? "not_found" : "http_error",
-        message: exception.message
+        code: status === import_common100.HttpStatus.UNAUTHORIZED ? "unauthorized" : status === import_common100.HttpStatus.NOT_FOUND ? "not_found" : status === import_common100.HttpStatus.BAD_REQUEST ? "bad_request" : "http_error",
+        message: status === import_common100.HttpStatus.NOT_FOUND ? "Not found" : status === import_common100.HttpStatus.BAD_REQUEST ? "Malformed request" : exception.message
       };
     } else {
       if (!process.env.VERCEL && process.env.NODE_ENV !== "production") console.error(exception);
@@ -122964,7 +123889,7 @@ var ApiExceptionFilter = class {
   }
 };
 ApiExceptionFilter = __decorateClass([
-  (0, import_common92.Catch)()
+  (0, import_common100.Catch)()
 ], ApiExceptionFilter);
 
 // vercel-entry.ts

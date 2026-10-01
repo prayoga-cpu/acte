@@ -8,9 +8,11 @@ import { DataAccessModule } from "./data-access/data-access.module.js";
 import { DbModule } from "./db/db.module.js";
 import { DevicesModule } from "./devices/devices.module.js";
 import { DossiersModule } from "./dossiers/dossiers.module.js";
+import { FeedbackModule } from "./feedback/feedback.module.js";
 import { KeysModule } from "./keys/keys.module.js";
 import { MeModule } from "./me/me.module.js";
 import { NotificationsModule } from "./notifications/notifications.module.js";
+import { OnboardingModule } from "./onboarding/onboarding.module.js";
 import { TasksModule } from "./tasks/tasks.module.js";
 
 @Module({
@@ -28,6 +30,8 @@ import { TasksModule } from "./tasks/tasks.module.js";
     BrainModule,
     AdminModule,
     NotificationsModule,
+    FeedbackModule,
+    OnboardingModule,
   ],
 })
 export class AppModule {}

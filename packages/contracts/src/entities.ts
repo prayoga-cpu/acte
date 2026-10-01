@@ -40,6 +40,12 @@ export const Task = z.object({
   confidence: z.number().int().min(0).max(100).nullable(),
   status: TaskStatus,
   validatedAt: ts.nullable(),
+  /** Hourly rate stamped when the task was validated, so a later rate change never re-prices past time. */
+  rateCents: z.number().int().nonnegative().nullable(),
+  /** Set once the task's time is on a client invoice draft; such a task can no longer be un-validated. */
+  invoiceId: id.nullable(),
+  /** True once the member has moved the task to another dossier ("Corrigé ✓" in the Journal). */
+  corrected: z.boolean(),
   // The "why" explanation is intentionally absent until decision D-003 is taken.
 });
 

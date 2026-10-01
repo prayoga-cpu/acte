@@ -1,8 +1,9 @@
 import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import type { HomeSummary, MemberProfile, SourceSettings, StatsSummary, WeekSummary } from "@acte/contracts";
+import type { HomeSummary, MemberProfile, SourceSettings, StatsSummary, UpdatePreferencesBody, WeekSummary } from "@acte/contracts";
+import { DossiersRepository } from "../data-access/dossiers.repository.js";
 import { FirmsRepository } from "../data-access/firms.repository.js";
 import { MembersRepository } from "../data-access/members.repository.js";
-import { TasksRepository } from "../data-access/tasks.repository.js";
+import { TasksRepository, type TaskRecord } from "../data-access/tasks.repository.js";
 import type { FirmContext } from "../data-access/firm-context.js";
 import { parisDateKey, parisMonthKey, startOfParisWeek } from "../lib/time.js";
 
@@ -16,12 +17,19 @@ const MANUAL_ENTRY_OVERHEAD_MIN = 3;
 
 const WEEKDAY_LABELS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
+/** "Sauvées de l'oubli" (prototype Profile view): tasks shorter than this are the ones nobody logs by hand. */
+const SHORT_TASK_MIN = 10;
+
+/** A validated task is worth its own stamped rate; one validated before rates were stamped falls back to the member's current rate. */
+const revenueCents = (t: TaskRecord, fallbackRateCents: number) => Math.round((t.durationMin / 60) * (t.rateCents ?? fallbackRateCents));
+
 @Injectable()
 export class MeService {
   constructor(
     @Inject(TasksRepository) private readonly tasks: TasksRepository,
     @Inject(MembersRepository) private readonly members: MembersRepository,
     @Inject(FirmsRepository) private readonly firms: FirmsRepository,
+    @Inject(DossiersRepository) private readonly dossiers: DossiersRepository,
   ) {}
 
   async profile(ctx: FirmContext): Promise<MemberProfile> {
@@ -39,7 +47,15 @@ export class MeService {
       isAdmin: member.isAdmin,
       hourlyRateCents: member.hourlyRateCents,
       status: member.status,
+      theme: member.theme,
+      alertEmails: member.alertEmails,
     };
+  }
+
+  async updatePreferences(ctx: FirmContext, body: UpdatePreferencesBody): Promise<MemberProfile> {
+    const updated = await this.members.updatePreferences(ctx, body);
+    if (!updated) throw new NotFoundException();
+    return this.profile(ctx);
   }
 
   async summary(ctx: FirmContext): Promise<HomeSummary> {
@@ -58,7 +74,7 @@ export class MeService {
 
     const securedRevenueMonthCents = all
       .filter((t) => t.status === "validated" && parisMonthKey(new Date(t.startedAt)) === monthKey)
-      .reduce((s, t) => s + Math.round((t.durationMin / 60) * member.hourlyRateCents), 0);
+      .reduce((s, t) => s + revenueCents(t, member.hourlyRateCents), 0);
 
     const roiMinutesToday = todays.filter((t) => t.source !== "manual").length * MANUAL_ENTRY_OVERHEAD_MIN;
 
@@ -93,24 +109,44 @@ export class MeService {
     const member = await this.members.findById(ctx.firmId, ctx.memberId);
     if (!member) throw new NotFoundException();
 
-    const all = await this.tasks.listForMember(ctx);
+    const [all, dossierList] = await Promise.all([this.tasks.listForMember(ctx), this.dossiers.list(ctx)]);
     const validated = all.filter((t) => t.status === "validated");
+    const dossierById = new Map(dossierList.map((d) => [d.id, d]));
 
     const now = new Date();
+    const monthKey = parisMonthKey(now);
+    const [year, month] = monthKey.split("-").map(Number) as [number, number];
     const months = Array.from({ length: 6 }, (_, i) => {
-      const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - (5 - i), 1));
+      // Mid-month, so the Paris month is the same as the UTC one whatever the offset.
+      const d = new Date(Date.UTC(year, month - 1 - (5 - i), 15));
       const key = parisMonthKey(d);
       const label = new Intl.DateTimeFormat("fr-FR", { month: "short", timeZone: "Europe/Paris" }).format(d);
-      const revenueCents = validated
-        .filter((t) => parisMonthKey(new Date(t.startedAt)) === key)
-        .reduce((s, t) => s + Math.round((t.durationMin / 60) * member.hourlyRateCents), 0);
-      return { label, revenueCents };
+      const revenue = validated.filter((t) => parisMonthKey(new Date(t.startedAt)) === key).reduce((s, t) => s + revenueCents(t, member.hourlyRateCents), 0);
+      return { label, revenueCents: revenue };
     });
 
+    const thisMonth = all.filter((t) => parisMonthKey(new Date(t.startedAt)) === monthKey);
+    const validatedThisMonth = thisMonth.filter((t) => t.status === "validated");
+
     const bySource = new Map<string, number>();
-    for (const t of validated) {
+    for (const t of validatedThisMonth) {
       bySource.set(t.source, (bySource.get(t.source) ?? 0) + t.durationMin);
     }
+
+    const capturedMonthMin = thisMonth.reduce((s, t) => s + t.durationMin, 0);
+    // Unassigned time isn't billable to anyone yet; neither is time on a non-billable dossier.
+    const billableMin = thisMonth.filter((t) => t.dossierId && dossierById.get(t.dossierId)?.isBillable).reduce((s, t) => s + t.durationMin, 0);
+
+    const byDay = new Map<string, number>();
+    const byDossier = new Map<string, number>();
+    for (const t of thisMonth) {
+      const day = parisDateKey(new Date(t.startedAt));
+      byDay.set(day, (byDay.get(day) ?? 0) + t.durationMin);
+      if (t.dossierId) byDossier.set(t.dossierId, (byDossier.get(t.dossierId) ?? 0) + t.durationMin);
+    }
+    const bestDay = [...byDay.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+    const topDossier = [...byDossier.entries()].sort((a, b) => b[1] - a[1])[0];
+    const topDossierName = topDossier ? dossierById.get(topDossier[0])?.name : undefined;
 
     return {
       months,
@@ -118,6 +154,13 @@ export class MeService {
         source: source as StatsSummary["sourceBreakdown"][number]["source"],
         minutes,
       })),
+      capturedMonthMin,
+      billableMonthPct: capturedMonthMin > 0 ? Math.round((billableMin / capturedMonthMin) * 100) : 0,
+      highlights: {
+        bestDay: bestDay ? { date: bestDay[0], minutes: bestDay[1] } : null,
+        topDossier: topDossier && topDossierName ? { name: topDossierName, pct: Math.round((topDossier[1] / capturedMonthMin) * 100) } : null,
+        shortTasksCount: thisMonth.filter((t) => t.durationMin < SHORT_TASK_MIN).length,
+      },
     };
   }
 

@@ -52,6 +52,22 @@ by default so a real firm never sees what could read as a working
 download; flip it on only for an internal demo that will explicitly call
 out the simulation.
 
+**Email verification (D-017).** Signup sends a verification link and no session is opened until it
+is followed; password reset and magic links are emailed too. Locally these all land in the dev
+outbox (see above). Anywhere without `BREVO_API_KEY` and without the outbox — the Vercel beta today —
+new signups, magic links and password resets fail on purpose. `db:seed` presets the demo accounts as
+verified.
+
+**Alert digest (D-019).** `GET/POST /v1/internal/alert-digest` emails each member a count of their
+unread alerts. It needs `CRON_SECRET` (the caller sends `Authorization: Bearer $CRON_SECRET`; Vercel
+Cron does this by itself once the variable is set on `acte-api`, see `vercel.json`) and answers 503
+without it. To run it by hand locally:
+`curl -X POST -H "Authorization: Bearer $CRON_SECRET" http://localhost:4000/v1/internal/alert-digest`.
+
+**Tests.** `pnpm --filter @acte/api test` runs the unit tests (no services). `pnpm --filter @acte/api test:routes`
+runs the route tests with Supertest against the real app: they drop, re-create and migrate their own
+database (`<DATABASE_URL's name>_routes`, local hosts only), so they never touch dev or e2e data.
+
 **LLM chat (D-015), off by default.** The Cerveau d'ACTE chat calls an
 OpenAI-compatible LLM API from `apps/api` only (never the browser). To try it
 locally, add to the repo-root `.env`:

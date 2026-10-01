@@ -11,3 +11,4 @@ export * from "./client-invoice";
 export * from "./audit-log";
 export * from "./notification";
 export * from "./invitation";
+export * from "./feedback";

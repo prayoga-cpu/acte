@@ -33,6 +33,11 @@ const MAIL_IC = (
     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
   </svg>
 );
+const SHIELD_IC = (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1 1 0 0 1 1.52 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1z" />
+  </svg>
+);
 const X_IC = (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M18 6 6 18" />
@@ -46,6 +51,7 @@ export function MemberMenu({
   onRemind,
   onSuspend,
   onReactivate,
+  onSetAdmin,
   onResendInvitation,
   onCancelInvitation,
 }: {
@@ -54,6 +60,8 @@ export function MemberMenu({
   onRemind: () => void | Promise<void>;
   onSuspend: () => void | Promise<void>;
   onReactivate: () => void | Promise<void>;
+  /** D-004 interim (D-019): grant or remove admin rights. The API refuses removing the last admin. */
+  onSetAdmin: (isAdmin: boolean) => void | Promise<void>;
   onResendInvitation: () => void | Promise<void>;
   onCancelInvitation: () => void | Promise<void>;
 }) {
@@ -106,6 +114,7 @@ export function MemberMenu({
             <>
               {item(onEdit, EDIT_IC, t.admin.menu.edit)}
               {item(onRemind, BELL_IC, t.admin.menu.remind)}
+              {!suspended && item(() => onSetAdmin(!member.isAdmin), SHIELD_IC, member.isAdmin ? t.admin.menu.revokeAdmin : t.admin.menu.grantAdmin)}
               {suspended
                 ? item(onReactivate, CHECK_IC, t.admin.menu.reactivate, "text-emerald-300 hover:bg-emerald-400/10")
                 : item(onSuspend, POWER_IC, t.admin.menu.suspend, "text-red-400 hover:bg-red-500/10")}

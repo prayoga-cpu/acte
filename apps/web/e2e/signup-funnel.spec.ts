@@ -1,4 +1,5 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
+import { lastLinkTo } from "./helpers";
 
 /**
  * Covers the funnel's actual entry point (land -> create account -> add
@@ -34,8 +35,28 @@ test.describe.serial("New firm signup funnel", () => {
     await page.getByLabel("Mot de passe").fill("acte-e2e-signup-2026");
     await page.getByRole("button", { name: "Créer mon compte" }).click();
 
+    // D-017: signup ends on "confirm your address" — no session yet, and signing in is refused until the link is followed.
+    await expect(page.getByText("Confirmez votre adresse e-mail")).toBeVisible();
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/login$/);
+    await page.getByLabel("Adresse e-mail").fill(email);
+    await page.getByLabel("Mot de passe").fill("acte-e2e-signup-2026");
+    await page.getByRole("button", { name: "Se connecter" }).click();
+    await expect(page.getByText(/Adresse e-mail non confirmée/)).toBeVisible();
+  });
+
+  test("the emailed link confirms the address and opens the new firm's dashboard", async () => {
+    await page.goto(await lastLinkTo(email, "Confirmez"));
     await expect(page).toHaveURL("/dashboard");
     await expect(page.getByText("Test E2E Avocat")).toBeVisible();
+    // A founder starts at the role's default rate, not 0 € (BUG-7).
+    await expect(page.getByText(/taux horaire moyen/)).toContainText("280");
+  });
+
+  test("a new member is greeted by the welcome, and can put it off", async () => {
+    await expect(page.getByRole("heading", { name: "Bienvenue dans ACTE." })).toBeVisible();
+    await page.getByRole("button", { name: "Plus tard" }).click();
+    await expect(page.getByRole("heading", { name: "Bienvenue dans ACTE." })).toHaveCount(0);
   });
 
   test("a brand-new firm's Home renders an empty Journal instead of crashing", async () => {

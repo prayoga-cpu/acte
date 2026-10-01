@@ -1,7 +1,5 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import { expect, test, type Browser, type Page } from "@playwright/test";
+import { lastLinkTo } from "./helpers";
 
 /**
  * Admin console + invitations (D-014: role-gated, token-bound acceptance).
@@ -9,23 +7,6 @@ import { expect, test, type Browser, type Page } from "@playwright/test";
  * suspended member is reactivated). Lasting additions: invitations/accounts
  * with unique e2e emails, one test dossier, one back-dated task.
  */
-const OUTBOX = process.env.EMAIL_DEV_OUTBOX ?? join(tmpdir(), "acte-dev-outbox");
-
-/** The newest dev-outbox link sent to `to` (apps/api/src/email/brevo.service.ts). */
-async function lastLinkTo(to: string): Promise<string> {
-  for (let attempt = 0; attempt < 20; attempt++) {
-    const mails = readdirSync(OUTBOX)
-      .filter((f) => f.endsWith(".json"))
-      .sort()
-      .reverse()
-      .map((f) => JSON.parse(readFileSync(join(OUTBOX, f), "utf8")) as { to: string; link: string | null });
-    const hit = mails.find((m) => m.to === to && m.link);
-    if (hit?.link) return hit.link;
-    await new Promise((r) => setTimeout(r, 250));
-  }
-  throw new Error(`No dev-outbox email to ${to} in ${OUTBOX}`);
-}
-
 async function signIn(page: Page, email: string, password = "acte-dev-2026") {
   await page.goto("/login");
   await page.getByLabel("Adresse e-mail").fill(email);
@@ -104,6 +85,9 @@ test.describe.serial("Admin console", () => {
     await page.getByLabel("Adresse e-mail").fill(squatted);
     await page.getByLabel("Mot de passe").fill("acte-e2e-squat-2026");
     await page.getByRole("button", { name: "Créer mon compte" }).click();
+    // The account only exists once its address is confirmed (D-017): follow the emailed link.
+    await expect(page.getByText("Confirmez votre adresse e-mail")).toBeVisible();
+    await page.goto(await lastLinkTo(squatted, "Confirmez"));
     await expect(page).toHaveURL("/dashboard");
     // They founded their own firm: none of the Charpentier firm's dossiers are visible to them.
     const dossiers = (await (await page.request.get("/v1/dossiers")).json()) as { name: string }[];
@@ -118,7 +102,7 @@ test.describe.serial("Admin console", () => {
 
   test("the invite link for an address that already has an account explains itself", async ({ browser }) => {
     const page = await (await browser.newContext()).newPage();
-    await page.goto(await lastLinkTo(squatted));
+    await page.goto(await lastLinkTo(squatted, "Invitation"));
     await page.getByLabel("Nom complet").fill("Usurpateur E2E");
     await page.getByLabel("Mot de passe").fill("acte-e2e-squat-2026");
     await page.getByRole("button", { name: "Activer mon compte" }).click();
@@ -157,7 +141,7 @@ test.describe.serial("Admin console", () => {
   test("cancelling an invitation removes the row", async () => {
     await admin.getByRole("button", { name: `Actions pour ${cancelled}` }).click();
     await admin.getByRole("button", { name: "Annuler l'invitation" }).click();
-    await expect(admin.getByText("Invitation annulée")).toBeVisible();
+    await expect(admin.locator("#toast")).toHaveText("Invitation annulée");
     await expect(row(admin, cancelled)).toHaveCount(0);
   });
 

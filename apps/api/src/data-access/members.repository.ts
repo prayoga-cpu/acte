@@ -5,7 +5,7 @@ import { DB } from "../db/db.module.js";
 import type { Database } from "../db/client.js";
 import { members, session, user } from "../db/schema/index.js";
 import type { FirmContext } from "./firm-context.js";
-import { initialsOf, isPartnerRole } from "./member-defaults.js";
+import { defaultRateCents, initialsOf, isPartnerRole } from "./member-defaults.js";
 
 /** A second "Rappeler la validation" within this window is refused rather than re-sending the email. */
 export const REMINDER_COOLDOWN_MS = 24 * 60 * 60 * 1000;
@@ -27,6 +27,8 @@ export class MembersRepository {
         role: "associe",
         isPartner: true,
         isAdmin: true,
+        // The role's default rate, like an invited member gets — a 0 € rate made every figure of a new firm 0 € (BUG-7).
+        hourlyRateCents: defaultRateCents("associe"),
         status: "active",
       })
       .returning();
@@ -36,6 +38,12 @@ export class MembersRepository {
   async findByAuthUserId(authUserId: string) {
     const [row] = await this.db.select().from(members).where(eq(members.authUserId, authUserId));
     return row ?? null;
+  }
+
+  /** Does a sign-in account (better-auth `user`) already exist for this address, in any firm? */
+  async authAccountExists(email: string): Promise<boolean> {
+    const [row] = await this.db.select({ id: user.id }).from(user).where(eq(user.email, email.toLowerCase()));
+    return !!row;
   }
 
   /** A suspended member resolves to no context — suspension revokes access, it doesn't just relabel the row. */
@@ -71,6 +79,25 @@ export class MembersRepository {
     return row ?? null;
   }
 
+  /**
+   * Every member who can sign in and hasn't opted out of alert emails —
+   * across firms, for the scheduled digest job only (it has no session and
+   * builds one FirmContext per recipient).
+   */
+  async listDigestRecipients() {
+    const rows = await this.db.select().from(members).where(eq(members.alertEmails, true)).orderBy(asc(members.createdAt), asc(members.id));
+    return rows.filter((m) => m.status === "active" || m.status === "in_court");
+  }
+
+  async updatePreferences(ctx: FirmContext, patch: { theme?: "dark" | "light"; alertEmails?: boolean }) {
+    const [row] = await this.db
+      .update(members)
+      .set(patch)
+      .where(and(eq(members.firmId, ctx.firmId), eq(members.id, ctx.memberId)))
+      .returning();
+    return row ?? null;
+  }
+
   /** Admin console team table. createdAt never changes, so rows keep their position across edits. */
   async listByFirmOrdered(firmId: string) {
     return this.db
@@ -81,9 +108,10 @@ export class MembersRepository {
   }
 
   /** The partner flag follows the role, so a role change recomputes it. An empty patch is a no-op, not a 500. */
-  async updateMember(ctx: FirmContext, memberId: string, patch: { role?: MemberRole; hourlyRateCents?: number }) {
+  async updateMember(ctx: FirmContext, memberId: string, patch: { role?: MemberRole; hourlyRateCents?: number; isAdmin?: boolean }) {
     const set = {
       ...(patch.hourlyRateCents !== undefined ? { hourlyRateCents: patch.hourlyRateCents } : {}),
+      ...(patch.isAdmin !== undefined ? { isAdmin: patch.isAdmin } : {}),
       ...(patch.role !== undefined ? { role: patch.role, isPartner: isPartnerRole(patch.role) } : {}),
     };
     if (Object.keys(set).length === 0) return this.findById(ctx.firmId, memberId);
@@ -93,6 +121,12 @@ export class MembersRepository {
       .where(and(eq(members.firmId, ctx.firmId), eq(members.id, memberId)))
       .returning();
     return row ?? null;
+  }
+
+  /** Members who can still administer the firm (admins who aren't suspended). */
+  async countActiveAdmins(firmId: string): Promise<number> {
+    const rows = await this.db.select({ id: members.id, status: members.status }).from(members).where(and(eq(members.firmId, firmId), eq(members.isAdmin, true)));
+    return rows.filter((r) => r.status !== "suspended").length;
   }
 
   async suspend(ctx: FirmContext, memberId: string) {

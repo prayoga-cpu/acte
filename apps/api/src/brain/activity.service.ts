@@ -9,8 +9,12 @@ type Template = (actor: string, target: string) => string;
 
 /** The only actions the feed renders — also the SQL filter, so the two can't drift apart. */
 const TEMPLATES: Record<string, Template> = {
+  "task.create": (a) => `${a} · saisie manuelle ajoutée au journal.`,
+  "task.update": (a) => `${a} · tâche modifiée.`,
+  "task.discard": (a) => `${a} · tâche supprimée du journal.`,
+  "task.unvalidate": (a) => `${a} · validation annulée.`,
   "task.validate": (a) => `${a} · tâche validée au journal.`,
-  "task.validate_all": (a) => `${a} · toutes les tâches en attente validées.`,
+  "task.validate_all": (a) => `${a} · tâches en attente intégrées.`,
   "task.reassign": (a) => `${a} · tâche réassociée à un autre dossier.`,
   "dossier.create": (a, t) => `${a} · dossier « ${t} » créé.`,
   "dossier.update": (a, t) => `${a} · dossier « ${t} » mis à jour.`,
@@ -24,6 +28,10 @@ const TEMPLATES: Record<string, Template> = {
   "admin.member.remind": (a, t) => `${a} · rappel de validation envoyé à ${t}.`,
   "admin.member.suspend": (a, t) => `${a} · compte de ${t} suspendu.`,
   "admin.member.reactivate": (a, t) => `${a} · compte de ${t} réactivé.`,
+  "admin.member.grant_admin": (a, t) => `${a} · droits admin donnés à ${t}.`,
+  "admin.member.revoke_admin": (a, t) => `${a} · droits admin retirés à ${t}.`,
+  "admin.firm.rename": (a) => `${a} · nom du cabinet modifié.`,
+  "feedback.send": (a) => `${a} · retour envoyé à l'équipe ACTE.`,
 };
 
 /**

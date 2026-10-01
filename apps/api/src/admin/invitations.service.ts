@@ -38,6 +38,13 @@ export class InvitationsService {
     const inv = await this.invitations.findUsableByToken(token);
     if (!inv) throw notFound();
 
+    // Checked here rather than left to signup: with email verification required (D-017), better-auth answers a signup
+    // for an existing address with a made-up success (so signup can't be used to probe who has an account), and this
+    // invitation would then be bound to an account that doesn't exist.
+    if (await this.members.authAccountExists(inv.email)) {
+      throw new ConflictException({ error: { code: "account_exists", message: "An ACTE account already exists for this address" } });
+    }
+
     // The signup hook sees this context and does NOT mint a new firm for the user.
     const res = await invitationAcceptance.run({ invitationId: inv.id }, () =>
       auth.api.signUpEmail({ body: { email: inv.email, password: body.password, name: body.name }, asResponse: true }),
@@ -66,6 +73,12 @@ export class InvitationsService {
     }
 
     await this.auditLog.record({ firmId: member.firmId, memberId: member.id, isAdmin: false }, "invitation.accept", "member", member.id);
-    return { setCookies: res.headers.getSetCookie() };
+
+    // Signup opens no session while the address is unverified (D-017); accept() has just marked it verified, so sign in now.
+    const signedIn = await auth.api.signInEmail({ body: { email: inv.email, password: body.password }, asResponse: true });
+    if (!signedIn.ok) {
+      throw new BadRequestException({ error: { code: "signin_failed", message: "Account created — sign in to continue" } });
+    }
+    return { setCookies: signedIn.headers.getSetCookie() };
   }
 }

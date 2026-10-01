@@ -6,3 +6,4 @@
 - Dark is default; light via `html.light`, persisted per user.
 - Compliance sentences render only when `COMPLIANCE_CLAIMS_ENABLED === "true"`.
 - Never call third-party APIs from the browser except Stripe redirects.
+- `data-tour="…"` attributes are what the help guides point at (`src/components/help/guides.ts`, D-021). Keep them when you edit or move an element; when a feature changes, update its guide step in `src/i18n/help.fr.ts` and `help.en.ts` in the same change.
